@@ -67,8 +67,10 @@ void xtouch_settings_loadSettings()
     }
 
     bool isTFTFlipped = xtouch_screen_getTFTFlip();
+#if 0
     tft.setRotation(isTFTFlipped ? 3 : 1);
     x_touch_touchScreen.setRotation(isTFTFlipped ? 3 : 1);
+#endif
     xtouch_screen_setBrightness(xTouchConfig.xTouchBacklightLevel);
 
     xtouch_screen_invertColors();

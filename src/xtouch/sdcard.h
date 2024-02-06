@@ -6,9 +6,12 @@
 #include <ArduinoJson.h>
 #include <Arduino.h>
 
+static SPIClass _spi_sd(HSPI);
+
 bool xtouch_sdcard_setup()
 {
-    if (!SD.begin())
+    _spi_sd.begin(SD_SCK, SD_MISO, SD_MOSI, -1);
+    if (!SD.begin(SD_CS, _spi_sd))
     {
         lv_label_set_text(introScreenCaption, LV_SYMBOL_SD_CARD " INSERT SD CARD");
         lv_obj_set_style_text_color(introScreenCaption, lv_color_hex(0xFF0000), LV_PART_MAIN | LV_STATE_DEFAULT);

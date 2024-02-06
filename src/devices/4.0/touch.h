@@ -1,16 +1,6 @@
 #ifndef _XLCD_TOUCH
 #define _XLCD_TOUCH
 
-#include <XPT2046_Touchscreen.h>
-
-#define XPT2046_IRQ 36
-#define XPT2046_MOSI 32
-#define XPT2046_MISO 39
-#define XPT2046_CLK 25
-#define XPT2046_CS 33
-
-SPIClass x_touch_spi = SPIClass(HSPI);
-XPT2046_Touchscreen x_touch_touchScreen(XPT2046_CS, XPT2046_IRQ);
 XTouchPanelConfig x_touch_touchConfig;
 
 class ScreenPoint
@@ -104,52 +94,10 @@ void xtouch_touch_setup()
     else
     {
         ConsoleInfo.println(F("[XTouch][TOUCH] Touch Setup"));
-        TS_Point p;
-        int16_t x1, y1, x2, y2;
 
         lv_label_set_text(introScreenCaption, "Touch the  " LV_SYMBOL_PLUS "  with the stylus");
         lv_timer_handler();
-
-        // wait for no touch
-        while (x_touch_touchScreen.touched())
-            ;
-        tft.drawFastHLine(0, 10, 20, ILI9341_WHITE);
-        tft.drawFastVLine(10, 0, 20, ILI9341_WHITE);
-        while (!x_touch_touchScreen.touched())
-            ;
-        delay(50);
-        p = x_touch_touchScreen.getPoint();
-        x1 = p.x;
-        y1 = p.y;
-        tft.drawFastHLine(0, 10, 20, ILI9341_BLACK);
-        tft.drawFastVLine(10, 0, 20, ILI9341_BLACK);
-        delay(500);
-
-        while (x_touch_touchScreen.touched())
-            ;
-        tft.drawFastHLine(300, 230, 20, ILI9341_WHITE);
-        tft.drawFastVLine(310, 220, 20, ILI9341_WHITE);
-
-        while (!x_touch_touchScreen.touched())
-            ;
-        delay(50);
-        p = x_touch_touchScreen.getPoint();
-        x2 = p.x;
-        y2 = p.y;
-        tft.drawFastHLine(300, 230, 20, ILI9341_BLACK);
-        tft.drawFastVLine(310, 220, 20, ILI9341_BLACK);
-
-        int16_t xDist = 320 - 40;
-        int16_t yDist = 240 - 40;
-
-        x_touch_touchConfig.xCalM = (float)xDist / (float)(x2 - x1);
-        x_touch_touchConfig.xCalC = 20.0 - ((float)x1 * x_touch_touchConfig.xCalM);
-        // y
-        x_touch_touchConfig.yCalM = (float)yDist / (float)(y2 - y1);
-        x_touch_touchConfig.yCalC = 20.0 - ((float)y1 * x_touch_touchConfig.yCalM);
-
         xtouch_saveTouchConfig(x_touch_touchConfig);
-
         loadScreen(-1);
     }
 }

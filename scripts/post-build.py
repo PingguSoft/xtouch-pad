@@ -118,31 +118,40 @@ def post_build_manifest(version_value):
     with open("../xtouch-bin/webusb/webusb.manifest.json", "w") as webusb_manifest_file:
         webusb_manifest_file.write(webusb_manifest_serialized)
 
+def copyfile(source, dest, buffer_size=1024*1024):
+     with open(source, 'rb') as src, open(dest, 'wb') as dst:
+        while True:
+            copy_buffer = src.read(buffer_size)
+            if not copy_buffer:
+                break
+            dst.write(copy_buffer)
 
 def post_build_copy_ota_fw(version):
     ota_bin_source = ".pio/build/esp32dev/firmware.bin"
     ota_bin_target = f"../xtouch-bin/ota/xtouch.{version}.bin"
-    subprocess.run(['cp', ota_bin_source, ota_bin_target])
+    copyfile(ota_bin_source, ota_bin_target)
+
     fw_bin_source = ".pio/build/esp32dev/firmware.bin"
     fw_bin_target = f"../xtouch-bin/fw/firmware.bin"
-    subprocess.run(['cp', fw_bin_source, fw_bin_target])
+    copyfile(fw_bin_source, fw_bin_target)
 
 def post_build_merge_bin(version):
-
     web_usb_fw = f"../../../../xtouch-bin/webusb/xtouch.web.{version}.bin"
-    esptool_cmd = [
-        'esptool.py',
-        '--chip', 'ESP32',
-        'merge_bin',
-        '-o', web_usb_fw,
-        '--flash_mode', 'dio',
-        '--flash_size', '4MB',
-        '0x1000', 'bootloader.bin',
-        '0x8000', 'partitions.bin',
-        '0x10000', 'firmware.bin'
-    ]
-
-    subprocess.run(esptool_cmd, cwd="./.pio/build/esp32dev")
+    # esptool_cmd = [
+    #     'pio pkg exec --package "platformio/tool-esptoolpy" -- ',
+    #     'esptool.py',
+    #     '--chip', 'ESP32',
+    #     'merge_bin',
+    #     '-o', web_usb_fw,
+    #     '--flash_mode', 'dio',
+    #     '--flash_size', '4MB',
+    #     '0x1000', 'bootloader.bin',
+    #     '0x8000', 'partitions.bin',
+    #     '0x10000', 'firmware.bin'
+    # ]
+    esptool_cmd  = f'pio pkg exec --package "platformio/tool-esptoolpy" -- esptool.py --chip ESP32 merge_bin '
+    esptool_cmd += f'-o {web_usb_fw}, --flash_mode dio --flash_size 4MB 0x1000 bootloader.bin 0x8000 partitions.bin 0x10000 firmware.bin'
+    ret = subprocess.run(esptool_cmd, cwd="./.pio/build/esp32dev",  text=True, check=True, capture_output=True, shell=True)
 
 
 def post_build_action(source, target, env):

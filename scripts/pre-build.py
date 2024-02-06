@@ -22,3 +22,8 @@ if is_pio_build() == True:
     result = subprocess.run(['node', 'scripts/download-errors.js'],
                             text=True, check=True, capture_output=True)
     print(result.stdout)
+
+    # if os.path.exists('.pio/build/esp32dev/firmware.elf'):
+    #     os.remove('.pio/build/esp32dev/firmware.elf')
+    # if os.path.exists('.pio/build/esp32dev/firmware.bin'):
+    #     os.remove('.pio/build/esp32dev/firmware.bin')

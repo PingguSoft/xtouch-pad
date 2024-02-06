@@ -61,14 +61,14 @@ DynamicJsonDocument xtouch_filesystem_readJson(fs::FS &fs, const char *filename,
     {
         ConsoleError.print(F("[XTouch][SD] Error Reading JSON File: "));
         ConsoleError.println(filename);
-        if (defaultsToArray)
-        {
-            return doc.createNestedArray();
-        }
-        else
-        {
+        // if (defaultsToArray)
+        // {
+        //     return doc.createNestedArray();
+        // }
+        // else
+        // {
             return doc;
-        }
+        // }
     }
 
     File configFile = fs.open(filename);

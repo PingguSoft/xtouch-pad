@@ -14,6 +14,8 @@
 
 #if defined(__XTOUCH_SCREEN_28__)
 #include "devices/2.8/screen.h"
+#elif defined(__XTOUCH_SCREEN_40__)
+#    include "devices/4.0/screen.h"
 #endif
 
 #include "xtouch/pair.h"
@@ -26,50 +28,51 @@
 #include "xtouch/connection.h"
 #include "xtouch/coldboot.h"
 
-void xtouch_intro_show(void)
-{
-  ui_introScreen_screen_init();
-  lv_disp_load_scr(introScreen);
-  lv_timer_handler();
+void xtouch_intro_show(void) {
+    ui_introScreen_screen_init();
+    lv_disp_load_scr(introScreen);
+    lv_timer_handler();
 }
 
-void setup()
-{
-
+void setup() {
 #if XTOUCH_USE_SERIAL == true || XTOUCH_DEBUG_ERROR == true || XTOUCH_DEBUG_DEBUG == true || XTOUCH_DEBUG_INFO == true
-  Serial.begin(115200);
+    Serial.begin(115200);
 #endif
 
-  xtouch_eeprom_setup();
-  xtouch_globals_init();
-  xtouch_screen_setup();
-  xtouch_intro_show();
-  while (!xtouch_sdcard_setup())
-    ;
+    ConsoleInfo.printf("setup start !!!\n");
+    ConsoleInfo.printf("[CPU]   speed:%ld\n", getCpuFrequencyMhz());
+    ConsoleInfo.printf("[ROM]   size:%d, speed:%d\n", ESP.getFlashChipSize(), ESP.getFlashChipSpeed());
+    ConsoleInfo.printf("[PSRAM] size:%d, heap:%d\n", ESP.getPsramSize(), ESP.getFreeHeap());
 
-  xtouch_coldboot_check();
+    xtouch_eeprom_setup();
+    xtouch_globals_init();
+    xtouch_screen_setup();
+    xtouch_intro_show();
+    while (!xtouch_sdcard_setup())
+        ;
 
-  xtouch_settings_loadSettings();
+    xtouch_coldboot_check();
 
-  xtouch_firmware_checkFirmwareUpdate();
+    xtouch_settings_loadSettings();
 
-  xtouch_touch_setup();
+    xtouch_firmware_checkFirmwareUpdate();
 
-  while (!xtouch_wifi_setup())
-    ;
+    xtouch_touch_setup();
 
-  xtouch_firmware_checkOnlineFirmwareUpdate();
+    while (!xtouch_wifi_setup())
+        ;
 
-  xtouch_screen_setupScreenTimer();
-  xtouch_setupGlobalEvents();
-  xtouch_pair_check();
-  xtouch_mqtt_setup();
-  xtouch_chamber_timer_init();
+    xtouch_firmware_checkOnlineFirmwareUpdate();
+
+    xtouch_screen_setupScreenTimer();
+    xtouch_setupGlobalEvents();
+    xtouch_pair_check();
+    xtouch_mqtt_setup();
+    xtouch_chamber_timer_init();
 }
 
-void loop()
-{
-  lv_timer_handler();
-  lv_task_handler();
-  xtouch_mqtt_loop();
+void loop() {
+    lv_timer_handler();
+    lv_task_handler();
+    xtouch_mqtt_loop();
 }
