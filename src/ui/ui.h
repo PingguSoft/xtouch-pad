@@ -41,9 +41,14 @@ extern "C"
   void ui_accessCodeScreen_screen_init(void);
   void ui_printerPairScreen_screen_init(void);
 
+  void ui_browserScreen_screen_init();
+
   lv_obj_t *introScreen;
   lv_obj_t *introScreenIcon;
   lv_obj_t *introScreenCaption;
+
+  lv_obj_t *ui_browserScreen;
+
 
   lv_obj_t *ui_sidebarComponent;
   lv_obj_t *ui_homeScreen;

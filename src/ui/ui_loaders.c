@@ -85,6 +85,11 @@ void loadScreen(int screen)
         ui_accessCodeScreen_screen_init();
         lv_disp_load_scr(ui_accessCodeScreen);
         break;
+
+    case 7:
+        ui_browserScreen_screen_init();
+        lv_disp_load_scr(ui_browserScreen);
+        break;
     }
 
     fillScreenData(screen);
