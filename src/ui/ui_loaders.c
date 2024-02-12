@@ -43,6 +43,8 @@ void fillScreenData(int screen)
 
 void loadScreen(int screen)
 {
+    bool enSideBar = true;
+
     xTouchConfig.currentScreenIndex = screen;
     lv_obj_t *current = lv_scr_act();
     if (current != NULL)
@@ -56,6 +58,7 @@ void loadScreen(int screen)
     case -1:
         ui_introScreen_screen_init();
         lv_disp_load_scr(introScreen);
+        enSideBar = false;
         break;
     case 0:
         ui_homeScreen_screen_init();
@@ -80,21 +83,24 @@ void loadScreen(int screen)
     case 5:
         ui_printerPairScreen_screen_init();
         lv_disp_load_scr(ui_printerPairScreen);
+        enSideBar = false;
         break;
     case 6:
         ui_accessCodeScreen_screen_init();
         lv_disp_load_scr(ui_accessCodeScreen);
+        enSideBar = false;
         break;
 
     case 7:
         ui_browserScreen_screen_init();
         lv_disp_load_scr(ui_browserScreen);
+        enSideBar = false;
         break;
     }
 
     fillScreenData(screen);
 
-    if (screen >= 0 && screen < 5)
+    if (enSideBar)
     {
         ui_sidebarComponent_set_active(screen);
     }
