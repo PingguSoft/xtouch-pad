@@ -89,6 +89,7 @@ void add_file(lv_obj_t *tile, char *path, char *fn) {
     lv_obj_set_width(cui_labelFileName, LV_SIZE_CONTENT);   /// 1
     lv_obj_set_height(cui_labelFileName, LV_SIZE_CONTENT);  /// 1
     lv_obj_set_align(cui_labelFileName, LV_ALIGN_BOTTOM_MID);
+    lv_label_set_long_mode(cui_labelFileName, LV_LABEL_LONG_SCROLL);
     lv_obj_clear_flag(cui_labelFileName, LV_OBJ_FLAG_PRESS_LOCK | LV_OBJ_FLAG_CLICK_FOCUSABLE | LV_OBJ_FLAG_GESTURE_BUBBLE |
             LV_OBJ_FLAG_SNAPPABLE | LV_OBJ_FLAG_SCROLLABLE | LV_OBJ_FLAG_SCROLL_ELASTIC | LV_OBJ_FLAG_SCROLL_MOMENTUM | LV_OBJ_FLAG_SCROLL_CHAIN); /// Flags
     lv_obj_set_style_text_color(cui_labelFileName, lv_color_hex(0x000000), LV_PART_MAIN | LV_STATE_DEFAULT);

@@ -601,7 +601,7 @@
                           {
                             "nid": -1505487462,
                             "strtype": "LABEL/Long_mode",
-                            "strval": "WRAP",
+                            "strval": "SCROLL",
                             "InheritedType": 3
                           },
                           {
@@ -957,7 +957,7 @@
                       {
                         "disabled": false,
                         "nid": -1039559410,
-                        "strtype": "IMAGE/EventHandler",
+                        "strtype": "_event/EventHandler",
                         "strval": "CLICKED",
                         "childs": [
                           {
@@ -980,7 +980,7 @@
                           },
                           {
                             "nid": 2004775565,
-                            "strtype": "_custom/action",
+                            "strtype": "_event/action",
                             "strval": "CALL FUNCTION",
                             "childs": [
                               {
@@ -1020,8 +1020,7 @@
                         "InheritedType": 4
                       }
                     ],
-                    "saved_objtypeKey": "IMAGE",
-                    "tree_closed": true
+                    "saved_objtypeKey": "IMAGE"
                   },
                   {
                     "guid": "GUID7793803-604727S304339",
@@ -1650,7 +1649,7 @@
                       {
                         "disabled": false,
                         "nid": -199666060,
-                        "strtype": "IMAGE/EventHandler",
+                        "strtype": "_event/EventHandler",
                         "strval": "CLICKED",
                         "childs": [
                           {
@@ -1673,7 +1672,7 @@
                           },
                           {
                             "nid": 814365445,
-                            "strtype": "_custom/action",
+                            "strtype": "_event/action",
                             "strval": "CALL FUNCTION",
                             "childs": [
                               {
@@ -2343,7 +2342,7 @@
                       {
                         "disabled": false,
                         "nid": 1152792514,
-                        "strtype": "IMAGE/EventHandler",
+                        "strtype": "_event/EventHandler",
                         "strval": "CLICKED",
                         "childs": [
                           {
@@ -2366,7 +2365,7 @@
                           },
                           {
                             "nid": 1576656336,
-                            "strtype": "_custom/action",
+                            "strtype": "_event/action",
                             "strval": "CALL FUNCTION",
                             "childs": [
                               {
@@ -3036,7 +3035,7 @@
                       {
                         "disabled": false,
                         "nid": -1468030657,
-                        "strtype": "IMAGE/EventHandler",
+                        "strtype": "_event/EventHandler",
                         "strval": "CLICKED",
                         "childs": [
                           {
@@ -3059,7 +3058,7 @@
                           },
                           {
                             "nid": -1860715591,
-                            "strtype": "_custom/action",
+                            "strtype": "_event/action",
                             "strval": "CALL FUNCTION",
                             "childs": [
                               {
