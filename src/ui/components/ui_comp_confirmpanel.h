@@ -18,7 +18,7 @@ extern "C"
 #define UI_COMP_CONFIRMPANEL_CONFIRMPANELCONTAINER_CONFIRMPANELYES_CONFIRMPANELYESLABEL 6
 #define _UI_COMP_CONFIRMPANEL_NUM 7
     lv_obj_t *ui_confirmPanel_create(lv_obj_t *comp_parent);
-    void ui_confirmPanel_show(const char *title, void (*onYES)(void));
+    void ui_confirmPanel_show(const char *title, void (*onYES)(void *user_data), void *user_data);
     void ui_confirmPanel_hide();
     void ui_confirmPanel_NOOP();
 #ifdef __cplusplus

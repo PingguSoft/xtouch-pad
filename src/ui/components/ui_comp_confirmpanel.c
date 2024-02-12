@@ -2,13 +2,15 @@
 
 // COMPONENT confirmPanel
 
-void (*ui_confirmPanel_showOnYes)();
+void (*ui_confirmPanel_showOnYes)(void *user_data);
+void *ui_confirmPanel_user_data;
 
 void ui_confirmPanel_NOOP(){};
 
-void ui_confirmPanel_show(const char *title, void (*onYES)(void))
+void ui_confirmPanel_show(const char *title, void (*onYES)(void *user_data), void *user_data)
 {
     ui_confirmPanel_showOnYes = onYES;
+    ui_confirmPanel_user_data = user_data;
 
     lv_obj_clear_flag(ui_confirmComponent, LV_OBJ_FLAG_HIDDEN); /// Flags
     lv_obj_t *titleLabel = ui_comp_get_child(ui_confirmComponent, UI_COMP_CONFIRMPANEL_CONFIRMPANELCONTAINER_CONFIRMPANELCAPTION);
@@ -40,7 +42,7 @@ void ui_event_comp_confirmPanel_confirmPanelYES(lv_event_t *e)
     lv_obj_t **comp_confirmPanel = lv_event_get_user_data(e);
     if (event_code == LV_EVENT_CLICKED)
     {
-        ui_confirmPanel_showOnYes();
+        ui_confirmPanel_showOnYes(ui_confirmPanel_user_data);
         ui_confirmPanel_hide();
         ui_confirmPanel_showOnYes = NULL;
     }

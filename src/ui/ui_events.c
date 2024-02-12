@@ -11,7 +11,7 @@ void onSidebarNozzle(lv_event_t *e) { loadScreen(3); }
 void onSidebarSettings(lv_event_t *e) { loadScreen(4); }
 
 /* -----------Home-------------- */
-void onHomeControllerPlayPauseConfirm()
+void onHomeControllerPlayPauseConfirm(void *user_data)
 {
     lv_obj_t *target = ui_comp_get_child(ui_homeComponent, UI_COMP_HOMECOMPONENT_MAINSCREENLEFT_MAINSCREENPLAYER_MAINSCREENCONTROLLER_MAINSCREENPLAYPAUSEBUTTON);
     lv_msg_send(XTOUCH_COMMAND_PAUSE, NULL);
@@ -30,17 +30,17 @@ void onHomeControllerPlayPause(lv_event_t *e)
         break;
     case XTOUCH_PRINT_STATUS_RUNNING:
     case XTOUCH_PRINT_STATUS_PREPARE:
-        ui_confirmPanel_show(LV_SYMBOL_WARNING " Pause Print?", onHomeControllerPlayPauseConfirm);
+        ui_confirmPanel_show(LV_SYMBOL_WARNING " Pause Print?", onHomeControllerPlayPauseConfirm, NULL);
         break;
     }
 
     // cui_mainScreenPlayPauseButton
 }
 
-void onHomeControllerStopConfirm() { lv_msg_send(XTOUCH_COMMAND_STOP, NULL); }
+void onHomeControllerStopConfirm(void *user_data) { lv_msg_send(XTOUCH_COMMAND_STOP, NULL); }
 void onHomeControllerStop(lv_event_t *e)
 {
-    ui_confirmPanel_show(LV_SYMBOL_WARNING " Cancel Print?", onHomeControllerStopConfirm);
+    ui_confirmPanel_show(LV_SYMBOL_WARNING " Cancel Print?", onHomeControllerStopConfirm, NULL);
 }
 void onHomeSpeedSelection(lv_event_t *e) {}
 void onHomeLight(lv_event_t *e) { lv_msg_send(XTOUCH_COMMAND_LIGHT_TOGGLE, NULL); }
@@ -85,21 +85,21 @@ void onControlAxis(lv_event_t *e) { lv_msg_send(XTOUCH_CONTROL_AXIS_SWITCH, NULL
 
 /* Settings */
 
-void onSettingsResetDeviceConfirm() { lv_msg_send(XTOUCH_SETTINGS_RESET_DEVICE, NULL); }
+void onSettingsResetDeviceConfirm(void *user_data) { lv_msg_send(XTOUCH_SETTINGS_RESET_DEVICE, NULL); }
 void onSettingsResetDevice(lv_event_t *e)
 {
-    ui_confirmPanel_show(LV_SYMBOL_WARNING " REBOOT", onSettingsResetDeviceConfirm);
+    ui_confirmPanel_show(LV_SYMBOL_WARNING " REBOOT", onSettingsResetDeviceConfirm, NULL);
 }
 
-void onSettingsUnPairConfirm() { lv_msg_send(XTOUCH_SETTINGS_UNPAIR, NULL); }
+void onSettingsUnPairConfirm(void *user_data) { lv_msg_send(XTOUCH_SETTINGS_UNPAIR, NULL); }
 void onSettingsUnPair(lv_event_t *e)
 {
-    ui_confirmPanel_show(LV_SYMBOL_WARNING " Unlink Printer", onSettingsUnPairConfirm);
+    ui_confirmPanel_show(LV_SYMBOL_WARNING " Unlink Printer", onSettingsUnPairConfirm, NULL);
 }
-void onSettingsClearAccesCodeCacheConfirm() { lv_msg_send(XTOUCH_SETTINGS_CLEAR_ACCESS_CODE_CACHE, NULL); }
+void onSettingsClearAccesCodeCacheConfirm(void *user_data) { lv_msg_send(XTOUCH_SETTINGS_CLEAR_ACCESS_CODE_CACHE, NULL); }
 void onSettingsClearAccesCodeCache(lv_event_t *e)
 {
-    ui_confirmPanel_show(LV_SYMBOL_WARNING " Clear Access Code Cache", onSettingsClearAccesCodeCacheConfirm);
+    ui_confirmPanel_show(LV_SYMBOL_WARNING " Clear Access Code Cache", onSettingsClearAccesCodeCacheConfirm, NULL);
 }
 
 void onSettingsWOP(lv_event_t *e)
@@ -127,7 +127,7 @@ void onSettingsChamberSensor(lv_event_t *e)
     lv_msg_send(XTOUCH_SETTINGS_SAVE, NULL);
 }
 
-void onSettingsTFTFlipConfirm()
+void onSettingsTFTFlipConfirm(void *user_data)
 {
     lv_msg_send(XTOUCH_SETTINGS_TFT_FLIP, NULL);
 }
@@ -140,7 +140,7 @@ void onSettingsOTA(lv_event_t *e)
 
 void onSettingsTFTFlip(lv_event_t *e)
 {
-    ui_confirmPanel_show(LV_SYMBOL_WARNING " Flip LCD\n" LV_SYMBOL_REFRESH " Reboot", onSettingsTFTFlipConfirm);
+    ui_confirmPanel_show(LV_SYMBOL_WARNING " Flip LCD\n" LV_SYMBOL_REFRESH " Reboot", onSettingsTFTFlipConfirm, NULL);
 }
 
 /* filament */
@@ -155,14 +155,14 @@ void onNozzleDown(lv_event_t *e)
 
 }
 
-void onFilamentUnloadConfirm() { lv_msg_send(XTOUCH_COMMAND_UNLOAD_FILAMENT, NULL); }
+void onFilamentUnloadConfirm(void *user_data) { lv_msg_send(XTOUCH_COMMAND_UNLOAD_FILAMENT, NULL); }
 void onFilamentUnload(lv_event_t *e)
 {
-    ui_confirmPanel_show("Please remove\nthe filament after\n" LV_SYMBOL_CUT, onFilamentUnloadConfirm);
+    ui_confirmPanel_show("Please remove\nthe filament after\n" LV_SYMBOL_CUT, onFilamentUnloadConfirm, NULL);
 }
 
-void onFilamentLoadConfirm() { lv_msg_send(XTOUCH_COMMAND_LOAD_FILAMENT, NULL); }
+void onFilamentLoadConfirm(void *user_data) { lv_msg_send(XTOUCH_COMMAND_LOAD_FILAMENT, NULL); }
 void onFilamentLoad(lv_event_t *e)
 {
-    ui_confirmPanel_show(LV_SYMBOL_PLAY " Load new Filament\n" LV_SYMBOL_PLAY " into the Printer\n\n" LV_SYMBOL_OK " Tap YES to continue", onFilamentLoadConfirm);
+    ui_confirmPanel_show(LV_SYMBOL_PLAY " Load new Filament\n" LV_SYMBOL_PLAY " into the Printer\n\n" LV_SYMBOL_OK " Tap YES to continue", onFilamentLoadConfirm, NULL);
 }
