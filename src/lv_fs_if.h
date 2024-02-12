@@ -16,7 +16,7 @@ static void* sd_fs_open(lv_fs_drv_t* drv, const char* path, lv_fs_mode_t mode) {
     else if (mode == (LV_FS_MODE_WR | LV_FS_MODE_RD))
         flags = FILE_WRITE;
 
-    ConsoleError.printf("open file : %s\n", path);
+    // ConsoleError.printf("open file : %s\n", path);
     File f = SD.open(path, flags);
     if (!f) {
         ConsoleError.printf("Failed to open file! : %s\n", path);
@@ -212,6 +212,6 @@ static void lv_port_sd_fs_init(void) {
     fs_drv.dir_read_cb = sd_dir_read;
 
     lv_fs_drv_register(&fs_drv);
-    lv_fs_test();
+    // lv_fs_test();
 }
 #endif
