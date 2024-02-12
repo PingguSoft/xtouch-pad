@@ -35,11 +35,8 @@ void xtouch_intro_show(void) {
     lv_timer_handler();
 }
 
-void setup() {
-#if BOARD_HAS_PSRAM
-    heap_caps_malloc_extmem_enable(512);
-#endif
 
+void setup() {
 #if XTOUCH_USE_SERIAL == true || XTOUCH_DEBUG_ERROR == true || XTOUCH_DEBUG_DEBUG == true || XTOUCH_DEBUG_INFO == true
     Serial.begin(115200);
 #endif

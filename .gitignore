@@ -2,3 +2,8 @@
 .vscode
 .DS_Store
 node_modules
+design/codes/
+design/project/autosave/
+design/project/backup/
+design/project/cache/
+design/project/*.py
