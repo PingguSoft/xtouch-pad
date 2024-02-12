@@ -87,3 +87,34 @@ void loop() {
     lv_task_handler();
     // xtouch_mqtt_loop();
 }
+
+
+/*
+    ESP32_SFTPClient test codes
+
+    ESP32_SFTPClient sftp((char*)"192.168.0.159", 990, (char*)"bblp", (char*)"34801960", 10000, 2);
+
+    sftp.OpenConnection(false, true);
+    String list[128];
+
+    sftp.InitFile("TYPE A");
+    sftp.DirLong("/image", list);
+    for (uint8_t i = 0; i < sizeof(list); i++) {
+        uint8_t indexSize = 0;
+        uint8_t indexMod = 0;
+
+        if (list[i].length() > 0) {
+            printf("%s\n", list[i].c_str());
+            list[i].clear();
+        } else {
+            break;
+        }
+    }
+
+    File file = SD.open("/image/down.png", "wb", true);
+    sftp.InitFile("Type I");
+    sftp.DownloadFile("/image/15137327011.png", 4442, &file);
+    file.close();
+
+    sftp.CloseConnection();
+*/
