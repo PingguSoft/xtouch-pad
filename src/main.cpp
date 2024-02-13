@@ -60,7 +60,7 @@ void setup() {
 
     lv_port_sd_fs_init();
 
-    loadScreen(7);
+    loadScreen(5);
 
     xtouch_coldboot_check();
 

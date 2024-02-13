@@ -9,7 +9,7 @@ void xtouch_pair_start()
 {
     xtouch_ssdp_setupButtonTimer();
     xtouch_pair_loop_exit = false;
-    loadScreen(5);
+    loadScreen(10);
     while (!xtouch_pair_loop_exit)
     {
         xtouch_ssdp_loop();
@@ -26,7 +26,7 @@ void xtouch_pair_start()
     else
     {
         xtouch_pair_loop_exit = false;
-        loadScreen(6);
+        loadScreen(11);
         while (!xtouch_pair_loop_exit)
         {
             lv_timer_handler();

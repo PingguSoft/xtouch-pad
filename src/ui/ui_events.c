@@ -9,6 +9,7 @@ void onSidebarTemp(lv_event_t *e) { loadScreen(1); }
 void onSidebarControl(lv_event_t *e) { loadScreen(2); }
 void onSidebarNozzle(lv_event_t *e) { loadScreen(3); }
 void onSidebarSettings(lv_event_t *e) { loadScreen(4); }
+void onSidebarBrowser(lv_event_t *e) { loadScreen(5); }
 
 /* -----------Home-------------- */
 void onHomeControllerPlayPauseConfirm(void *user_data)

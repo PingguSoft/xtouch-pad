@@ -81,19 +81,18 @@ void loadScreen(int screen)
         lv_disp_load_scr(ui_settingsScreen);
         break;
     case 5:
+        ui_browserScreen_screen_init();
+        lv_disp_load_scr(ui_browserScreen);
+        break;
+
+    case 10:
         ui_printerPairScreen_screen_init();
         lv_disp_load_scr(ui_printerPairScreen);
         enSideBar = false;
         break;
-    case 6:
+    case 11:
         ui_accessCodeScreen_screen_init();
         lv_disp_load_scr(ui_accessCodeScreen);
-        enSideBar = false;
-        break;
-
-    case 7:
-        ui_browserScreen_screen_init();
-        lv_disp_load_scr(ui_browserScreen);
         enSideBar = false;
         break;
     }

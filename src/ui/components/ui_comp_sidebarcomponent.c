@@ -51,20 +51,32 @@ void ui_event_comp_sidebarComponent_sidebarSettingsButton(lv_event_t *e)
     }
 }
 
+void ui_event_comp_sidebarComponent_sidebarBrowserButton(lv_event_t *e) {
+    lv_event_code_t event_code = lv_event_get_code(e);
+    lv_obj_t *target = lv_event_get_target(e);
+    lv_obj_t **comp_sidebarComponent = lv_event_get_user_data(e);
+    if (event_code == LV_EVENT_CLICKED)
+    {
+        onSidebarBrowser(e);
+    }
+}
+
 void ui_sidebarComponent_set_active(int index)
 {
     lv_obj_t *target;
-    uint32_t indexes[5] = {
+    uint32_t indexes[] = {
         UI_COMP_SIDEBARCOMPONENT_SIDEBARHOMEBUTTON,
         UI_COMP_SIDEBARCOMPONENT_SIDEBARTEMPBUTTON,
         UI_COMP_SIDEBARCOMPONENT_SIDEBARCONTROLBUTTON,
         UI_COMP_SIDEBARCOMPONENT_SIDEBARNOZZLEBUTTON,
-        UI_COMP_SIDEBARCOMPONENT_SIDEBARSETTINGSBUTTON};
+        UI_COMP_SIDEBARCOMPONENT_SIDEBARSETTINGSBUTTON,
+        UI_COMP_SIDEBARCOMPONENT_SIDEBARBROWSERBUTTON};
 
-    for (int i = 0; i < 5; i++)
+    for (int i = 0; i < sizeof(indexes) / sizeof(uint32_t); i++)
     {
         target = ui_comp_get_child(ui_sidebarComponent, indexes[i]);
-        lv_obj_clear_state(target, LV_STATE_CHECKED);
+        if (target)
+            lv_obj_clear_state(target, LV_STATE_CHECKED);
     }
     uint32_t targetIndex = indexes[index];
     lv_obj_add_state(ui_comp_get_child(ui_sidebarComponent, targetIndex), LV_STATE_CHECKED);
@@ -278,6 +290,53 @@ lv_obj_t *ui_sidebarComponent_create(lv_obj_t *comp_parent)
     lv_obj_set_scrollbar_mode(cui_sidebarSettingsButtonIcon, LV_SCROLLBAR_MODE_OFF);
     lv_obj_set_style_text_font(cui_sidebarSettingsButtonIcon, &ui_font_xlcd, LV_PART_MAIN | LV_STATE_DEFAULT);
 
+
+    //
+    //
+    lv_obj_t *cui_sidebarBrowserButton;
+    cui_sidebarBrowserButton = lv_obj_create(cui_sidebarComponent);
+    lv_obj_set_width(cui_sidebarBrowserButton, lv_pct(100));
+    lv_obj_set_flex_grow(cui_sidebarBrowserButton, 1);
+    lv_obj_set_x(cui_sidebarBrowserButton, 386);
+    lv_obj_set_y(cui_sidebarBrowserButton, 178);
+    lv_obj_set_flex_flow(cui_sidebarBrowserButton, LV_FLEX_FLOW_ROW);
+    lv_obj_set_flex_align(cui_sidebarBrowserButton, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
+    lv_obj_clear_flag(cui_sidebarBrowserButton, LV_OBJ_FLAG_PRESS_LOCK | LV_OBJ_FLAG_CLICK_FOCUSABLE | LV_OBJ_FLAG_GESTURE_BUBBLE | LV_OBJ_FLAG_SNAPPABLE | LV_OBJ_FLAG_SCROLLABLE | LV_OBJ_FLAG_SCROLL_ELASTIC | LV_OBJ_FLAG_SCROLL_MOMENTUM | LV_OBJ_FLAG_SCROLL_CHAIN); /// Flags
+    lv_obj_set_scrollbar_mode(cui_sidebarBrowserButton, LV_SCROLLBAR_MODE_OFF);
+    lv_obj_set_style_radius(cui_sidebarBrowserButton, 4, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_color(cui_sidebarBrowserButton, lv_color_hex(0x2aff00), LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_opa(cui_sidebarBrowserButton, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_border_width(cui_sidebarBrowserButton, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_left(cui_sidebarBrowserButton, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_right(cui_sidebarBrowserButton, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_top(cui_sidebarBrowserButton, 4, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_bottom(cui_sidebarBrowserButton, 4, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_row(cui_sidebarBrowserButton, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_column(cui_sidebarBrowserButton, 1, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_text_color(cui_sidebarBrowserButton, lv_color_hex(0xFFFFFF), LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_text_opa(cui_sidebarBrowserButton, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_text_color(cui_sidebarBrowserButton, lv_color_hex(0x2aff00), LV_PART_MAIN | LV_STATE_CHECKED);
+    lv_obj_set_style_text_opa(cui_sidebarBrowserButton, 255, LV_PART_MAIN | LV_STATE_CHECKED);
+    lv_obj_set_style_bg_color(cui_sidebarBrowserButton, lv_color_hex(0x008800), LV_PART_MAIN | LV_STATE_PRESSED);
+    lv_obj_set_style_bg_opa(cui_sidebarBrowserButton, 255, LV_PART_MAIN | LV_STATE_PRESSED);
+
+    lv_obj_t *cui_sidebarBrowserButtonIcon;
+    cui_sidebarBrowserButtonIcon = lv_label_create(cui_sidebarBrowserButton);
+    lv_obj_set_width(cui_sidebarBrowserButtonIcon, LV_SIZE_CONTENT);  /// 100
+    lv_obj_set_height(cui_sidebarBrowserButtonIcon, LV_SIZE_CONTENT); /// 24
+    lv_label_set_text(cui_sidebarBrowserButtonIcon, "v");
+    lv_obj_clear_flag(cui_sidebarBrowserButtonIcon, LV_OBJ_FLAG_PRESS_LOCK | LV_OBJ_FLAG_CLICK_FOCUSABLE | LV_OBJ_FLAG_GESTURE_BUBBLE | LV_OBJ_FLAG_SNAPPABLE | LV_OBJ_FLAG_SCROLLABLE | LV_OBJ_FLAG_SCROLL_ELASTIC | LV_OBJ_FLAG_SCROLL_MOMENTUM | LV_OBJ_FLAG_SCROLL_CHAIN); /// Flags
+    lv_obj_set_scrollbar_mode(cui_sidebarBrowserButtonIcon, LV_SCROLLBAR_MODE_OFF);
+    lv_obj_set_style_text_font(cui_sidebarBrowserButtonIcon, &ui_font_xlcd, LV_PART_MAIN | LV_STATE_DEFAULT);
+
+
+    //
+    //
+
+
+
+
+
     lv_obj_t **children = lv_mem_alloc(sizeof(lv_obj_t *) * _UI_COMP_SIDEBARCOMPONENT_NUM);
     children[UI_COMP_SIDEBARCOMPONENT_SIDEBARCOMPONENT] = cui_sidebarComponent;
     children[UI_COMP_SIDEBARCOMPONENT_SIDEBARHOMEBUTTON] = cui_sidebarHomeButton;
@@ -290,6 +349,9 @@ lv_obj_t *ui_sidebarComponent_create(lv_obj_t *comp_parent)
     children[UI_COMP_SIDEBARCOMPONENT_SIDEBARNOZZLEBUTTON_SIDEBARNOZZLEBUTTONICON] = cui_sidebarNozzleButtonIcon;
     children[UI_COMP_SIDEBARCOMPONENT_SIDEBARSETTINGSBUTTON] = cui_sidebarSettingsButton;
     children[UI_COMP_SIDEBARCOMPONENT_SIDEBARSETTINGSBUTTON_SIDEBARSETTINGSBUTTONICON] = cui_sidebarSettingsButtonIcon;
+    children[UI_COMP_SIDEBARCOMPONENT_SIDEBARBROWSERBUTTON] = cui_sidebarBrowserButton;
+    children[UI_COMP_SIDEBARCOMPONENT_SIDEBARSETTINGSBUTTON_SIDEBARBROWSERBUTTONICON] = cui_sidebarBrowserButtonIcon;
+
     lv_obj_add_event_cb(cui_sidebarComponent, get_component_child_event_cb, LV_EVENT_GET_COMP_CHILD, children);
     lv_obj_add_event_cb(cui_sidebarComponent, del_component_child_event_cb, LV_EVENT_DELETE, children);
     lv_obj_add_event_cb(cui_sidebarHomeButton, ui_event_comp_sidebarComponent_sidebarHomeButton, LV_EVENT_ALL, children);
@@ -297,6 +359,8 @@ lv_obj_t *ui_sidebarComponent_create(lv_obj_t *comp_parent)
     lv_obj_add_event_cb(cui_sidebarControlButton, ui_event_comp_sidebarComponent_sidebarControlButton, LV_EVENT_ALL, children);
     lv_obj_add_event_cb(cui_sidebarNozzleButton, ui_event_comp_sidebarComponent_sidebarNozzleButton, LV_EVENT_ALL, children);
     lv_obj_add_event_cb(cui_sidebarSettingsButton, ui_event_comp_sidebarComponent_sidebarSettingsButton, LV_EVENT_ALL, children);
+    lv_obj_add_event_cb(cui_sidebarBrowserButton, ui_event_comp_sidebarComponent_sidebarBrowserButton, LV_EVENT_ALL, children);
+
     ui_comp_sidebarComponent_create_hook(cui_sidebarComponent);
     return cui_sidebarComponent;
 }
