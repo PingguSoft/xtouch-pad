@@ -30,17 +30,16 @@
 #include "lv_fs_if.h"
 
 void xtouch_intro_show(void) {
-    ui_introScreen_screen_init();
-    lv_disp_load_scr(introScreen);
+    loadScreen(SCREEN_INTRO);
     lv_timer_handler();
 }
-
 
 void setup() {
 #if XTOUCH_USE_SERIAL == true || XTOUCH_DEBUG_ERROR == true || XTOUCH_DEBUG_DEBUG == true || XTOUCH_DEBUG_INFO == true
     Serial.begin(115200);
 #endif
 
+    xTouchConfig.currentScreenIndex = -1;
     ConsoleInfo.printf("setup start !!!\n");
     ConsoleInfo.printf("[CPU]   speed:%ld\n", getCpuFrequencyMhz());
     ConsoleInfo.printf("[ROM]   size:%d, speed:%d\n", ESP.getFlashChipSize(), ESP.getFlashChipSpeed());
@@ -60,8 +59,6 @@ void setup() {
 
     lv_port_sd_fs_init();
 
-    loadScreen(5);
-
     xtouch_coldboot_check();
 
     xtouch_settings_loadSettings();
@@ -69,6 +66,8 @@ void setup() {
     xtouch_firmware_checkFirmwareUpdate();
 
     xtouch_touch_setup();
+
+    loadScreen(SCREEN_BROWSER);
 
     // while (!xtouch_wifi_setup())
     //     ;

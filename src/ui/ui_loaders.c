@@ -2,111 +2,89 @@
 #include "ui.h"
 #include "ui_msgs.h"
 
-void sendMqttMsg(int message, uint32_t data)
-{
+typedef struct {
+    int         id;
+    lv_obj_t*   (*init)(void);
+    bool        en_sidebar;
+    lv_obj_t    *screen_obj;
+} loader_t;
+
+static loader_t _tbl_loader[] = {
+    { SCREEN_INTRO,      ui_introScreen_screen_init,        false, },
+    { SCREEN_HOME,       ui_homeScreen_screen_init,         true,  },
+    { SCREEN_TEMP,       ui_temperatureScreen_screen_init,  true,  },
+    { SCREEN_CONTROL,    ui_controlScreen_screen_init,      true,  },
+    { SCREEN_FILAMENT,   ui_filamentScreen_screen_init,     true,  },
+    { SCREEN_SETTING,    ui_settingsScreen_screen_init,     true,  },
+    { SCREEN_BROWSER,    ui_browserScreen_screen_init,      true,  },
+    { SCREEN_PAIRING,    ui_printerPairScreen_screen_init,  false, },
+    { SCREEN_ACCESSCODE, ui_accessCodeScreen_screen_init,   false, },
+};
+
+lv_obj_t *get_screen_obj(int screen) {
+    if (SCREEN_MIN <= screen && screen < SCREEN_MAX) {
+        return _tbl_loader[screen].screen_obj;
+    }
+    return NULL;
+}
+
+void sendMqttMsg(int message, uint32_t data) {
     struct XTOUCH_MESSAGE_DATA eventData;
     eventData.data = data;
     lv_msg_send(message, &eventData);
 }
 
-void fillScreenData(int screen)
-{
-    switch (screen)
-    {
-    case 0:
-        sendMqttMsg(XTOUCH_ON_BED_TEMP, bambuStatus.bed_temper);
-        sendMqttMsg(XTOUCH_ON_BED_TARGET_TEMP, bambuStatus.bed_target_temper);
-        sendMqttMsg(XTOUCH_ON_NOZZLE_TEMP, bambuStatus.nozzle_temper);
-        sendMqttMsg(XTOUCH_ON_NOZZLE_TARGET_TEMP, bambuStatus.nozzle_target_temper);
-        sendMqttMsg(XTOUCH_ON_LIGHT_REPORT, bambuStatus.chamberLed);
-        sendMqttMsg(XTOUCH_ON_AMS, bambuStatus.ams);
-        sendMqttMsg(XTOUCH_ON_PRINT_STATUS, 0);
-        sendMqttMsg(XTOUCH_ON_CHAMBER_TEMP, bambuStatus.chamber_temper);
-        break;
-    case 1:
-        sendMqttMsg(XTOUCH_ON_BED_TEMP, bambuStatus.bed_temper);
-        sendMqttMsg(XTOUCH_ON_BED_TARGET_TEMP, bambuStatus.bed_target_temper);
-        sendMqttMsg(XTOUCH_ON_NOZZLE_TEMP, bambuStatus.nozzle_temper);
-        sendMqttMsg(XTOUCH_ON_NOZZLE_TARGET_TEMP, bambuStatus.nozzle_target_temper);
-        sendMqttMsg(XTOUCH_ON_PART_FAN_SPEED, bambuStatus.cooling_fan_speed);
-        sendMqttMsg(XTOUCH_ON_PART_AUX_SPEED, bambuStatus.big_fan1_speed);
-        sendMqttMsg(XTOUCH_ON_PART_CHAMBER_SPEED, bambuStatus.big_fan2_speed);
-        break;
-    case 2:
-        sendMqttMsg(XTOUCH_CONTROL_INC_SWITCH, controlMode.inc);
-        break;
-    case 3:
-        sendMqttMsg(XTOUCH_ON_NOZZLE_TEMP, bambuStatus.nozzle_temper);
-        break;
+void fillScreenData(int screen) {
+    switch (screen) {
+        case SCREEN_HOME:
+            sendMqttMsg(XTOUCH_ON_BED_TEMP, bambuStatus.bed_temper);
+            sendMqttMsg(XTOUCH_ON_BED_TARGET_TEMP, bambuStatus.bed_target_temper);
+            sendMqttMsg(XTOUCH_ON_NOZZLE_TEMP, bambuStatus.nozzle_temper);
+            sendMqttMsg(XTOUCH_ON_NOZZLE_TARGET_TEMP, bambuStatus.nozzle_target_temper);
+            sendMqttMsg(XTOUCH_ON_LIGHT_REPORT, bambuStatus.chamberLed);
+            sendMqttMsg(XTOUCH_ON_AMS, bambuStatus.ams);
+            sendMqttMsg(XTOUCH_ON_PRINT_STATUS, 0);
+            sendMqttMsg(XTOUCH_ON_CHAMBER_TEMP, bambuStatus.chamber_temper);
+            break;
+        case SCREEN_TEMP:
+            sendMqttMsg(XTOUCH_ON_BED_TEMP, bambuStatus.bed_temper);
+            sendMqttMsg(XTOUCH_ON_BED_TARGET_TEMP, bambuStatus.bed_target_temper);
+            sendMqttMsg(XTOUCH_ON_NOZZLE_TEMP, bambuStatus.nozzle_temper);
+            sendMqttMsg(XTOUCH_ON_NOZZLE_TARGET_TEMP, bambuStatus.nozzle_target_temper);
+            sendMqttMsg(XTOUCH_ON_PART_FAN_SPEED, bambuStatus.cooling_fan_speed);
+            sendMqttMsg(XTOUCH_ON_PART_AUX_SPEED, bambuStatus.big_fan1_speed);
+            sendMqttMsg(XTOUCH_ON_PART_CHAMBER_SPEED, bambuStatus.big_fan2_speed);
+            break;
+        case SCREEN_CONTROL:
+            sendMqttMsg(XTOUCH_CONTROL_INC_SWITCH, controlMode.inc);
+            break;
+        case SCREEN_FILAMENT:
+            sendMqttMsg(XTOUCH_ON_NOZZLE_TEMP, bambuStatus.nozzle_temper);
+            break;
     }
 }
 
-void loadScreen(int screen)
-{
-    bool enSideBar = true;
+void loadScreen(int screen) {
+    if (xTouchConfig.currentScreenIndex != -1) {
+        lv_obj_t *current = lv_scr_act();
+        if (current != NULL) {
+            lv_obj_clean(current);
+            lv_obj_del(current);
+        }
+    }
 
+    if (SCREEN_MIN <= screen && screen < SCREEN_MAX) {
+        _tbl_loader[screen].screen_obj = _tbl_loader[screen].init();
+        lv_disp_load_scr(_tbl_loader[screen].screen_obj);
+        fillScreenData(screen);
+        if (_tbl_loader[screen].en_sidebar) {
+            ui_sidebarComponent_set_active(screen);
+        }
+    }
     xTouchConfig.currentScreenIndex = screen;
-    lv_obj_t *current = lv_scr_act();
-    if (current != NULL)
-    {
-        lv_obj_clean(current);
-        lv_obj_del(current);
-    }
-
-    switch (screen)
-    {
-    case -1:
-        ui_introScreen_screen_init();
-        lv_disp_load_scr(introScreen);
-        enSideBar = false;
-        break;
-    case 0:
-        ui_homeScreen_screen_init();
-        lv_disp_load_scr(ui_homeScreen);
-        break;
-    case 1:
-        ui_temperatureScreen_screen_init();
-        lv_disp_load_scr(ui_temperatureScreen);
-        break;
-    case 2:
-        ui_controlScreen_screen_init();
-        lv_disp_load_scr(ui_controlScreen);
-        break;
-    case 3:
-        ui_filamentScreen_screen_init();
-        lv_disp_load_scr(ui_filamentScreen);
-        break;
-    case 4:
-        ui_settingsScreen_screen_init();
-        lv_disp_load_scr(ui_settingsScreen);
-        break;
-    case 5:
-        ui_browserScreen_screen_init();
-        lv_disp_load_scr(ui_browserScreen);
-        break;
-
-    case 10:
-        ui_printerPairScreen_screen_init();
-        lv_disp_load_scr(ui_printerPairScreen);
-        enSideBar = false;
-        break;
-    case 11:
-        ui_accessCodeScreen_screen_init();
-        lv_disp_load_scr(ui_accessCodeScreen);
-        enSideBar = false;
-        break;
-    }
-
-    fillScreenData(screen);
-
-    if (enSideBar)
-    {
-        ui_sidebarComponent_set_active(screen);
-    }
 }
 
-void initTopLayer()
-{
+void initTopLayer() {
     ui_confirmComponent = ui_confirmPanel_create(lv_layer_top());
     lv_obj_add_flag(ui_confirmComponent, LV_OBJ_FLAG_HIDDEN);
     ui_hmsComponent = ui_hmsPanel_create(lv_layer_top());

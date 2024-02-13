@@ -1,8 +1,8 @@
 #include "../ui.h"
 
-void ui_homeScreen_screen_init(void)
+lv_obj_t *ui_homeScreen_screen_init(void)
 {
-    ui_homeScreen = lv_obj_create(NULL);
+    lv_obj_t *ui_homeScreen = lv_obj_create(NULL);
     lv_obj_clear_flag(ui_homeScreen, LV_OBJ_FLAG_CLICKABLE | LV_OBJ_FLAG_PRESS_LOCK | LV_OBJ_FLAG_SCROLLABLE | LV_OBJ_FLAG_SCROLL_ELASTIC | LV_OBJ_FLAG_SCROLL_MOMENTUM); /// Flags
     lv_obj_set_scrollbar_mode(ui_homeScreen, LV_SCROLLBAR_MODE_OFF);
     lv_obj_set_flex_flow(ui_homeScreen, LV_FLEX_FLOW_ROW);
@@ -21,4 +21,6 @@ void ui_homeScreen_screen_init(void)
     ui_homeComponent = ui_homeComponent_create(ui_homeScreen);
     lv_obj_set_x(ui_homeComponent, 386);
     lv_obj_set_y(ui_homeComponent, 178);
+
+    return ui_homeScreen;
 }

@@ -33,9 +33,9 @@ void ui_event_accessCodeScreenSubmit(lv_event_t *e)
         lv_obj_set_y(ui_accessCodeInput, isKeyboardNumber ? 30 : 0);
     }
 }
-void ui_accessCodeScreen_screen_init(void)
+lv_obj_t* ui_accessCodeScreen_screen_init(void)
 {
-    ui_accessCodeScreen = lv_obj_create(NULL);
+    lv_obj_t* ui_accessCodeScreen = lv_obj_create(NULL);
     lv_obj_clear_flag(ui_accessCodeScreen, LV_OBJ_FLAG_CLICKABLE | LV_OBJ_FLAG_PRESS_LOCK | LV_OBJ_FLAG_SCROLLABLE | LV_OBJ_FLAG_SCROLL_ELASTIC | LV_OBJ_FLAG_SCROLL_MOMENTUM); /// Flags
     lv_obj_set_scrollbar_mode(ui_accessCodeScreen, LV_SCROLLBAR_MODE_OFF);
     lv_obj_set_flex_flow(ui_accessCodeScreen, LV_FLEX_FLOW_ROW);
@@ -85,4 +85,6 @@ void ui_accessCodeScreen_screen_init(void)
     lv_keyboard_set_textarea(ui_accessCodeScreenKeyboard, ui_accessCodeInput);
 
     lv_obj_add_event_cb(ui_accessCodeInput, ui_event_accessCodeScreenSubmit, LV_EVENT_ALL, NULL);
+
+    return ui_accessCodeScreen;
 }

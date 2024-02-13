@@ -150,7 +150,7 @@ void xtouch_touch_setup()
 
         xtouch_saveTouchConfig(x_touch_touchConfig);
 
-        loadScreen(-1);
+        loadScreen(SCREEN_INTRO);
     }
 }
 

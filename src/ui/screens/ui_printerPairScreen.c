@@ -10,10 +10,9 @@ void ui_event_printerPairScreenSubmitButton(lv_event_t *e)
     }
 }
 
-void ui_printerPairScreen_screen_init(void)
+lv_obj_t *ui_printerPairScreen_screen_init(void)
 {
-
-    ui_printerPairScreen = lv_obj_create(NULL);
+    lv_obj_t *ui_printerPairScreen = lv_obj_create(NULL);
     lv_obj_clear_flag(ui_printerPairScreen, LV_OBJ_FLAG_CLICKABLE | LV_OBJ_FLAG_PRESS_LOCK | LV_OBJ_FLAG_SCROLLABLE | LV_OBJ_FLAG_SCROLL_ELASTIC | LV_OBJ_FLAG_SCROLL_MOMENTUM); /// Flags
     lv_obj_set_scrollbar_mode(ui_printerPairScreen, LV_SCROLLBAR_MODE_OFF);
     lv_obj_set_flex_flow(ui_printerPairScreen, LV_FLEX_FLOW_COLUMN);
@@ -87,4 +86,6 @@ void ui_printerPairScreen_screen_init(void)
     lv_obj_set_style_text_font(ui_printerPairScreenSubmitIcon, &ui_font_xlcd, LV_PART_MAIN | LV_STATE_DEFAULT);
 
     lv_obj_add_event_cb(ui_printerPairScreenSubmitButton, ui_event_printerPairScreenSubmitButton, LV_EVENT_ALL, NULL);
+
+    return ui_printerPairScreen;
 }

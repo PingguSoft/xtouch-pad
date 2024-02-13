@@ -3,14 +3,6 @@
 
 void initialActions(lv_event_t *e) {}
 
-/* -----------Sidebar-------------- */
-void onSidebarHome(lv_event_t *e) { loadScreen(0); }
-void onSidebarTemp(lv_event_t *e) { loadScreen(1); }
-void onSidebarControl(lv_event_t *e) { loadScreen(2); }
-void onSidebarNozzle(lv_event_t *e) { loadScreen(3); }
-void onSidebarSettings(lv_event_t *e) { loadScreen(4); }
-void onSidebarBrowser(lv_event_t *e) { loadScreen(5); }
-
 /* -----------Home-------------- */
 void onHomeControllerPlayPauseConfirm(void *user_data)
 {
@@ -47,7 +39,7 @@ void onHomeSpeedSelection(lv_event_t *e) {}
 void onHomeLight(lv_event_t *e) { lv_msg_send(XTOUCH_COMMAND_LIGHT_TOGGLE, NULL); }
 void onHomeBedTemp(lv_event_t *e)
 {
-    loadScreen(1);
+    loadScreen(SCREEN_TEMP);
 
     ui_temperatureComponent_show_keypad_and_back(0, 0, 0);
 
@@ -56,7 +48,7 @@ void onHomeBedTemp(lv_event_t *e)
 }
 void onHomeNozzleTemp(lv_event_t *e, int backToScreen)
 {
-    loadScreen(1);
+    loadScreen(SCREEN_TEMP);
     ui_temperatureComponent_show_keypad_and_back(0, 1, backToScreen);
 
     lv_obj_t *target = ui_comp_get_child(ui_temperatureComponent, UI_COMP_TEMPERATURECOMPONENT_TEMPERATURECOMPONENTTEMPS_TEMPERATURECOMPONENTNOZZLE);

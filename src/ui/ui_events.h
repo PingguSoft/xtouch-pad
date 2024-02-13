@@ -8,16 +8,8 @@ extern "C"
 
     void initialActions(lv_event_t *e);
 
-    /* sidebar */
-    void onSidebarHome(lv_event_t *e);
-    void onSidebarTemp(lv_event_t *e);
-    void onSidebarControl(lv_event_t *e);
-    void onSidebarNozzle(lv_event_t *e);
-    void onSidebarSettings(lv_event_t *e);
-    void onSidebarBrowser(lv_event_t *e);
 
     /* home */
-
     void onHomeControllerPlayPause(lv_event_t *e);
     void onHomeControllerStop(lv_event_t *e);
     void onHomeSpeedSelection(lv_event_t *e);
@@ -26,7 +18,6 @@ extern "C"
     void onHomeNozzleTemp(lv_event_t *e, int backToScreen);
 
     /* temps */
-
     void onTemperatureBed(const char *value);
     void onTemperatureNozzle(int value);
     void onTemperaturePart(lv_event_t *e);
@@ -43,7 +34,6 @@ extern "C"
     void onControlRight(lv_event_t *e);
 
     /* Settings */
-
     void onSettingsResetDevice(lv_event_t *e);
     void onSettingsUnPair(lv_event_t *e);
     void onSettingsClearAccesCodeCache(lv_event_t *e);

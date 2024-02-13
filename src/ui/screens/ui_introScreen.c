@@ -1,9 +1,8 @@
 #include "../ui.h"
 
-void ui_introScreen_screen_init()
+lv_obj_t *ui_introScreen_screen_init()
 {
-
-    introScreen = lv_obj_create(NULL);
+    lv_obj_t *introScreen = lv_obj_create(NULL);
     lv_obj_clear_flag(introScreen, LV_OBJ_FLAG_CLICKABLE | LV_OBJ_FLAG_PRESS_LOCK | LV_OBJ_FLAG_SCROLLABLE | LV_OBJ_FLAG_SCROLL_ELASTIC | LV_OBJ_FLAG_SCROLL_MOMENTUM); /// Flags
     lv_obj_set_scrollbar_mode(introScreen, LV_SCROLLBAR_MODE_OFF);
     lv_obj_set_flex_flow(introScreen, LV_FLEX_FLOW_COLUMN);
@@ -17,7 +16,7 @@ void ui_introScreen_screen_init()
     lv_obj_set_style_pad_row(introScreen, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_pad_column(introScreen, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
 
-    introScreenIcon = lv_label_create(introScreen);
+    lv_obj_t *introScreenIcon = lv_label_create(introScreen);
     lv_obj_set_width(introScreenIcon, LV_SIZE_CONTENT);  /// 100
     lv_obj_set_height(introScreenIcon, LV_SIZE_CONTENT); /// 100
     lv_obj_set_style_pad_top(introScreenIcon, 68, LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -49,4 +48,6 @@ void ui_introScreen_screen_init()
     lv_obj_set_style_text_font(introScreenCaption, &lv_font_montserrat_14, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_align(introScreenCaption, LV_TEXT_ALIGN_CENTER, 0);
     lv_obj_set_style_text_color(introScreenCaption, lv_color_hex(0x555555), LV_PART_MAIN | LV_STATE_DEFAULT);
+
+    return introScreen;
 }

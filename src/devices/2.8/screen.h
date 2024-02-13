@@ -61,7 +61,7 @@ void xtouch_screen_wakeUp()
 {
     lv_timer_reset(xtouch_screen_onScreenOffTimer);
     xtouch_screen_touchFromPowerOff = false;
-    loadScreen(0);
+    loadScreen(SCREEN_HOME);
     xtouch_screen_setBrightness(xTouchConfig.xTouchBacklightLevel);
 }
 

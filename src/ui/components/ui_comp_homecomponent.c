@@ -295,9 +295,8 @@ void onXTouchPrintStatus(lv_event_t *e)
 
 lv_obj_t *ui_homeComponent_create(lv_obj_t *comp_parent)
 {
-
     lv_obj_t *cui_homeComponent;
-    cui_homeComponent = lv_obj_create(ui_homeScreen);
+        cui_homeComponent = lv_obj_create(comp_parent);
     // lv_obj_set_width(cui_homeComponent, 272);
     lv_obj_set_width(cui_homeComponent, lv_pct(85));
 
@@ -348,7 +347,7 @@ lv_obj_t *ui_homeComponent_create(lv_obj_t *comp_parent)
 
     lv_obj_t *cui_mainScreenStatusBar;
     cui_mainScreenStatusBar = lv_obj_create(cui_mainScreenLeft);
-    lv_obj_set_height(cui_mainScreenStatusBar, lv_pct(20));
+    lv_obj_set_height(cui_mainScreenStatusBar, lv_pct(15));
     lv_obj_set_width(cui_mainScreenStatusBar, lv_pct(100));
     lv_obj_set_x(cui_mainScreenStatusBar, 386);
     lv_obj_set_y(cui_mainScreenStatusBar, 178);

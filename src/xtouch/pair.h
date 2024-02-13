@@ -9,7 +9,7 @@ void xtouch_pair_start()
 {
     xtouch_ssdp_setupButtonTimer();
     xtouch_pair_loop_exit = false;
-    loadScreen(10);
+    loadScreen(SCREEN_PAIRING);
     while (!xtouch_pair_loop_exit)
     {
         xtouch_ssdp_loop();
@@ -26,7 +26,7 @@ void xtouch_pair_start()
     else
     {
         xtouch_pair_loop_exit = false;
-        loadScreen(11);
+        loadScreen(SCREEN_ACCESSCODE);
         while (!xtouch_pair_loop_exit)
         {
             lv_timer_handler();
@@ -39,7 +39,7 @@ void xtouch_pair_init()
 {
     xtouch_ssdp_start();
     xtouch_pair_start();
-    loadScreen(-1);
+    loadScreen(SCREEN_INTRO);
     xtouch_ssdp_stop();
     xtouch_ssdp_save_pair(xTouchConfig.xTouchSerialNumber, xTouchConfig.xTouchAccessCode);
 }

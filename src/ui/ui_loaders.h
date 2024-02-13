@@ -8,8 +8,8 @@ extern "C"
 #include "ui.h"
 #include "ui_msgs.h"
 
-    void fillScreenData(int screen);
     void loadScreen(int screen);
+    lv_obj_t *get_screen_obj(int screen);
     void initTopLayer();
 
 #ifdef __cplusplus

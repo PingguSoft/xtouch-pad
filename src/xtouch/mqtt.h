@@ -668,13 +668,13 @@ void xtouch_mqtt_parseMessage(char *topic, byte *payload, unsigned int length, b
 }
 
 void xtouch_pubSubClient_streamCallback(char *topic, byte *payload, unsigned int length)
-{    
+{
     xtouch_mqtt_parseMessage(topic, (byte *)stream.get_buffer(), stream.current_length(),0);
 
     if(stream.includes("\"ams\"")) {
         xtouch_mqtt_parseMessage(topic, (byte *)stream.get_buffer(), stream.current_length(), 1);
     }
-    
+
     stream.flush();
 }
 
@@ -698,7 +698,7 @@ void xtouch_mqtt_onMqttReady()
 {
     if (!xtouch_mqtt_firstConnectionDone)
     {
-        loadScreen(0);
+        loadScreen(SCREEN_HOME);
         xtouch_screen_startScreenTimer();
     }
     xtouch_mqtt_firstConnectionDone = true;

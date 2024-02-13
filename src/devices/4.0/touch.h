@@ -98,7 +98,7 @@ void xtouch_touch_setup()
         lv_label_set_text(introScreenCaption, "Touch the  " LV_SYMBOL_PLUS "  with the stylus");
         lv_timer_handler();
         xtouch_saveTouchConfig(x_touch_touchConfig);
-        loadScreen(-1);
+        loadScreen(SCREEN_INTRO);
     }
 }
 
