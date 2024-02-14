@@ -72,7 +72,7 @@ void xtouch_mqtt_update_slice_info(const char *project_id, const char *profile_i
 
 void xtouch_mqtt_processPushStatus(JsonDocument &incomingJson)
 {
-    ConsoleDebug.println(F("[XTouch][MQTT] ProcessPushStatus"));
+    LOGD("[XTouch][MQTT] ProcessPushStatus\n");
 
     if (incomingJson != NULL && incomingJson.containsKey("print"))
     {
@@ -596,10 +596,19 @@ void xtouch_mqtt_processPushStatus(JsonDocument &incomingJson)
     }
 }
 
+void xtouch_debug_json(const JsonDocument &doc)
+{
+#if LOG_LEVEL >= LOG_LEVEL_D
+    String output;
+    serializeJsonPretty(doc, output);
+    LOGE("%s\n", output.c_str());
+#endif
+}
+
 void xtouch_mqtt_parseMessage(char *topic, byte *payload, unsigned int length, byte type = 0)
 {
 
-    ConsoleDebug.println(F("[XTouch][MQTT] ParseMessage"));
+    LOGD("[XTouch][MQTT] ParseMessage\n");
     DynamicJsonDocument incomingJson(XTOUCH_MQTT_SERVER_JSON_PARSE_SIZE);
 
     DynamicJsonDocument amsFilter(128);
@@ -624,8 +633,8 @@ void xtouch_mqtt_parseMessage(char *topic, byte *payload, unsigned int length, b
             }
             else if (command == "gcode_line")
             {
-                ConsoleDebug.println(F("[XTouch][MQTT] gcode_line ack"));
-                ConsoleDebug.println(String((char *)payload));
+                LOGD("[XTouch][MQTT] gcode_line ack\n");
+                LOGD("%s\n", (char *)payload);
             }
 
             // project_file
@@ -663,7 +672,7 @@ void xtouch_mqtt_parseMessage(char *topic, byte *payload, unsigned int length, b
     }
     else
     {
-        ConsoleError.println(F("[XTouch][MQTT] ParseMessage deserializeJson failed"));
+        LOGE("[XTouch][MQTT] ParseMessage deserializeJson failed\n");
     }
 }
 
@@ -707,7 +716,7 @@ void xtouch_mqtt_onMqttReady()
 void xtouch_mqtt_connect()
 {
 
-    ConsoleInfo.println(F("[XTouch][MQTT] Connecting"));
+    LOGI("[XTouch][MQTT] Connecting\n");
 
     if (!xtouch_mqtt_firstConnectionDone)
     {
@@ -724,7 +733,7 @@ void xtouch_mqtt_connect()
         String clientId = "XTOUCH-CLIENT-" + String(xtouch_mqtt_generateRandomKey(16));
         if (xtouch_pubSubClient.connect(clientId.c_str(), "bblp", xTouchConfig.xTouchAccessCode))
         {
-            ConsoleInfo.println(F("[XTouch][MQTT] ---- CONNECTED ----"));
+            LOGI("[XTouch][MQTT] ---- CONNECTED ----");
 
             xtouch_pubSubClient.subscribe(xtouch_mqtt_report_topic.c_str());
             xtouch_device_pushall();
@@ -734,7 +743,7 @@ void xtouch_mqtt_connect()
         }
         else
         {
-            ConsoleError.printf("[XTouch][MQTT] ---- CONNECTION FAIL ----: %d\n", xtouch_pubSubClient.state());
+            LOGE("[XTouch][MQTT] ---- CONNECTION FAIL ----: %d\n", xtouch_pubSubClient.state());
 
             switch (xtouch_pubSubClient.state())
             {
@@ -861,7 +870,7 @@ void xtouch_mqtt_loop()
 {
     if (!xtouch_pubSubClient.connected())
     {
-        Serial.println("π-----DISCONNECTED-----");
+        LOGE("π-----DISCONNECTED-----\n");
         xtouch_mqtt_connect();
         return;
     }

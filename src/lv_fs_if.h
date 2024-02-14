@@ -16,10 +16,10 @@ static void* sd_fs_open(lv_fs_drv_t* drv, const char* path, lv_fs_mode_t mode) {
     else if (mode == (LV_FS_MODE_WR | LV_FS_MODE_RD))
         flags = FILE_WRITE;
 
-    // ConsoleError.printf("open file : %s\n", path);
+    // LOGE("open file : %s\n", path);
     File f = SD.open(path, flags);
     if (!f) {
-        ConsoleError.printf("Failed to open file! : %s\n", path);
+        LOGE("Failed to open file! : %s\n", path);
         return NULL;
     }
 
@@ -96,12 +96,12 @@ static void* sd_dir_open(lv_fs_drv_t* drv, const char* dirpath) {
 
     File root = SD.open(dirpath);
     if (!root) {
-        ConsoleError.printf("Failed to open directory! : %s\n", dirpath);
+        LOGE("Failed to open directory! : %s\n", dirpath);
         return NULL;
     }
 
     if (!root.isDirectory()) {
-        ConsoleError.printf("Not a directory!");
+        LOGE("Not a directory!");
         return NULL;
     }
 
@@ -124,14 +124,14 @@ static lv_fs_res_t sd_dir_read(lv_fs_drv_t* drv, void* dir_p, char* fn) {
         } else {
             if (file.isDirectory()) {
                 // Serial.print("  DIR : ");
-                // ConsoleError.printf(file.name());
+                // LOGE(file.name());
                 fn[0] = '/';
                 strcpy(&fn[1], file.name());
             } else {
                 // Serial.print("  FILE: ");
                 // Serial.print(file.name());
                 // Serial.print("  SIZE: ");
-                // ConsoleError.printf(file.size());
+                // LOGE(file.size());
                 strcpy(fn, file.name());
             }
             break;
@@ -160,7 +160,7 @@ void lv_fs_test() {
 
     res = lv_fs_dir_open(&dir, "S:/image");
     if(res != LV_FS_RES_OK) {
-        ConsoleError.printf("Failed to open dir !!!\n");
+        LOGE("Failed to open dir !!!\n");
         return;
     }
 
@@ -168,7 +168,7 @@ void lv_fs_test() {
     while(1) {
         res = lv_fs_dir_read(&dir, fn);
         if(res != LV_FS_RES_OK) {
-            ConsoleError.printf("Failed to read dir !!!\n");
+            LOGE("Failed to read dir !!!\n");
             break;
         }
 

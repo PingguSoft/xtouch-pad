@@ -7,7 +7,8 @@
 
 struct FileInfo {
     int    id;
-    char   *name;
+    char   *pngName;
+    char   *modelName;
 };
 
 struct FileNode {
@@ -42,7 +43,7 @@ void insertFront(struct FileNode** head, struct FileInfo *info) {
 void insertAfter(struct FileNode* prev_node, struct FileInfo *info) {
     // check if previous node is null
     if (prev_node == NULL) {
-        printf("previous node cannot be null");
+        LOGD("previous node cannot be null");
         return;
     }
 
@@ -115,8 +116,8 @@ void deleteNode(struct FileNode** head, struct FileNode* del_node) {
         del_node->prev->next = del_node->next;
 
     // lv_mem_free the memory of del_node
-    if (del_node->info.name)
-        lv_mem_free(del_node->info.name);
+    if (del_node->info.pngName)
+        lv_mem_free(del_node->info.pngName);
     lv_mem_free(del_node);
 }
 
@@ -144,11 +145,11 @@ void deleteAllNodes() {
 
 void displayList(struct FileNode* node) {
     while (node != NULL) {
-        printf("%s -> ", node->info.name);
+        LOGD("%s -> ", node->info.pngName);
         node = node->next;
     }
     if (node == NULL)
-        printf("NULL\n");
+        LOGD("NULL\n");
 }
 
 #endif

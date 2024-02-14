@@ -1,4 +1,5 @@
 #include "../ui.h"
+#include "../../xtouch/debug.h"
 #include "filelist.h"
 
 lv_obj_t *_cui_browserComponent = NULL;
@@ -8,7 +9,7 @@ void rebuild_tiles();
 
 void onDeleteFileConfirm(void *user_data) {
     struct FileInfo *info = (struct FileInfo *)user_data;
-    printf("DELETED : %s\n", (char*)info->name);
+    LOGI("DELETED : %s\n", (char*)info->pngName);
 
     deleteNodeWithID(info->id);
     rebuild_tiles();
@@ -16,7 +17,7 @@ void onDeleteFileConfirm(void *user_data) {
 
 void onPrintConfirm(void *user_data) {
     struct FileInfo *info = (struct FileInfo *)user_data;
-    printf("PRINTING : %s\n", (char*)info->name);
+    LOGI("PRINTING : %s\n", (char*)info->pngName);
 }
 
 void ui_event_comp_png(lv_event_t *e) {
@@ -28,7 +29,7 @@ void ui_event_comp_png(lv_event_t *e) {
     switch (event_code) {
         case LV_EVENT_CLICKED:
             if (!is_long && info != NULL) {
-                printf("PRINT? : %s\n", (char*)info->name);
+                LOGI("PRINT? : %s\n", (char*)info->pngName);
                 ui_confirmPanel_show(LV_SYMBOL_WARNING " Print ?", onPrintConfirm, info);
             }
             is_long = false;
@@ -40,7 +41,7 @@ void ui_event_comp_png(lv_event_t *e) {
 
         case LV_EVENT_RELEASED:
             if (is_long && info != NULL) {
-                printf("DELETE? : %s\n", (char*)info->name);
+                LOGI("DELETE? : %s\n", (char*)info->pngName);
                 ui_confirmPanel_show(LV_SYMBOL_WARNING " Delete ?", onDeleteFileConfirm, info);
             }
             break;
@@ -51,7 +52,7 @@ void add_file(lv_obj_t *tile, struct FileInfo *info) {
     lv_obj_t *cui_png = lv_img_create(tile);
     lv_obj_set_width(cui_png, 128);
     lv_obj_set_height(cui_png, 128);
-    lv_img_set_src(cui_png, info->name);
+    lv_img_set_src(cui_png, info->pngName);
     lv_obj_set_align(cui_png, LV_ALIGN_LEFT_MID);
     lv_obj_add_flag(cui_png, LV_OBJ_FLAG_CLICKABLE | LV_OBJ_FLAG_ADV_HITTEST);     /// Flags
     lv_obj_clear_flag(cui_png, LV_OBJ_FLAG_PRESS_LOCK | LV_OBJ_FLAG_SNAPPABLE | LV_OBJ_FLAG_SCROLLABLE);      /// Flags
@@ -70,7 +71,7 @@ void add_file(lv_obj_t *tile, struct FileInfo *info) {
     lv_obj_set_style_text_color(cui_labelFileName, lv_color_hex(0x000000), LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_opa(cui_labelFileName, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
 
-    char *fn = strrchr(info->name, '/');
+    char *fn = strrchr(info->pngName, '/');
     if (fn) {
         fn++;
         lv_label_set_text(cui_labelFileName, fn);
@@ -121,7 +122,7 @@ void build_file_list(char *path) {
     deleteAllNodes();
     res = lv_fs_dir_open(&dir, path);
     if (res != LV_FS_RES_OK) {
-        printf("Failed to open dir !!!\n");
+        LOGE("Failed to open dir !!!\n");
         return;
     }
 
@@ -131,7 +132,7 @@ void build_file_list(char *path) {
     while (1) {
         res = lv_fs_dir_read(&dir, fn);
         if (res != LV_FS_RES_OK) {
-            printf("Failed to read dir !!!\n");
+            LOGE("Failed to read dir !!!\n");
             break;
         }
         /*fn is empty, if not more files to read*/
@@ -140,19 +141,19 @@ void build_file_list(char *path) {
             break;
         } else if (len > 4) {
             char *ext = &fn[len - 4];
-            printf("%s\n", fn);
+            LOGV("%s\n", fn);
             if (!strcasecmp(ext, ".png")) {
-                info.name = lv_mem_alloc(strlen(path) + strlen(fn) + 2);
+                info.pngName = lv_mem_alloc(strlen(path) + strlen(fn) + 2);
                 info.id = idx++;
 
-                strcpy(info.name, path);
-                strcat(info.name, "/");
-                strcat(info.name, fn);
+                strcpy(info.pngName, path);
+                strcat(info.pngName, "/");
+                strcat(info.pngName, fn);
                 insertEnd(&_head, &info);
             }
         }
     }
-    displayList(_head);
+    // displayList(_head);
     lv_fs_dir_close(&dir);
 }
 

@@ -12,10 +12,10 @@
 #include "xtouch/hms.h"
 #include "xtouch/ssdp.h"
 
-#if defined(__XTOUCH_SCREEN_28__)
+#if defined(ESP32_2432S028R)
 #include "devices/2.8/screen.h"
-#elif defined(__XTOUCH_SCREEN_40__)
-#    include "devices/4.0/screen.h"
+#elif defined(ESP32_4848S040CIY1)
+#include "devices/4.0/screen.h"
 #endif
 
 #include "xtouch/pair.h"
@@ -29,6 +29,12 @@
 #include "xtouch/coldboot.h"
 #include "lv_fs_if.h"
 
+extern "C" {
+    void print_sram_info() {
+        LOGI("[PSRAM] free:%d, heap:%d\n", ESP.getFreePsram(), ESP.getFreeHeap());
+    }
+}
+
 void xtouch_intro_show(void) {
     loadScreen(SCREEN_INTRO);
     lv_timer_handler();
@@ -40,10 +46,10 @@ void setup() {
 #endif
 
     xTouchConfig.currentScreenIndex = -1;
-    ConsoleInfo.printf("setup start !!!\n");
-    ConsoleInfo.printf("[CPU]   speed:%ld\n", getCpuFrequencyMhz());
-    ConsoleInfo.printf("[ROM]   size:%d, speed:%d\n", ESP.getFlashChipSize(), ESP.getFlashChipSpeed());
-    ConsoleInfo.printf("[PSRAM] size:%d, heap:%d\n", ESP.getPsramSize(), ESP.getFreeHeap());
+    LOGI("setup start !!!\n");
+    LOGI("[CPU]   speed:%ld\n", getCpuFrequencyMhz());
+    LOGI("[ROM]   size:%d, speed:%d\n", ESP.getFlashChipSize(), ESP.getFlashChipSpeed());
+    LOGI("[PSRAM] size:%d, heap:%d\n", ESP.getPsramSize(), ESP.getFreeHeap());
 
     xtouch_eeprom_setup();
     xtouch_globals_init();

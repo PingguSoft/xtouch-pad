@@ -24,7 +24,7 @@ void xtouch_screen_setBackLedOff()
 
 void xtouch_screen_wakeUp()
 {
-    ConsoleInfo.println("[XTouch][SCREEN] xtouch_screen_wakeUp");
+    LOGI("[XTouch][SCREEN] xtouch_screen_wakeUp\n");
     lv_timer_reset(xtouch_screen_onScreenOffTimer);
     xtouch_screen_touchFromPowerOff = false;
     loadScreen(SCREEN_HOME);
@@ -43,7 +43,7 @@ void xtouch_screen_onScreenOff(lv_timer_t *timer)
         return;
     }
 
-    ConsoleInfo.println("[XTouch][SCREEN] Screen Off");
+    LOGI("[XTouch][SCREEN] Screen Off\n");
     xtouch_screen_setBrightness(0);
     xtouch_screen_touchFromPowerOff = true;
 }

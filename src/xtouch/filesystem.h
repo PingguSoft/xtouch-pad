@@ -37,13 +37,11 @@ bool xtouch_filesystem_rmdir(fs::FS &fs, const char *path)
 
 void xtouch_filesystem_writeJson(fs::FS &fs, const char *filename, DynamicJsonDocument json, bool defaultsToArray = false, int size = 1024)
 {
-    ConsoleDebug.print(F("[XTouch][SD] Writting JSON file: "));
-    ConsoleDebug.println(filename);
+    LOGD("[XTouch][SD] Writting JSON file: %s\n", filename);
     File configFile = fs.open(filename, FILE_WRITE);
     if (!configFile)
     {
-        ConsoleError.print(F("[XTouch][SD] Failed to write json file: "));
-        ConsoleError.println(filename);
+        LOGE("[XTouch][SD] Failed to write json file: %s\n", filename);
         return;
     }
 
@@ -53,14 +51,12 @@ void xtouch_filesystem_writeJson(fs::FS &fs, const char *filename, DynamicJsonDo
 
 DynamicJsonDocument xtouch_filesystem_readJson(fs::FS &fs, const char *filename, bool defaultsToArray = false, int size = 1024)
 {
-    ConsoleDebug.print(F("[XTouch][SD] Reading JSON file: "));
-    ConsoleDebug.println(filename);
+    LOGD("[XTouch][SD] Reading JSON file: %s\n", filename);
     DynamicJsonDocument doc(size); // Adjust the size as needed
 
     if (!fs.exists(filename))
     {
-        ConsoleError.print(F("[XTouch][SD] Error Reading JSON File: "));
-        ConsoleError.println(filename);
+        LOGE("[XTouch][SD] Error Reading JSON File: %s\n", filename);
         // if (defaultsToArray)
         // {
         //     return doc.createNestedArray();
@@ -76,8 +72,7 @@ DynamicJsonDocument xtouch_filesystem_readJson(fs::FS &fs, const char *filename,
 
     if (error)
     {
-        ConsoleError.print(F("[XTouch][SD] Error Parsing JSON File: "));
-        ConsoleError.println(filename);
+        LOGE("[XTouch][SD] Error Parsing JSON File: %s\n", filename);
     }
 
     configFile.close();

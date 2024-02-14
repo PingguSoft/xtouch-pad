@@ -1,4 +1,3 @@
-
 #include "ui.h"
 #include "ui_msgs.h"
 
@@ -63,6 +62,7 @@ void fillScreenData(int screen) {
             break;
     }
 }
+extern void print_sram_info();
 
 void loadScreen(int screen) {
     if (xTouchConfig.currentScreenIndex != -1) {
@@ -73,6 +73,7 @@ void loadScreen(int screen) {
         }
     }
 
+    print_sram_info();
     if (SCREEN_MIN <= screen && screen < SCREEN_MAX) {
         _tbl_loader[screen].screen_obj = _tbl_loader[screen].init();
         lv_disp_load_scr(_tbl_loader[screen].screen_obj);
