@@ -9,13 +9,14 @@ typedef struct {
 } loader_t;
 
 static loader_t _tbl_loader[] = {
-    { SCREEN_INTRO,      ui_introScreen_screen_init,        false, },
     { SCREEN_HOME,       ui_homeScreen_screen_init,         true,  },
     { SCREEN_TEMP,       ui_temperatureScreen_screen_init,  true,  },
     { SCREEN_CONTROL,    ui_controlScreen_screen_init,      true,  },
     { SCREEN_FILAMENT,   ui_filamentScreen_screen_init,     true,  },
     { SCREEN_SETTING,    ui_settingsScreen_screen_init,     true,  },
     { SCREEN_BROWSER,    ui_browserScreen_screen_init,      true,  },
+
+    { SCREEN_INTRO,      ui_introScreen_screen_init,        false, },
     { SCREEN_PAIRING,    ui_printerPairScreen_screen_init,  false, },
     { SCREEN_ACCESSCODE, ui_accessCodeScreen_screen_init,   false, },
 };

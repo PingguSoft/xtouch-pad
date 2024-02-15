@@ -1,29 +1,45 @@
+#include <list>
 #include "../ui.h"
 #include "../../xtouch/debug.h"
-#include "filelist.h"
 
-lv_obj_t *_cui_browserComponent = NULL;
-lv_obj_t *_tile_view = NULL;
+typedef struct {
+    char   *pngName;
+    char   *modelName;
+} file_info_t;
 
-void rebuild_tiles();
+
+static lv_obj_t *_cui_browserComponent = NULL;
+static lv_obj_t *_tile_view = NULL;
+static int       _last_tile = 0;
+static std::list <file_info_t*> _file_list;
+
+void rebuild_tiles(int move_to);
+
+void free_node(file_info_t *info) {
+    if (info->pngName)
+        lv_mem_free(info->pngName);
+    if (info->modelName)
+        lv_mem_free(info->modelName);
+}
 
 void onDeleteFileConfirm(void *user_data) {
-    struct FileInfo *info = (struct FileInfo *)user_data;
+    file_info_t *info = (file_info_t *)user_data;
     LOGI("DELETED : %s\n", (char*)info->pngName);
 
-    deleteNodeWithID(info->id);
-    rebuild_tiles();
+    free_node(info);
+    _file_list.remove(info);
+    rebuild_tiles(_last_tile);
 }
 
 void onPrintConfirm(void *user_data) {
-    struct FileInfo *info = (struct FileInfo *)user_data;
+    file_info_t *info = (file_info_t *)user_data;
     LOGI("PRINTING : %s\n", (char*)info->pngName);
 }
 
 void ui_event_comp_png(lv_event_t *e) {
     lv_event_code_t event_code = lv_event_get_code(e);
     lv_obj_t *target = lv_event_get_target(e);
-    struct FileInfo *info = lv_event_get_user_data(e);
+    file_info_t *info = (file_info_t *)lv_event_get_user_data(e);
     static bool is_long = false;
 
     switch (event_code) {
@@ -42,13 +58,14 @@ void ui_event_comp_png(lv_event_t *e) {
         case LV_EVENT_RELEASED:
             if (is_long && info != NULL) {
                 LOGI("DELETE? : %s\n", (char*)info->pngName);
+                _last_tile = lv_obj_get_index(lv_obj_get_parent(target));
                 ui_confirmPanel_show(LV_SYMBOL_WARNING " Delete ?", onDeleteFileConfirm, info);
             }
             break;
     }
 }
 
-void add_file(lv_obj_t *tile, struct FileInfo *info) {
+void add_file(lv_obj_t *tile, file_info_t *info) {
     lv_obj_t *cui_png = lv_img_create(tile);
     lv_obj_set_width(cui_png, 128);
     lv_obj_set_height(cui_png, 128);
@@ -87,8 +104,7 @@ lv_obj_t *add_tile(lv_obj_t *parent, int row) {
     return tile;
 }
 
-void rebuild_tiles() {
-    struct FileNode* temp = _head;
+void rebuild_tiles(int move_to) {
     lv_obj_t *tile;
     int cnt = 0;
     const int imgs_per_tile = 6;
@@ -105,13 +121,20 @@ void rebuild_tiles() {
     lv_obj_clear_flag(_tile_view, LV_OBJ_FLAG_SCROLL_ELASTIC);
     lv_obj_set_style_bg_color(_tile_view, lv_color_hex(0xffffff), LV_PART_MAIN | LV_STATE_DEFAULT);
 
-    while (temp != NULL) {
+    for (file_info_t *info : _file_list) {
         if (cnt % imgs_per_tile == 0) {
             tile = add_tile(_tile_view, cnt / imgs_per_tile);
         }
         cnt++;
-        add_file(tile, &temp->info);
-        temp = temp->next;
+        add_file(tile, info);
+    }
+
+    if (move_to > 0) {
+        int cnt = lv_obj_get_child_cnt(_tile_view);
+        int max_tile_id = (cnt > 0) ? (cnt - 1) : 0;
+
+        move_to = min(move_to, max_tile_id);
+        lv_obj_set_tile_id(_tile_view, 0, move_to, LV_ANIM_OFF);
     }
 }
 
@@ -119,7 +142,10 @@ void build_file_list(char *path) {
     lv_fs_dir_t dir;
     lv_fs_res_t res;
 
-    deleteAllNodes();
+    for (file_info_t *info : _file_list) {
+        free_node(info);
+    }
+    _file_list.clear();
     res = lv_fs_dir_open(&dir, path);
     if (res != LV_FS_RES_OK) {
         LOGE("Failed to open dir !!!\n");
@@ -127,8 +153,7 @@ void build_file_list(char *path) {
     }
 
     char fn[256];
-    int  idx = 0;
-    struct FileInfo info;
+
     while (1) {
         res = lv_fs_dir_read(&dir, fn);
         if (res != LV_FS_RES_OK) {
@@ -143,17 +168,16 @@ void build_file_list(char *path) {
             char *ext = &fn[len - 4];
             LOGV("%s\n", fn);
             if (!strcasecmp(ext, ".png")) {
-                info.pngName = lv_mem_alloc(strlen(path) + strlen(fn) + 2);
-                info.id = idx++;
-
-                strcpy(info.pngName, path);
-                strcat(info.pngName, "/");
-                strcat(info.pngName, fn);
-                insertEnd(&_head, &info);
+                file_info_t *info = (file_info_t *)lv_mem_alloc(sizeof(file_info_t));
+                lv_memset_00(info, sizeof(file_info_t));
+                info->pngName = (char*)lv_mem_alloc(strlen(path) + strlen(fn) + 2);
+                strcpy(info->pngName, path);
+                strcat(info->pngName, "/");
+                strcat(info->pngName, fn);
+                _file_list.push_back(info);
             }
         }
     }
-    // displayList(_head);
     lv_fs_dir_close(&dir);
 }
 
@@ -182,8 +206,8 @@ lv_obj_t *ui_browserComponent_create(lv_obj_t *comp_parent) {
     lv_obj_set_style_pad_bottom(cui_sd_browser, 5, LV_PART_MAIN | LV_STATE_DEFAULT);
 
     _tile_view = NULL;
-    build_file_list("S:/image");
-    rebuild_tiles();
+    build_file_list("S:/ftps/image");
+    rebuild_tiles(0);
 
     return _cui_browserComponent;
 }

@@ -14,7 +14,7 @@ void onSidebarComponentButtonClicked(lv_event_t *e) {
     // }
     // // set checked
     // lv_obj_add_state(target, LV_STATE_CHECKED);
-    int screen = lv_obj_get_index(target) + 1;  // screen number including intro
+    int screen = lv_obj_get_index(target);
     loadScreen(screen);
 }
 
@@ -26,7 +26,7 @@ void ui_sidebarComponent_set_active(int index) {
         lv_obj_t *child = lv_obj_get_child(ui_sidebarComponent, i);
         lv_obj_clear_state(child, LV_STATE_CHECKED);
 
-        if ((index - 1) == i) {
+        if (index == i) {
             lv_obj_add_state(child, LV_STATE_CHECKED);
         }
     }

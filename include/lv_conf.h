@@ -66,7 +66,7 @@
 #else       /*LV_MEM_CUSTOM*/
     #define LV_MEM_CUSTOM_INCLUDE "esp_heap_caps.h"   /*Header for the dynamic memory function*/
     #define LV_MEM_CUSTOM_ALLOC(size)   heap_caps_malloc(size, MALLOC_CAP_SPIRAM)
-    #define LV_MEM_CUSTOM_FREE(addr)    heap_caps_free(addr)
+    #define LV_MEM_CUSTOM_FREE(addr)    free(addr)
     #define LV_MEM_CUSTOM_REALLOC(addr, size) heap_caps_realloc(addr, size, MALLOC_CAP_SPIRAM)
 #endif     /*LV_MEM_CUSTOM*/
 
