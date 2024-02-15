@@ -3,10 +3,13 @@
 #include "ui_msgs.h"
 
 ///////////////////// VARIABLES ////////////////////
+lv_timer_t *xtouch_screen_onScreenOffTimer;
+lv_timer_t *xtouch_ssdp_onButtonTimerTimer;
 lv_obj_t *introScreenCaption;
-
 lv_obj_t *ui_sidebarComponent;
 lv_obj_t *ui_homeComponent;
+lv_obj_t *ui_accessCodeScreenKeyboard;
+lv_obj_t *ui_accessCodeInput;
 lv_obj_t *ui_temperatureComponent;
 lv_obj_t *ui_controlComponent;
 lv_obj_t *ui_settingsComponent;
@@ -24,13 +27,16 @@ lv_obj_t *ui_confirmComponent; // layertop
 lv_obj_t *ui_hmsComponent;     // layertop
 lv_obj_t *ui_mainStatusComponent;
 lv_obj_t *ui_filamentComponent;
-lv_obj_t *ui_accessCodeScreenKeyboard;
-lv_obj_t *ui_accessCodeInput;
 lv_obj_t *ui_printerPairScreenRoller;
 lv_obj_t *ui_printerPairScreenSubmitButton;
 lv_obj_t *ui_mainScreenChamberTempValue;
-void ui_event____initial_actions0(lv_event_t *e);
 lv_obj_t *ui____initial_actions0;
+
+// from types.h
+XTouchBambuStatus bambuStatus;
+XtouchControlMode controlMode;
+XTouchConfig xTouchConfig;
+
 
 ///////////////////// TEST LVGL SETTINGS ////////////////////
 #if LV_COLOR_DEPTH != 16

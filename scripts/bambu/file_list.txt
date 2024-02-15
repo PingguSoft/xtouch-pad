@@ -1,18 +1,46 @@
-rpi3p_case.gcode.3mf
-plate_holder.gcode.3mf
-"?쒕ぉ ?놁쓬.gcode.3mf"
-controller-left.gcode.3mf
-1.gcode.3mf
-swerve-large-gear.gcode.3mf
-swerve-axle-gearx3.gcode.3mf
-rc_con_left_bottom.gcode.3mf
-swerve-gear-motorx6.gcode.3mf
-hex_bits_holder_7x3.gcode.3mf
-"hex_bits_holder_7 x 2.gcode.3mf"
-"No-Catch Y-Splitter Self-Tap (long slot) (9.4mm-M3x6 mount).gcode.3mf"
-AMS_disconnect_tool_with_magnet_seperate_letters.gcode.3mf
-"Bambu Trash_plate_3.gcode.3mf"
-"Bambu Trash_plate_1.gcode.3mf"
-X1_Touch.gcode.3mf
-X-Touch.gcode.3mf
-"HKR -AMS Side mount spool holder.gcode.3mf"
+/image
+ -rw-rw-rw-   1 root  root      4796 Jan 23 22:57 39585176581.png
+ -rw-rw-rw-   1 root  root      4061 Jan 23 23:55 34251623081.png
+ -rw-rw-rw-   1 root  root      4796 Jan 24 01:06 12718038631.png
+ -rw-rw-rw-   1 root  root      4043 Jan 24 09:26 22181592811.png
+ -rw-rw-rw-   1 root  root      3609 Jan 25 23:20 2613376571.png
+ -rw-rw-rw-   1 root  root      2157 Jan 24 21:58 7143709141.png
+ -rw-rw-rw-   1 root  root      3186 Jan 25 00:08 3553883803.png
+ -rw-rw-rw-   1 root  root      3804 Jan 25 22:09 4380517671.png
+ -rw-rw-rw-   1 root  root      3471 Jan 26 23:16 15642952511.png
+ -rw-rw-rw-   1 root  root      2755 Jan 26 23:51 10363259711.png
+ -rw-rw-rw-   1 root  root      2171 Jan 27 13:22 4678907721.png
+ -rw-rw-rw-   1 root  root      1182 Jan 27 13:26 19799488481.png
+ -rw-rw-rw-   1 root  root      4081 Jan 28 04:35 2064281.png
+ -rw-rw-rw-   1 root  root      1863 Jan 28 11:41 17930814601.png
+ -rw-rw-rw-   1 root  root      4857 Jan 28 14:13 26698210481.png
+ -rw-rw-rw-   1 root  root      5285 Jan 31 03:09 14229151451.png
+ -rw-rw-rw-   1 root  root      4505 Feb 03 15:51 38297837321.png
+ -rw-rw-rw-   1 root  root      2540 Feb 05 20:19 166532401.png
+ -rw-rw-rw-   1 root  root      2540 Feb 05 23:13 9240571371.png
+ -rw-rw-rw-   1 root  root      4684 Feb 05 23:28 42885271611.png
+ -rw-rw-rw-   1 root  root      4684 Feb 08 15:17 28260101861.png
+ -rw-rw-rw-   1 root  root      4442 Feb 12 22:44 15137327011.png
+
+
+/*.3mf
+ -rw-rw-rw-   1 root  root    326780 Jan 23 22:57 HKR -AMS Side mount spool holder.gcode.3mf
+ -rw-rw-rw-   1 root  root    617858 Jan 23 23:55 X-Touch.gcode.3mf
+ -rw-rw-rw-   1 root  root    595232 Jan 24 09:26 X1_Touch.gcode.3mf
+ -rw-rw-rw-   1 root  root    413301 Jan 25 23:20 No-Catch Y-Splitter Self-Tap (long slot) (9.4mm-M3x6 mount).gcode.3mf
+ -rw-rw-rw-   1 root  root    953086 Jan 31 03:09 1.gcode.3mf
+ -rw-rw-rw-   1 root  root    698414 Jan 24 21:58 Bambu Trash_plate_1.gcode.3mf
+ -rw-rw-rw-   1 root  root    301823 Jan 25 00:08 Bambu Trash_plate_3.gcode.3mf
+ -rw-rw-rw-   1 root  root    176374 Jan 25 22:09 AMS_disconnect_tool_with_magnet_seperate_letters.gcode.3mf
+ -rw-rw-rw-   1 root  root    710512 Jan 26 23:51 hex_bits_holder_7 x 2.gcode.3mf
+ -rw-rw-rw-   1 root  root   1029925 Jan 27 13:22 hex_bits_holder_7x3.gcode.3mf
+ -rw-rw-rw-   1 root  root    767304 Jan 27 13:26 swerve-gear-motorx6.gcode.3mf
+ -rw-rw-rw-   1 root  root   1548586 Jan 28 04:35 rc_con_left_bottom.gcode.3mf
+ -rw-rw-rw-   1 root  root    458648 Jan 28 11:41 swerve-axle-gearx3.gcode.3mf
+ -rw-rw-rw-   1 root  root    970885 Jan 28 14:13 swerve-large-gear.gcode.3mf
+ -rw-rw-rw-   1 root  root   2108337 Feb 03 15:51 controller-left.gcode.3mf
+ -rw-rw-rw-   1 root  root    810058 Feb 05 20:19 제목 없음.gcode.3mf
+ -rw-rw-rw-   1 root  root    810058 Feb 05 23:14 plate_holder.gcode.3mf
+ -rw-rw-rw-   1 root  root    667533 Feb 05 23:28 rpi3p_case.gcode.3mf
+ -rw-rw-rw-   1 root  root    667533 Feb 08 15:17 11111111.gcode.3mf
+ -rw-rw-rw-   1 root  root    838822 Feb 12 22:45 galaxy watch stand.gcode.3mf

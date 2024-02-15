@@ -122,7 +122,7 @@ extern "C"
 
     } XTouchBambuStatus;
 
-    XTouchBambuStatus bambuStatus;
+    extern XTouchBambuStatus bambuStatus;
 
     enum XTouchControlAxis
     {
@@ -138,7 +138,7 @@ extern "C"
         int target_nozzle_temper;
     } XtouchControlMode;
 
-    XtouchControlMode controlMode;
+    extern XtouchControlMode controlMode;
 
     typedef struct XTouchTouchConfigStruct
     {
@@ -159,7 +159,7 @@ extern "C"
         int currentScreenIndex;
     } XTouchConfig;
 
-    XTouchConfig xTouchConfig;
+    extern XTouchConfig xTouchConfig;
 
     /* HMS */
 
