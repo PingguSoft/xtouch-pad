@@ -9,3 +9,5 @@ design/project/*.py
 .vscode/c_cpp_properties.json
 .vscode/settings.json
 *.exe
+*.ilk
+*.pdb

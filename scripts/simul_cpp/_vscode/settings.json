@@ -1,7 +1,9 @@
 {
     "files.associations": {
+        "*.repos": "yaml",
+        "*.world": "xml",
+        "*.xacro": "xml",
         "xstring": "cpp",
-        "algorithm": "cpp",
         "atomic": "cpp",
         "bit": "cpp",
         "cctype": "cpp",
@@ -24,10 +26,8 @@
         "istream": "cpp",
         "iterator": "cpp",
         "limits": "cpp",
-        "list": "cpp",
         "memory": "cpp",
         "new": "cpp",
-        "optional": "cpp",
         "ostream": "cpp",
         "stdexcept": "cpp",
         "streambuf": "cpp",
@@ -46,6 +46,7 @@
         "xmemory": "cpp",
         "xstddef": "cpp",
         "xtr1common": "cpp",
-        "xutility": "cpp"
+        "xutility": "cpp",
+        "list": "cpp"
     }
 }

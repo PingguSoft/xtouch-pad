@@ -111,7 +111,7 @@ void xtouch_screen_setup()
     xtouch_screen_setBackLedOff();
     smartdisplay_init();
 #if LV_IMG_CACHE_DEF_SIZE
-    lv_img_cache_set_size(20);
+    lv_img_cache_set_size(40);
 #endif
     smartdisplay_set_touch_cb(xtouch_screen_touchRead);
     xtouch_screen_setBrightness(255);
