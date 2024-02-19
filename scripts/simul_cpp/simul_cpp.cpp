@@ -6,7 +6,9 @@
 #include <stdio.h>
 #include <string.h>
 
-std::list <std::string> _png_logs = {
+#define String std::string
+
+std::list <String> _png_logs = {
     "-rw-rw-rw-   1 root  root      4796 Jan 23 22:57 39585176581.png",
     "-rw-rw-rw-   1 root  root      4061 Jan 23 23:55 34251623081.png",
     "-rw-rw-rw-   1 root  root      4796 Jan 24 01:06 12718038631.png",
@@ -31,7 +33,7 @@ std::list <std::string> _png_logs = {
     "-rw-rw-rw-   1 root  root      4442 Feb 12 22:44 15137327011.png"
 };
 
-std::list <std::string> _png_logs_new = {
+std::list <String> _png_logs_new = {
     "-rw-rw-rw-   1 root  root      4796 Jan 23 22:57 39585176581.png",
     "-rw-rw-rw-   1 root  root      4061 Jan 23 23:55 34251623081.png",
     "-rw-rw-rw-   1 root  root      4796 Jan 24 01:06 12718038631.png",
@@ -57,7 +59,7 @@ std::list <std::string> _png_logs_new = {
     "-rw-rw-rw-   1 root  root      4442 Feb 12 22:46 15137346711.png"
 };
 
-std::list <std::string> _model_logs = {
+std::list <String> _model_logs = {
     "-rw-rw-rw-   1 root  root    326780 Jan 23 22:57 HKR -AMS Side mount spool holder.gcode.3mf",
     "-rw-rw-rw-   1 root  root    617858 Jan 23 23:55 X-Touch.gcode.3mf",
     "-rw-rw-rw-   1 root  root    595232 Jan 24 09:26 X1_Touch.gcode.3mf",
@@ -84,7 +86,7 @@ std::list <std::string> _model_logs = {
 
 class FTPListParser {
 private:
-    std::vector <std::string> _months = {
+    std::vector <String> _months = {
         "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Sep", "Nov", "Dec" };
 
 public:
@@ -92,9 +94,9 @@ public:
     public:
         long   ts;
         long   size;
-        std::string name;
+        String name;
 
-        void set(long ts, long size, std::string name) {
+        void set(long ts, long size, String name) {
             this->ts = ts;
             this->size = size;
             this->name = name;
@@ -104,7 +106,7 @@ public:
             set(0, 0, "");
         }
 
-        FileInfo(long ts, long size, std::string name) {
+        FileInfo(long ts, long size, String name) {
             set(ts, size, name);
         }
     };
@@ -112,12 +114,12 @@ public:
     class FilePair {
     public:
         long   ts;
-        std::string file_a;
-        std::string file_b;
+        String file_a;
+        String file_b;
         long   size_a;
         long   size_b;
 
-        void set(long ts, std::string a, std::string b) {
+        void set(long ts, String a, String b) {
             this->ts = ts;
             this->file_a = a;
             this->file_b = b;
@@ -127,16 +129,16 @@ public:
             set(0, "", "");
         }
 
-        FilePair(long ts, std::string a, std::string b) {
+        FilePair(long ts, String a, String b) {
             set(ts, a, b);
         }
     };
 
-    void parse(std::list <std::string> logs, std::list <FileInfo*> &result) {
+    void parse(std::list <String> logs, std::list <FileInfo*> &result) {
         std::vector <char*> tokens;
-        std::string fname;
+        String fname;
 
-        for (std::string line: logs) {
+        for (String line: logs) {
             char *token = strtok((char*)line.c_str(), " ");
             while (token != NULL) {
                 tokens.push_back(token);
@@ -205,6 +207,27 @@ public:
     }
 };
 
+void tokenize(String &line, String token, std::vector<String> &tokens) {
+    String tmp(line);
+    char *tkn = strtok((char*)tmp.c_str(), token.c_str());
+
+    while (tkn != NULL) {
+        tokens.push_back(String(tkn));
+        tkn = strtok(NULL, token.c_str());
+    }
+}
+
+void test(String line) {
+    String path;
+    std::vector<String> tokens;
+
+    tokenize(line, "/", tokens);
+    for (int i = 0; i < tokens.size() - 1; i++) {
+        path = path + "/" + tokens[i];
+        printf("%s\n", path.c_str());
+    }
+}
+
 int main() {
     FTPListParser  parser;
 
@@ -214,11 +237,13 @@ int main() {
     std::list <FTPListParser::FileInfo*> info_model;
     std::list <FTPListParser::FilePair*> pair;
 
-    parser.parse(_png_logs, info_png);
-    parser.parse(_png_logs_new, info_png_new);
-    parser.diff(info_png, info_png_new, info_diff);
-    for (FTPListParser::FileInfo *i:info_diff)
-        printf("%8ld, %s\n", i->ts, i->name.c_str());
+    test("/ftps/image/1.png");
+
+    // parser.parse(_png_logs, info_png);
+    // parser.parse(_png_logs_new, info_png_new);
+    // parser.diff(info_png, info_png_new, info_diff);
+    // for (FTPListParser::FileInfo *i:info_diff)
+    //     printf("%8ld, %s\n", i->ts, i->name.c_str());
 
     // parser.parse(_model_logs, info_model);
     // for (FTPListParser::FileInfo *i:info_model)
