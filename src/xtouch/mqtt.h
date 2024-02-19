@@ -827,6 +827,7 @@ void xtouch_mqtt_setup()
     DynamicJsonDocument printerIps = xtouch_ssdp_load_printerIPs();
 
     ip.fromString(printerIps[xTouchConfig.xTouchSerialNumber].as<String>());
+    strcpy(xTouchConfig.xTouchIP, ip.toString().c_str());
     strcpy(xTouchConfig.xTouchPrinterModel, printer[xTouchConfig.xTouchSerialNumber]["model"]);
 
     xtouch_mqtt_topic_setup();

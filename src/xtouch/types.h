@@ -157,6 +157,7 @@ extern "C"
         int xTouchTFTOFFValue;
         bool xTouchWakeOnPrint;
         int currentScreenIndex;
+        char xTouchIP[16];
     } XTouchConfig;
 
     extern XTouchConfig xTouchConfig;
