@@ -55,7 +55,6 @@ void setup() {
     xtouch_globals_init();
     xtouch_screen_setup();
     xtouch_intro_show();
-
     while (!xtouch_sdcard_setup()) {
         lv_label_set_text(introScreenCaption, LV_SYMBOL_SD_CARD " INSERT SD CARD");
         lv_obj_set_style_text_color(introScreenCaption, lv_color_hex(0xFF0000), LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -73,24 +72,24 @@ void setup() {
 
     xtouch_touch_setup();
 
-    loadScreen(SCREEN_BROWSER);
+    while (!xtouch_wifi_setup());
 
-    // while (!xtouch_wifi_setup())
-    //     ;
-
-    // xtouch_firmware_checkOnlineFirmwareUpdate();
+    xtouch_firmware_checkOnlineFirmwareUpdate();
 
     xtouch_screen_setupScreenTimer();
     xtouch_setupGlobalEvents();
-    // xtouch_pair_check();
-    // xtouch_mqtt_setup();
-    // xtouch_chamber_timer_init();
+    xtouch_pair_check();
+
+    xtouch_mqtt_setup();
+    xtouch_chamber_timer_init();
+
+    // loadScreen(SCREEN_BROWSER);
 }
 
 void loop() {
     lv_timer_handler();
     lv_task_handler();
-    // xtouch_mqtt_loop();
+    xtouch_mqtt_loop();
 }
 
 

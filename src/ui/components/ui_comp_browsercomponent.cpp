@@ -1,6 +1,7 @@
 #include <list>
 #include "../ui.h"
 #include "../../xtouch/debug.h"
+#include "../../xtouch/ftps_worker.h"
 
 typedef struct {
     char   *pngName;
@@ -8,6 +9,7 @@ typedef struct {
 } file_info_t;
 
 
+static FTPSWorker *_ftps = NULL;
 static lv_obj_t *_cui_browserComponent = NULL;
 static lv_obj_t *_tile_view = NULL;
 static int       _last_tile = 0;
@@ -206,6 +208,13 @@ lv_obj_t *ui_browserComponent_create(lv_obj_t *comp_parent) {
     lv_obj_set_style_pad_bottom(cui_sd_browser, 5, LV_PART_MAIN | LV_STATE_DEFAULT);
 
     _tile_view = NULL;
+
+    if (_ftps == NULL) {
+        // ESP32_FTPSClient ftps((char*)"192.168.0.159", 990, (char*)"bblp", (char*)"34801960", 10000, 2);
+        _ftps = new FTPSWorker((char*)xTouchConfig.xTouchIP, 990, (char*)"bblp", (char*)xTouchConfig.xTouchAccessCode);
+    }
+    _ftps->startSync();
+
     build_file_list("S:/ftps/image");
     rebuild_tiles(0);
 
