@@ -1,8 +1,9 @@
 
 #include <WiFiClientSecure.h>
 #include <FS.h>
+#include <vector>
 
-class ESP32_SFTPClient
+class ESP32_FTPSClient
 {
   private:
   void WriteClientBuffered(WiFiClientSecure* cli, unsigned char * data, int dataLength);
@@ -12,6 +13,7 @@ class ESP32_SFTPClient
   WiFiClientSecure dclient;
   uint8_t verbose;
 
+/*
   template<typename T>
   		void FTPdbg(T msg) {
     	if(verbose == 2) Serial.print(msg);
@@ -26,6 +28,7 @@ class ESP32_SFTPClient
     void FTPerr(T msg) {
     if(verbose == 1 || verbose == 2) Serial.print(msg);
   }
+*/
 
   char* userName;
   char* passWord;
@@ -41,8 +44,8 @@ class ESP32_SFTPClient
   void sendCmd(char *format, ...);
 
   public:
-  ESP32_SFTPClient(char* _serverAdress, uint16_t _port, char* _userName, char* _passWord, uint16_t _timeout = 10000, uint8_t _verbose = 1);
-  ESP32_SFTPClient(char* _serverAdress, char* _userName, char* _passWord, uint16_t _timeout = 10000, uint8_t _verbose = 1);
+  ESP32_FTPSClient(char* _serverAdress, uint16_t _port, char* _userName, char* _passWord, uint16_t _timeout = 10000, uint8_t _verbose = 1);
+  ESP32_FTPSClient(char* _serverAdress, char* _userName, char* _passWord, uint16_t _timeout = 10000, uint8_t _verbose = 1);
   void OpenConnection(bool secure, bool implicit);
   void CloseConnection();
   bool isConnected();
@@ -58,8 +61,8 @@ class ESP32_SFTPClient
   void ChangeWorkDir(const char * dir);
   void DeleteFile(const char * file);
   void MakeDir(const char * dir);
-  void DirShort(const char * dir, String * list);
-  void DirLong(const char * dir, String * list);
+  void DirShort(const char * dir, std::vector<String*> &list);
+  void DirLong(const char * dir, std::vector<String*> &list);
   void DownloadString(const char * filename, String &str);
   void DownloadFile(const char * filename, unsigned char * buf, size_t length, bool printUART = false);
 
