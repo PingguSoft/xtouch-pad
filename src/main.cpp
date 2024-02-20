@@ -28,6 +28,14 @@
 #include "xtouch/connection.h"
 #include "xtouch/coldboot.h"
 #include "lv_fs_if.h"
+#include "xtouch/ftps_worker.h"
+
+
+static FTPSWorker *_ftps = NULL;
+
+FTPSWorker *getFTPSWorker() {
+    return _ftps;
+}
 
 extern "C" {
     void print_sram_info() {
@@ -82,6 +90,14 @@ void setup() {
 
     xtouch_mqtt_setup();
     xtouch_chamber_timer_init();
+
+
+    LOGD("priority : %d\n", uxTaskPriorityGet(NULL));
+    if (_ftps == NULL) {
+        // ESP32_FTPSClient ftps((char*)"192.168.0.159", 990, (char*)"bblp", (char*)"34801960", 10000, 2);
+        _ftps = new FTPSWorker((char*)xTouchConfig.xTouchIP, 990, (char*)"bblp", (char*)xTouchConfig.xTouchAccessCode);
+    }
+    _ftps->startSync();
 
     // loadScreen(SCREEN_BROWSER);
 }

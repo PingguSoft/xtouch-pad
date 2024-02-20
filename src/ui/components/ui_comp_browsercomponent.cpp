@@ -3,51 +3,75 @@
 #include "../../xtouch/debug.h"
 #include "../../xtouch/ftps_worker.h"
 
-typedef struct {
-    char   *pngName;
-    char   *modelName;
-} file_info_t;
 
+/*
+*****************************************************************************************
+* FUNCTION DEFINITION
+*****************************************************************************************
+*/
+extern FTPSWorker *getFTPSWorker();
+void rebuildTiles(int move_to);
 
-static FTPSWorker *_ftps = NULL;
+/*
+*****************************************************************************************
+* CLASS
+*****************************************************************************************
+*/
+class FTPSCallback : public FTPSWorker::Callback {
+    virtual int16_t onCallback(FTPSWorker::cmd_t cmd, void *pParam, uint16_t size) {
+        switch (cmd) {
+            case FTPSWorker::CMD_SYNC:
+                if (xTouchConfig.currentScreenIndex == SCREEN_BROWSER)
+                    rebuildTiles(0);
+                break;
+
+            case FTPSWorker::CMD_DOWNLOADING:
+                LOGD("downloading : %s\n", (char*)pParam);
+                break;
+        }
+        return 0;
+    }
+};
+
+/*
+*****************************************************************************************
+* VARIABLES
+*****************************************************************************************
+*/
 static lv_obj_t *_cui_browserComponent = NULL;
 static lv_obj_t *_tile_view = NULL;
 static int       _last_tile = 0;
-static std::list <file_info_t*> _file_list;
+static FTPSCallback *_callback = new FTPSCallback();
 
-void rebuild_tiles(int move_to);
 
-void free_node(file_info_t *info) {
-    if (info->pngName)
-        lv_mem_free(info->pngName);
-    if (info->modelName)
-        lv_mem_free(info->modelName);
-}
-
+/*
+*****************************************************************************************
+* FUNCTIONS
+*****************************************************************************************
+*/
 void onDeleteFileConfirm(void *user_data) {
-    file_info_t *info = (file_info_t *)user_data;
-    LOGI("DELETED : %s\n", (char*)info->pngName);
+    FTPListParser::FilePair *info = (FTPListParser::FilePair *)user_data;
+    LOGI("DELETED : %s\n", (char*)info->a->name.c_str());
 
-    free_node(info);
-    _file_list.remove(info);
-    rebuild_tiles(_last_tile);
+    info->invalid();
+    rebuildTiles(_last_tile);
 }
 
 void onPrintConfirm(void *user_data) {
-    file_info_t *info = (file_info_t *)user_data;
-    LOGI("PRINTING : %s\n", (char*)info->pngName);
+    FTPListParser::FilePair *info = (FTPListParser::FilePair *)user_data;
+    LOGI("PRINTING : %s\n", (char*)info->a->name.c_str());
 }
 
-void ui_event_comp_png(lv_event_t *e) {
+void onEventPNG(lv_event_t *e) {
     lv_event_code_t event_code = lv_event_get_code(e);
     lv_obj_t *target = lv_event_get_target(e);
-    file_info_t *info = (file_info_t *)lv_event_get_user_data(e);
+    FTPListParser::FilePair *info = (FTPListParser::FilePair *)lv_event_get_user_data(e);
     static bool is_long = false;
 
     switch (event_code) {
         case LV_EVENT_CLICKED:
             if (!is_long && info != NULL) {
-                LOGI("PRINT? : %s\n", (char*)info->pngName);
+                LOGI("PRINT? : %s\n", (char*)info->a->name.c_str());
                 ui_confirmPanel_show(LV_SYMBOL_WARNING " Print ?", onPrintConfirm, info);
             }
             is_long = false;
@@ -59,7 +83,7 @@ void ui_event_comp_png(lv_event_t *e) {
 
         case LV_EVENT_RELEASED:
             if (is_long && info != NULL) {
-                LOGI("DELETE? : %s\n", (char*)info->pngName);
+                LOGI("DELETE? : %s\n", (char*)info->a->name.c_str());
                 _last_tile = lv_obj_get_index(lv_obj_get_parent(target));
                 ui_confirmPanel_show(LV_SYMBOL_WARNING " Delete ?", onDeleteFileConfirm, info);
             }
@@ -67,18 +91,23 @@ void ui_event_comp_png(lv_event_t *e) {
     }
 }
 
-void add_file(lv_obj_t *tile, file_info_t *info) {
+void addPNGToTile(lv_obj_t *tile, char *dir, FTPListParser::FilePair *info) {
+    char pathPNG[40];
+
     lv_obj_t *cui_png = lv_img_create(tile);
     lv_obj_set_width(cui_png, 128);
     lv_obj_set_height(cui_png, 128);
-    lv_img_set_src(cui_png, info->pngName);
+
+    strcpy(pathPNG, dir);
+    strcat(pathPNG, info->b->name.c_str());
+    lv_img_set_src(cui_png, pathPNG);
     lv_obj_set_align(cui_png, LV_ALIGN_LEFT_MID);
     lv_obj_add_flag(cui_png, LV_OBJ_FLAG_CLICKABLE | LV_OBJ_FLAG_ADV_HITTEST);     /// Flags
     lv_obj_clear_flag(cui_png, LV_OBJ_FLAG_PRESS_LOCK | LV_OBJ_FLAG_SNAPPABLE | LV_OBJ_FLAG_SCROLLABLE);      /// Flags
     // lv_obj_set_style_border_color(cui_png, lv_color_hex(0x000000), LV_PART_MAIN | LV_STATE_DEFAULT);
     // lv_obj_set_style_outline_width(cui_png, 3, LV_PART_MAIN | LV_STATE_DEFAULT);
     // lv_obj_set_style_outline_pad(cui_png, 2, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_add_event_cb(cui_png, ui_event_comp_png, LV_EVENT_ALL, info);
+    lv_obj_add_event_cb(cui_png, onEventPNG, LV_EVENT_ALL, info);
 
     lv_obj_t *cui_labelFileName = lv_label_create(cui_png);
     lv_obj_set_width(cui_labelFileName, 128);
@@ -89,15 +118,10 @@ void add_file(lv_obj_t *tile, file_info_t *info) {
             LV_OBJ_FLAG_SNAPPABLE | LV_OBJ_FLAG_SCROLLABLE | LV_OBJ_FLAG_SCROLL_ELASTIC | LV_OBJ_FLAG_SCROLL_MOMENTUM | LV_OBJ_FLAG_SCROLL_CHAIN); /// Flags
     lv_obj_set_style_text_color(cui_labelFileName, lv_color_hex(0x000000), LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_opa(cui_labelFileName, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
-
-    char *fn = strrchr(info->pngName, '/');
-    if (fn) {
-        fn++;
-        lv_label_set_text(cui_labelFileName, fn);
-    }
+    lv_label_set_text(cui_labelFileName, info->a->name.c_str());
 }
 
-lv_obj_t *add_tile(lv_obj_t *parent, int row) {
+lv_obj_t *addTile(lv_obj_t *parent, int row) {
     lv_obj_t *tile = lv_tileview_add_tile(parent, 0, row, LV_DIR_VER);
     lv_obj_set_align(tile, LV_ALIGN_CENTER);
     lv_obj_set_flex_flow(tile, LV_FLEX_FLOW_ROW_WRAP);
@@ -106,7 +130,7 @@ lv_obj_t *add_tile(lv_obj_t *parent, int row) {
     return tile;
 }
 
-void rebuild_tiles(int move_to) {
+void rebuildTiles(int move_to) {
     lv_obj_t *tile;
     int cnt = 0;
     const int imgs_per_tile = 6;
@@ -123,14 +147,17 @@ void rebuild_tiles(int move_to) {
     lv_obj_clear_flag(_tile_view, LV_OBJ_FLAG_SCROLL_ELASTIC);
     lv_obj_set_style_bg_color(_tile_view, lv_color_hex(0xffffff), LV_PART_MAIN | LV_STATE_DEFAULT);
 
-    for (file_info_t *info : _file_list) {
-        if (cnt % imgs_per_tile == 0) {
-            tile = add_tile(_tile_view, cnt / imgs_per_tile);
+    std::vector<FTPListParser::FilePair*> pair = getFTPSWorker()->getModelImagePair();
+    for (FTPListParser::FilePair* p:pair) {
+        if (p->isValid()) {
+            if (cnt % imgs_per_tile == 0) {
+                tile = addTile(_tile_view, cnt / imgs_per_tile);
+            }
+            cnt++;
+            char *dir = getFTPSWorker()->getImagePath(true);
+            addPNGToTile(tile, dir, p);
         }
-        cnt++;
-        add_file(tile, info);
     }
-
     if (move_to > 0) {
         int cnt = lv_obj_get_child_cnt(_tile_view);
         int max_tile_id = (cnt > 0) ? (cnt - 1) : 0;
@@ -139,6 +166,13 @@ void rebuild_tiles(int move_to) {
         lv_obj_set_tile_id(_tile_view, 0, move_to, LV_ANIM_OFF);
     }
 }
+
+#if 0
+typedef struct {
+    char   *pngName;
+    char   *modelName;
+} file_info_t;
+static std::list <file_info_t*> _file_list;
 
 void build_file_list(char *path) {
     lv_fs_dir_t dir;
@@ -182,6 +216,12 @@ void build_file_list(char *path) {
     }
     lv_fs_dir_close(&dir);
 }
+#endif
+
+void onEventBrowserDeleted(lv_event_t *e) {
+    LOGD("browser is deleted...\n");
+    getFTPSWorker()->invalidate();
+}
 
 lv_obj_t *ui_browserComponent_create(lv_obj_t *comp_parent) {
     _cui_browserComponent = lv_obj_create(comp_parent);
@@ -206,17 +246,10 @@ lv_obj_t *ui_browserComponent_create(lv_obj_t *comp_parent) {
     lv_obj_set_style_pad_right(cui_sd_browser, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_pad_top(cui_sd_browser, 5, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_pad_bottom(cui_sd_browser, 5, LV_PART_MAIN | LV_STATE_DEFAULT);
-
     _tile_view = NULL;
-
-    if (_ftps == NULL) {
-        // ESP32_FTPSClient ftps((char*)"192.168.0.159", 990, (char*)"bblp", (char*)"34801960", 10000, 2);
-        _ftps = new FTPSWorker((char*)xTouchConfig.xTouchIP, 990, (char*)"bblp", (char*)xTouchConfig.xTouchAccessCode);
-    }
-    _ftps->startSync();
-
-    build_file_list("S:/ftps/image");
-    rebuild_tiles(0);
+    lv_obj_add_event_cb(_cui_browserComponent, onEventBrowserDeleted, LV_EVENT_DELETE, NULL);
+    rebuildTiles(0);
+    getFTPSWorker()->setCallback(_callback);
 
     return _cui_browserComponent;
 }

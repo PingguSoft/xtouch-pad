@@ -1,7 +1,6 @@
 #include "ESP32_FTPSClient.h"
-#include <WiFiClientSecure.h>
 #include "debug.h"
-
+#include <WiFiClientSecure.h>
 
 ESP32_FTPSClient::ESP32_FTPSClient(char *_serverAdress, uint16_t _port, char *_userName, char *_passWord, uint16_t _timeout, uint8_t _verbose) {
     userName = _userName;
@@ -39,7 +38,7 @@ void ESP32_FTPSClient::sendCmd(char *format, ...) {
     memset(buf, 0, sizeof(buf));
     va_list arg;
     va_start(arg, format);
-    int len = vsnprintf((char*)buf, sizeof(buf), format, arg);
+    int len = vsnprintf((char *)buf, sizeof(buf), format, arg);
     va_end(arg);
 
     buf[len] = '\n';
@@ -49,7 +48,7 @@ void ESP32_FTPSClient::sendCmd(char *format, ...) {
 
 void ESP32_FTPSClient::GetLastModifiedTime(const char *fileName, char *result) {
     if (!isConnected()) return;
-    sendCmd((char*)"MDTM %s", fileName);
+    sendCmd((char *)"MDTM %s", fileName);
     GetFTPAnswer(result, 4);
 }
 
@@ -138,7 +137,7 @@ void ESP32_FTPSClient::Write(const char *str) {
 }
 
 void ESP32_FTPSClient::CloseConnection() {
-    sendCmd((char*)"QUIT");
+    sendCmd((char *)"QUIT");
     client.stop();
     LOGV("Connection closed");
 }
@@ -157,10 +156,10 @@ void ESP32_FTPSClient::OpenConnection(bool secure, bool implicit) {
     }
     GetFTPAnswer();
 
-    sendCmd((char*)"USER %s", userName);
+    sendCmd((char *)"USER %s", userName);
     GetFTPAnswer();
 
-    sendCmd((char*)"PASS %s", passWord);
+    sendCmd((char *)"PASS %s", passWord);
     GetFTPAnswer();
 
     //   LOGV("Send ACCT");
@@ -169,9 +168,9 @@ void ESP32_FTPSClient::OpenConnection(bool secure, bool implicit) {
     //   GetFTPAnswer();
 
     if (_is_implicit) {
-        sendCmd((char*)"PBSZ 0");
+        sendCmd((char *)"PBSZ 0");
         GetFTPAnswer();
-        sendCmd((char*)"PROT P");
+        sendCmd((char *)"PROT P");
         GetFTPAnswer();
     } else {
         // sendCmd((char*)"SYST");
@@ -181,16 +180,16 @@ void ESP32_FTPSClient::OpenConnection(bool secure, bool implicit) {
 
 void ESP32_FTPSClient::RenameFile(char *from, char *to) {
     if (!isConnected()) return;
-    sendCmd((char*)"RNFR %s", from);
+    sendCmd((char *)"RNFR %s", from);
     GetFTPAnswer();
 
-    sendCmd((char*)"RNTO %s", to);
+    sendCmd((char *)"RNTO %s", to);
     GetFTPAnswer();
 }
 
 void ESP32_FTPSClient::NewFile(const char *fileName) {
     if (!isConnected()) return;
-    sendCmd((char*)"STOR %s", fileName);
+    sendCmd((char *)"STOR %s", fileName);
     GetFTPAnswer();
 }
 
@@ -198,9 +197,11 @@ void ESP32_FTPSClient::InitFile(const char *type) {
     if (!isConnected()) return;
     sendCmd((char *)type);
     GetFTPAnswer();
+    if (!isConnected()) return;
 
     sendCmd((char *)"PASV");
     GetFTPAnswer();
+    if (!isConnected()) return;
 
     char *tStr = strtok(outBuf, "(,");
     int array_pasv[6];
@@ -231,41 +232,40 @@ void ESP32_FTPSClient::InitFile(const char *type) {
 
 void ESP32_FTPSClient::AppendFile(char *fileName) {
     if (!isConnected()) return;
-    sendCmd((char*)"APPE %s", fileName);
+    sendCmd((char *)"APPE %s", fileName);
     GetFTPAnswer();
 }
 
 void ESP32_FTPSClient::ChangeWorkDir(const char *dir) {
     if (!isConnected()) return;
-    sendCmd((char*)"CWD %s", dir);
+    sendCmd((char *)"CWD %s", dir);
     GetFTPAnswer();
 }
 
 void ESP32_FTPSClient::DeleteFile(const char *file) {
     if (!isConnected()) return;
-    sendCmd((char*)"DELE %s", file);
+    sendCmd((char *)"DELE %s", file);
     GetFTPAnswer();
 }
 
 void ESP32_FTPSClient::MakeDir(const char *dir) {
     if (!isConnected()) return;
-    sendCmd((char*)"MKD %s", dir);
+    sendCmd((char *)"MKD %s", dir);
     GetFTPAnswer();
 }
 
-void ESP32_FTPSClient::DirShort(const char *dir, std::vector<String*> &list) {
+void ESP32_FTPSClient::DirShort(const char *dir, std::vector<String *> &list) {
     char _resp[sizeof(outBuf)];
     uint16_t _b = 0;
 
-    if(!isConnected()) return;
-    sendCmd((char*)"NLST %s", (char*)dir);
+    if (!isConnected())
+        return;
+    sendCmd((char *)"NLST %s", (char *)dir);
     GetFTPAnswer(_resp);
-
-    // Convert char array to string to manipulate and find response size
-    // each server reports it differently, TODO = FEAT
-    // String resp_string = _resp;
-    // resp_string.substring(resp_string.lastIndexOf('matches')-9);
-    // LOGV(resp_string);
+    if (!isConnected()) {
+        dclient.stop();
+        return;
+    }
 
     unsigned long _m = millis();
     while (!dclient.available() && millis() < _m + timeout)
@@ -281,13 +281,18 @@ void ESP32_FTPSClient::DirShort(const char *dir, std::vector<String*> &list) {
     dclient.stop();
 }
 
-void ESP32_FTPSClient::DirLong(const char *dir, std::vector<String*> &list) {
+void ESP32_FTPSClient::DirLong(const char *dir, std::vector<String *> &list) {
     char _resp[sizeof(outBuf)];
     uint16_t _b = 0;
 
-    if (!isConnected()) return;
-    sendCmd((char*)"LIST %s", (char*)dir);
+    if (!isConnected())
+        return;
+    sendCmd((char *)"LIST %s", (char *)dir);
     GetFTPAnswer(_resp);
+    if (!isConnected()) {
+        dclient.stop();
+        return;
+    }
 
     unsigned long _m = millis();
     while (!dclient.available() && millis() < _m + timeout)
@@ -306,8 +311,9 @@ void ESP32_FTPSClient::DirLong(const char *dir, std::vector<String*> &list) {
 }
 
 void ESP32_FTPSClient::DownloadString(const char *filename, String &str) {
-    if (!isConnected()) return;
-    sendCmd((char*)"RETR %s", filename);
+    if (!isConnected())
+        return;
+    sendCmd((char *)"RETR %s", filename);
 
     char _resp[sizeof(outBuf)];
     GetFTPAnswer(_resp);
@@ -325,11 +331,16 @@ void ESP32_FTPSClient::DownloadString(const char *filename, String &str) {
 }
 
 void ESP32_FTPSClient::DownloadFile(const char *filename, unsigned char *buf, size_t length, bool printUART) {
-    if (!isConnected()) return;
-    sendCmd((char*)"RETR %s", filename);
+    if (!isConnected())
+        return;
+    sendCmd((char *)"RETR %s", filename);
 
     char _resp[sizeof(outBuf)];
     GetFTPAnswer(_resp);
+    if (!isConnected()) {
+        dclient.stop();
+        return;
+    }
 
     unsigned long _m = millis();
     while (!dclient.available() && millis() < _m + timeout)
@@ -347,28 +358,34 @@ void ESP32_FTPSClient::DownloadFile(const char *filename, unsigned char *buf, si
             }
         }
     }
+
+    GetFTPAnswer();
+    dclient.stop();
 }
 
 void ESP32_FTPSClient::DownloadFile(const char *filename, size_t length, File *dest) {
     if (!isConnected()) return;
 
-    sendCmd((char*)"RETR %s", filename);
+    sendCmd((char *)"RETR %s", filename);
     char _resp[sizeof(outBuf)];
     GetFTPAnswer(_resp);
+    if (!isConnected()) {
+        dclient.stop();
+        return;
+    }
 
     unsigned long _m = millis();
     while (!dclient.available() && millis() < _m + timeout)
         delay(1);
 
-    uint8_t  buf[256];
+    uint8_t buf[256];
     uint16_t sz;
 
     while (length > 0) {
         sz = min(sizeof(buf), (unsigned int)length);
         int len = dclient.readBytes(buf, sz);
         length -= len;
-        if (dest)
-            dest->write(buf, len);
+        if (dest) dest->write(buf, len);
     }
 
     GetFTPAnswer();
