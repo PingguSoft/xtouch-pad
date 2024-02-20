@@ -347,7 +347,7 @@ lv_obj_t *ui_homeComponent_create(lv_obj_t *comp_parent)
 
     lv_obj_t *cui_mainScreenStatusBar;
     cui_mainScreenStatusBar = lv_obj_create(cui_mainScreenLeft);
-    lv_obj_set_height(cui_mainScreenStatusBar, lv_pct(15));
+    lv_obj_set_height(cui_mainScreenStatusBar, lv_pct(12));
     lv_obj_set_width(cui_mainScreenStatusBar, lv_pct(100));
     lv_obj_set_x(cui_mainScreenStatusBar, 386);
     lv_obj_set_y(cui_mainScreenStatusBar, 178);
@@ -809,7 +809,7 @@ lv_obj_t *ui_homeComponent_create(lv_obj_t *comp_parent)
     lv_obj_t *cui_mainScreenLightButton;
     cui_mainScreenLightButton = lv_obj_create(cui_mainScreenRight);
     lv_obj_set_width(cui_mainScreenLightButton, lv_pct(100));
-    lv_obj_set_height(cui_mainScreenLightButton, lv_pct(30));
+    lv_obj_set_height(cui_mainScreenLightButton, lv_pct(20));
     lv_obj_set_flex_grow(cui_mainScreenLightButton, 1);
     lv_obj_set_x(cui_mainScreenLightButton, 386);
     lv_obj_set_y(cui_mainScreenLightButton, 178);
@@ -847,7 +847,7 @@ lv_obj_t *ui_homeComponent_create(lv_obj_t *comp_parent)
 
     lv_obj_t *cui_mainScreenTemps;
     cui_mainScreenTemps = lv_obj_create(cui_mainScreenRight);
-    lv_obj_set_height(cui_mainScreenTemps, lv_pct(70));
+    lv_obj_set_height(cui_mainScreenTemps, lv_pct(80));
     lv_obj_set_width(cui_mainScreenTemps, lv_pct(100));
     lv_obj_set_x(cui_mainScreenTemps, 386);
     lv_obj_set_y(cui_mainScreenTemps, 178);
