@@ -11,7 +11,7 @@
 * FTPListParser
 *****************************************************************************************
 */
-std::vector <String> FTPListParser::_months = {
+std::vector<String> FTPListParser::_months = {
     "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Sep", "Nov", "Dec" };
 
 
@@ -52,9 +52,9 @@ void FTPListParser::parse(std::vector<String*> logs, std::vector<FileInfo*> &res
             tokens.clear();
         }
     }
-    if (sort > 0)
+    if (sort == SORT_ASC)
         std::sort(result.begin(), result.end(), FTPListParser::FileInfo::comp_asc);
-    else if (sort < 0)
+    else if (sort == SORT_DESC)
         std::sort(result.begin(), result.end(), FTPListParser::FileInfo::comp_des);
 
     if (result.size() > max) {
@@ -67,18 +67,16 @@ void FTPListParser::parse(std::vector<String*> logs, std::vector<FileInfo*> &res
 }
 
 void FTPListParser::matches(std::vector <FTPListParser::FileInfo*> infoA, std::vector <FTPListParser::FileInfo*> infoB, std::vector <FTPListParser::FilePair*> &result, int sort) {
-    FTPListParser::FilePair r;
+    FTPListParser::FilePair *r;
     bool is_found;
 
     for (FTPListParser::FileInfo *ia : infoA) {
         is_found = false;
         for (FTPListParser::FileInfo *ib : infoB) {
             if (std::abs(ia->ts - ib->ts) < 3) {
-                r.ts = ia->ts;
-                r.file_a = ia->name;
-                r.size_a = ia->size;
-                r.file_b = ib->name;
-                r.size_b = ib->size;
+                r->ts = ia->ts;
+                r->a = ia;
+                r->b = ib;
                 is_found = true;
                 if (ia->ts == ib->ts)
                     break;
@@ -87,26 +85,35 @@ void FTPListParser::matches(std::vector <FTPListParser::FileInfo*> infoA, std::v
         if (is_found)
             result.push_back(new FilePair(r));
     }
-    if (sort > 0)
+    if (sort == SORT_ASC)
         std::sort(result.begin(), result.end(), FTPListParser::FilePair::comp_asc);
-    else if (sort < 0)
+    else if (sort == SORT_DESC)
         std::sort(result.begin(), result.end(), FTPListParser::FilePair::comp_des);
 }
 
-void FTPListParser::diff(std::vector <FTPListParser::FileInfo*> a, std::vector <FTPListParser::FileInfo*> b, std::vector <FTPListParser::FileInfo*> &result) {
+void FTPListParser::diff(std::vector <FTPListParser::FileInfo*> a, std::vector <FTPListParser::FileInfo*> b, std::vector <FTPListParser::FileInfo*> &result, int by) {
     FTPListParser::FileInfo r;
     bool is_found;
 
     for (FTPListParser::FileInfo *info_b : b) {
         is_found = false;
         for (FTPListParser::FileInfo *info_a : a) {
-            if (info_a->ts == info_b->ts) {
+            if (by == BY_TS && info_a->ts == info_b->ts) {
+                is_found = true;
+                break;
+            } else if (by == BY_NAME && info_a->name == info_b->name) {
                 is_found = true;
                 break;
             }
         }
         if (!is_found)
             result.push_back(new FTPListParser::FileInfo(*info_b));
+    }
+}
+
+void FTPListParser::exportA(std::vector<FilePair*> pair, std::vector <FileInfo*> &result) {
+    for (FilePair *p : pair) {
+        result.push_back(p->a);
     }
 }
 
@@ -168,7 +175,7 @@ void FTPSWorker::downloadDir(String srcDir, String dstDir, std::vector<FTPListPa
 
     _ftps->InitFile("Type A");
     _ftps->DirLong(srcDir.c_str(), list);
-    _parser.parse(list, info, 30, ext, -1);
+    _parser.parse(list, info, 30, ext, FTPListParser::SORT_DESC);
     freeList(list);
 
     int cnt = 1;
@@ -192,7 +199,7 @@ void FTPSWorker::listDir(String srcDir, std::vector<FTPListParser::FileInfo*> &i
 
     _ftps->InitFile("Type A");
     _ftps->DirLong(srcDir.c_str(), list);
-    parser->parse(list, info, 30, ext, -1);
+    parser->parse(list, info, 30, ext, FTPListParser::SORT_DESC);
     freeList(list);
 
     int cnt = 1;
@@ -207,27 +214,78 @@ void FTPSWorker::startSync() {
     xQueueSend(_queue_comm, &q, portMAX_DELAY);
 }
 
+void FTPSWorker::listDirSD(char *root, std::vector<FTPListParser::FileInfo*> &info, String ext) {
+    FTPListParser::FileInfo *item;
+    File dir = SD.open(root);
+    while (true) {
+        File entry = dir.openNextFile();
+        if (!entry)
+            break;
+
+        String name = String(entry.name());
+        if (ext.length() == 0 || name.endsWith(ext)) {
+            item = new FTPListParser::FileInfo((long)entry.getLastWrite(), entry.size(), entry.name());
+            info.push_back(item);
+            // LOGD("%20s %10lu\n", entry.name(), entry.size());
+        }
+        entry.close();
+    }
+}
+
+std::vector<FTPListParser::FilePair*> FTPSWorker::_testPair = {
+    new FTPListParser::FilePair(107925, 4442,  "15137327011.png",  838822, "galaxy watch stand.gcode.3mf"),
+    new FTPListParser::FilePair(101717, 4684,  "28260101861.png",  667533, "11111111.gcode.3mf"),
+    new FTPListParser::FilePair( 97888, 4684,  "42885271611.png",  667533, "rpi3p_case.gcode.3mf"),
+    new FTPListParser::FilePair( 97874, 2540,   "9240571371.png",  810058, "plate_holder.gcode.3mf"),
+    new FTPListParser::FilePair( 94551, 4505,  "38297837321.png", 2108337, "controller-left.gcode.3mf"),
+    new FTPListParser::FilePair( 89469, 5285,  "14229151451.png",  953086, "1.gcode.3mf"),
+    new FTPListParser::FilePair( 85813, 4857,  "26698210481.png",  970885, "swerve-large-gear.gcode.3mf"),
+    new FTPListParser::FilePair( 85661, 1863,  "17930814601.png",  458648, "swerve-axle-gearx3.gcode.3mf"),
+    new FTPListParser::FilePair( 85235, 4081,      "2064281.png", 1548586, "rc_con_left_bottom.gcode.3mf"),
+    new FTPListParser::FilePair( 84326, 1182,  "19799488481.png",  767304, "swerve-gear-motorx6.gcode.3mf"),
+    new FTPListParser::FilePair( 84322, 2171,   "4678907721.png", 1029925, "hex_bits_holder_7x3.gcode.3mf"),
+    new FTPListParser::FilePair( 83511, 2755,  "10363259711.png",  710512, "hex_bits_holder_7 x 2.gcode.3mf"),
+    new FTPListParser::FilePair( 82040, 3609,   "2613376571.png",  413301, "No-Catch Y-Splitter Self-Tap (long slot) (9.4mm-M3x6 mount).gcode.3mf"),
+    new FTPListParser::FilePair( 81969, 3804,   "4380517671.png",  176374, "AMS_disconnect_tool_with_magnet_seperate_letters.gcode.3mf")
+};
+
 void FTPSWorker::syncImagesModels() {
-    std::vector<FTPListParser::FilePair*> pair;
+#if 0    
+    freeList(_modelFiles);
+    freeList(_imageFiles);
+    freeList(_pairList);
 
     _ftps->OpenConnection(false, true);
-
     listDir("/", _modelFiles, ".3mf");
     listDir("/image", _imageFiles, ".png");
-
     // downloadDir("/image", "/ftps/image", _imageFiles, ".png");
     _ftps->CloseConnection();
 
     LOGD("---- matches ----\n");
-    FTPListParser::matches(_modelFiles, _imageFiles, pair, -1);
+    FTPListParser::matches(_modelFiles, _imageFiles, _pairList, -1);
     int cnt = 1;
-    for (FTPListParser::FilePair *p:pair) {
+    for (FTPListParser::FilePair *p:_pairList) {
         LOGD("%3d %10ld, [%10ld] %20s, [%10ld] %s\n", cnt++, p->ts, p->size_b, p->file_b.c_str(), p->size_a, p->file_a.c_str());
     }
+#endif
 
-    freeList(_modelFiles);
-    freeList(_imageFiles);
-    freeList(pair);
+    freeList(_imageFilesSD);
+    listDirSD("/ftps/image", _imageFilesSD, ".png");
+    int cnt = 1;
+    LOGD("--------------- SD CARD ---------------\n");
+    for (FTPListParser::FileInfo *p:_imageFilesSD) {
+        LOGD("%3d %10ld, [%10ld] %s\n", cnt++, p->ts, p->size, p->name.c_str());
+    }
+
+    std::vector<FTPListParser::FileInfo*> tt;
+    std::vector<FTPListParser::FileInfo*> tbu;
+    _parser.exportA(_testPair, tt);
+    _parser.diff(_imageFilesSD, tt, tbu, FTPListParser::BY_NAME);
+    cnt = 1;
+    LOGD("--------------- TBU ---------------\n");
+    for (FTPListParser::FileInfo *p:tbu) {
+        LOGD("%3d %10ld, [%10ld] %s\n", cnt++, p->ts, p->size, p->name.c_str());
+    }    
 }
 
 /*

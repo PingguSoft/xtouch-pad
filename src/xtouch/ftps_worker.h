@@ -10,6 +10,17 @@
 
 class FTPListParser {
 public:
+    enum {
+        SORT_DESC = -1,
+        SORT_NONE = 0,
+        SORT_ASC  = 1,
+    };
+
+    enum {
+        BY_TS = 0,
+        BY_NAME = 1,
+    };
+
     class FileInfo {
     public:
         long   ts;
@@ -44,28 +55,30 @@ public:
 
     class FilePair {
     public:
-        long   ts;
-        String file_a;
-        String file_b;
-        long   size_a;
-        long   size_b;
+        long        ts;
+        FileInfo    *a;
+        FileInfo    *b;
+
+        void set(long ts, FileInfo *a, FileInfo *b) {
+            ts = 0;
+            this->a = a;
+            this->b = b;
+        }
 
         FilePair() {
-            this->ts = 0;
-            this->file_a = "";
-            this->file_b = "";
+            set(0, NULL, NULL);
         }
-
-        FilePair(long ts, String a, String b) {
+        FilePair(long ts, FileInfo *a, FileInfo *b) {
+            set(ts, a, b);
+        }
+        FilePair(FilePair *pair) {
+            set(pair->ts, pair->a, pair->b);
+        }
+        FilePair(long ts, long a_size, String a_name, long b_size, String b_name) {
             this->ts = ts;
-            this->file_a = a;
-            this->file_b = b;
+            this->a = new FileInfo(ts, a_size, a_name);
+            this->b = new FileInfo(ts, b_size, b_name);
         }
-
-        bool operator<(const FilePair &other) {
-            return (ts < other.ts);
-        };
-
         static bool comp_asc(FTPListParser::FilePair* first, FTPListParser::FilePair* second) {
             return (first->ts < second->ts);
         }
@@ -77,12 +90,13 @@ public:
     FTPListParser() {
     }
 
-    void parse(std::vector<String*> logs, std::vector<FileInfo*> &result, int max, String ext="", int sort=0);
-    static void matches(std::vector <FileInfo*> infoA, std::vector <FileInfo*> infoB, std::vector <FilePair*> &result, int sort=0);
-    static void diff(std::vector <FileInfo*> a, std::vector <FileInfo*> b, std::vector <FileInfo*> &result);
+    void parse(std::vector<String*> logs, std::vector<FileInfo*> &result, int max, String ext="", int sort=SORT_ASC);
+    static void matches(std::vector<FileInfo*> infoA, std::vector<FileInfo*> infoB, std::vector<FilePair*> &result, int sort=SORT_ASC);
+    static void diff(std::vector<FileInfo*> a, std::vector<FileInfo*> b, std::vector<FileInfo*> &result, int by=BY_TS);
+    void exportA(std::vector<FilePair*> pair, std::vector <FileInfo*> &result);
 
 private:
-    static std::vector <String> _months;
+    static std::vector<String> _months;
 };
 
 class FTPSWorker {
@@ -102,6 +116,7 @@ public:
     void downloadDir(String srcDir, String dstDir, std::vector<FTPListParser::FileInfo*> &info, String ext="");
     void listDir(String srcDir, std::vector<FTPListParser::FileInfo*> &info, String ext="");
     void startSync();
+    void listDirSD(char *root, std::vector<FTPListParser::FileInfo*> &info, String ext="");
 
     friend void task_sync(void* arg);
 
@@ -114,6 +129,10 @@ private:
     QueueHandle_t    _queue_comm;
     std::vector<FTPListParser::FileInfo*> _modelFiles;
     std::vector<FTPListParser::FileInfo*> _imageFiles;
+    std::vector<FTPListParser::FileInfo*> _imageFilesSD;
+    std::vector<FTPListParser::FilePair*> _pairList;
+
+    static std::vector<FTPListParser::FilePair*> _testPair;
 };
 
 #endif
