@@ -47,7 +47,6 @@ void FTPListParser::parse(std::vector<String*> logs, std::vector<FileInfo*> &res
                 result.push_back(new FileInfo(ts, sz, fname));
                 // LOGD("%5d, %10lu [%10lu] %20s %d\n", cnt++, ts, sz, fname.c_str(), ESP.getFreeHeap());
             }
-
             tokens.clear();
         }
     }
@@ -139,10 +138,11 @@ void tokenize(String &line, String token, std::vector<String> &tokens) {
 }
 
 void taskFTPS(void* arg);
+
 FTPSWorker::FTPSWorker(char* serverAdress, uint16_t port, char* userName, char* passWord) {
     _ftps = new ESP32_FTPSClient(serverAdress, port, userName, passWord);
     _queue_comm  = xQueueCreate(5, sizeof(cmd_q_t));
-    xTaskCreate(&taskFTPS, "taskFTPS", 8192, this, 2, NULL);
+    xTaskCreate(&taskFTPS, "taskFTPS", 8192, this, 8, NULL);
     // ESP32_FTPSClient ftps((char*)"192.168.137.1", 990, (char*)"bblp", (char*)"34801960", 10000, 2);
 }
 
@@ -233,9 +233,9 @@ void FTPSWorker::invalidate() {
     }
 }
 
-void FTPSWorker::listDirSD(char *root, std::vector<FTPListParser::FileInfo*> &info, String ext) {
+void FTPSWorker::listDirSD(char *path, std::vector<FTPListParser::FileInfo*> &info, String ext) {
     FTPListParser::FileInfo *item;
-    File dir = SD.open(root);
+    File dir = SD.open(path);
     while (true) {
         File entry = dir.openNextFile();
         if (!entry)
@@ -251,29 +251,31 @@ void FTPSWorker::listDirSD(char *root, std::vector<FTPListParser::FileInfo*> &in
     }
 }
 
-// std::vector<FTPListParser::FilePair*> FTPSWorker::_testPair = {
-//     new FTPListParser::FilePair(107925, 4442,  "15137327011.png",  838822, "galaxy watch stand.gcode.3mf"),
-//     new FTPListParser::FilePair(101717, 4684,  "28260101861.png",  667533, "11111111.gcode.3mf"),
-//     new FTPListParser::FilePair( 97888, 4684,  "42885271611.png",  667533, "rpi3p_case.gcode.3mf"),
-//     new FTPListParser::FilePair( 97874, 2540,   "9240571371.png",  810058, "plate_holder.gcode.3mf"),
-//     new FTPListParser::FilePair( 94551, 4505,  "38297837321.png", 2108337, "controller-left.gcode.3mf"),
-//     new FTPListParser::FilePair( 89469, 5285,  "14229151451.png",  953086, "1.gcode.3mf"),
-//     new FTPListParser::FilePair( 85813, 4857,  "26698210481.png",  970885, "swerve-large-gear.gcode.3mf"),
-//     new FTPListParser::FilePair( 85661, 1863,  "17930814601.png",  458648, "swerve-axle-gearx3.gcode.3mf"),
-//     new FTPListParser::FilePair( 85235, 4081,      "2064281.png", 1548586, "rc_con_left_bottom.gcode.3mf"),
-//     new FTPListParser::FilePair( 84326, 1182,  "19799488481.png",  767304, "swerve-gear-motorx6.gcode.3mf"),
-//     new FTPListParser::FilePair( 84322, 2171,   "4678907721.png", 1029925, "hex_bits_holder_7x3.gcode.3mf"),
-//     new FTPListParser::FilePair( 83511, 2755,  "10363259711.png",  710512, "hex_bits_holder_7 x 2.gcode.3mf"),
-//     new FTPListParser::FilePair( 82040, 3609,   "2613376571.png",  413301, "No-Catch Y-Splitter Self-Tap (long slot) (9.4mm-M3x6 mount).gcode.3mf"),
-//     new FTPListParser::FilePair( 81969, 3804,   "4380517671.png",  176374, "AMS_disconnect_tool_with_magnet_seperate_letters.gcode.3mf")
-// };
+#if _NO_NETWORK_
+std::vector<FTPListParser::FilePair*> FTPSWorker::_testPair = {
+    new FTPListParser::FilePair(107925, 4442,  "15137327011.png",  838822, "galaxy watch stand.gcode.3mf"),
+    new FTPListParser::FilePair(101717, 4684,  "28260101861.png",  667533, "11111111.gcode.3mf"),
+    new FTPListParser::FilePair( 97888, 4684,  "42885271611.png",  667533, "rpi3p_case.gcode.3mf"),
+    new FTPListParser::FilePair( 97874, 2540,   "9240571371.png",  810058, "plate_holder.gcode.3mf"),
+    new FTPListParser::FilePair( 94551, 4505,  "38297837321.png", 2108337, "controller-left.gcode.3mf"),
+    new FTPListParser::FilePair( 89469, 5285,  "14229151451.png",  953086, "1.gcode.3mf"),
+    new FTPListParser::FilePair( 85813, 4857,  "26698210481.png",  970885, "swerve-large-gear.gcode.3mf"),
+    new FTPListParser::FilePair( 85661, 1863,  "17930814601.png",  458648, "swerve-axle-gearx3.gcode.3mf"),
+    new FTPListParser::FilePair( 85235, 4081,      "2064281.png", 1548586, "rc_con_left_bottom.gcode.3mf"),
+    new FTPListParser::FilePair( 84326, 1182,  "19799488481.png",  767304, "swerve-gear-motorx6.gcode.3mf"),
+    new FTPListParser::FilePair( 84322, 2171,   "4678907721.png", 1029925, "hex_bits_holder_7x3.gcode.3mf"),
+    new FTPListParser::FilePair( 83511, 2755,  "10363259711.png",  710512, "hex_bits_holder_7 x 2.gcode.3mf"),
+    new FTPListParser::FilePair( 82040, 3609,   "2613376571.png",  413301, "No-Catch Y-Splitter Self-Tap (long slot) (9.4mm-M3x6 mount).gcode.3mf"),
+    new FTPListParser::FilePair( 81969, 3804,   "4380517671.png",  176374, "AMS_disconnect_tool_with_magnet_seperate_letters.gcode.3mf")
+};
+#endif
 
 void FTPSWorker::syncImagesModels() {
     int cnt;
 
+    LOGV("--------------- SD CARD ---------------\n");
     listDirSD("/ftps/image", _imageFilesSD, ".png");
     cnt = 1;
-    LOGV("--------------- SD CARD ---------------\n");
     for (FTPListParser::FileInfo *p:_imageFilesSD) {
         LOGV("%3d %10ld, [%10ld] %s\n", cnt++, p->ts, p->size, p->name.c_str());
     }
@@ -281,6 +283,8 @@ void FTPSWorker::syncImagesModels() {
     freeList(_modelFiles);
     freeList(_imageFiles);
     freeList(_pairList);
+
+#if !_NO_NETWORK_
     _ftps->OpenConnection(false, true);
     listDir("/", _modelFiles, ".3mf", 30);          // model files
     listDir("/image", _imageFiles, ".png", 30);     // image files
@@ -315,8 +319,16 @@ void FTPSWorker::syncImagesModels() {
     freeList(tbu);
     freeList(_imageFilesSD);
     imageFiles.clear();
+#else
+    for (FTPListParser::FilePair* p : _testPair)
+        _pairList.push_back(new FTPListParser::FilePair(*p));
 
-    // callback
+    // LOGI("--------------- FILE MODEL & PNG ---------------\n");
+    // for (FTPListParser::FilePair *p:_pairList) {
+    //     LOGD("%3d %10ld, [%10ld] %20s, [%10ld] %s\n", cnt++, p->ts, p->b->size, p->b->name.c_str(), p->a->size, p->a->name.c_str());
+    // }
+#endif
+
     if (_callback)
         _callback->onCallback(CMD_SYNC, NULL, 0);
 }
@@ -331,12 +343,11 @@ void taskFTPS(void* arg) {
     FTPSWorker *pWorker = (FTPSWorker*)arg;
     FTPSWorker::cmd_q_t *q = new FTPSWorker::cmd_q_t;
 
-    LOGI("taskFTPS created !!\n");
+    LOGD("taskFTPS created !\n");
     while (true) {
         if (xQueueReceive(pWorker->_queue_comm, q, pdMS_TO_TICKS(10)) == pdTRUE) {
             switch (q->cmd) {
                 case FTPSWorker::CMD_SYNC:
-                    LOGI("cmd_sync \n");
                     pWorker->syncImagesModels();
                     break;
             }

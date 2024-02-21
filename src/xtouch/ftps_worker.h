@@ -65,28 +65,23 @@ public:
             this->b  = b;
         }
 
-        void invalid() {
-            this->ts = 0;
-        }
-
-        bool isValid() {
-            return (this->ts > 0);
-        }
-
         FilePair() {
             set(0, NULL, NULL);
         }
-        // FilePair(long ts, FileInfo *a, FileInfo *b) {
-        //     set(ts, a, b);
-        // }
-        // FilePair(FilePair *pair) {
-        //     set(pair->ts, pair->a, pair->b);
-        // }
-        // FilePair(long ts, long a_size, String a_name, long b_size, String b_name) {
-        //     this->ts = ts;
-        //     this->a = new FileInfo(ts, a_size, a_name);
-        //     this->b = new FileInfo(ts, b_size, b_name);
-        // }
+
+        // for offline simulation, a and b are swapped
+        FilePair(long ts, long a_size, String a_name, long b_size, String b_name) {
+            this->ts = ts;
+            this->b = new FileInfo(ts, a_size, a_name);
+            this->a = new FileInfo(ts, b_size, b_name);
+        }
+
+        void invalid() {
+            this->ts = 0;
+        }
+        bool isValid() {
+            return (this->ts > 0);
+        }
         static bool comp_asc(FTPListParser::FilePair* first, FTPListParser::FilePair* second) {
             return (first->ts < second->ts);
         }
@@ -132,7 +127,7 @@ public:
     void downloadDir(String srcDir, String dstDir, std::vector<FTPListParser::FileInfo*> info, String ext="");
     void listDir(String srcDir, std::vector<FTPListParser::FileInfo*> &info, String ext="", int max=30);
     void startSync();
-    void listDirSD(char *root, std::vector<FTPListParser::FileInfo*> &info, String ext="");
+    void listDirSD(char *path, std::vector<FTPListParser::FileInfo*> &info, String ext="");
     void invalidate();
 
     void setCallback(Callback *cb) { _callback = cb; }
@@ -155,7 +150,9 @@ private:
     std::vector<FTPListParser::FileInfo*> _imageFilesSD;
     std::vector<FTPListParser::FilePair*> _pairList;
 
-    // static std::vector<FTPListParser::FilePair*> _testPair;
+#if _NO_NETWORK_
+    static std::vector<FTPListParser::FilePair*> _testPair;
+#endif
 };
 
 #endif
