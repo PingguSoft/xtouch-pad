@@ -1,7 +1,7 @@
 
 #include <WiFiClientSecure.h>
 #include <FS.h>
-#include <vector>
+#include <list>
 
 class ESP32_FTPSClient
 {
@@ -61,8 +61,8 @@ class ESP32_FTPSClient
   void ChangeWorkDir(const char * dir);
   void DeleteFile(const char * file);
   void MakeDir(const char * dir);
-  void DirShort(const char * dir, std::vector<String*> &list);
-  void DirLong(const char * dir, std::vector<String*> &list);
+  void DirShort(const char * dir, std::list<String*> &list);
+  void DirLong(const char * dir, std::list<String*> &list);
   void DownloadString(const char * filename, String &str);
   void DownloadFile(const char * filename, unsigned char * buf, size_t length, bool printUART = false);
 

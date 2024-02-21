@@ -254,7 +254,7 @@ void ESP32_FTPSClient::MakeDir(const char *dir) {
     GetFTPAnswer();
 }
 
-void ESP32_FTPSClient::DirShort(const char *dir, std::vector<String *> &list) {
+void ESP32_FTPSClient::DirShort(const char *dir, std::list<String *> &list) {
     char _resp[sizeof(outBuf)];
     uint16_t _b = 0;
 
@@ -281,7 +281,7 @@ void ESP32_FTPSClient::DirShort(const char *dir, std::vector<String *> &list) {
     dclient.stop();
 }
 
-void ESP32_FTPSClient::DirLong(const char *dir, std::vector<String *> &list) {
+void ESP32_FTPSClient::DirLong(const char *dir, std::list<String *> &list) {
     char _resp[sizeof(outBuf)];
     uint16_t _b = 0;
 

@@ -88,6 +88,13 @@ void onEventItem(lv_event_t *e) {
                 ui_confirmPanel_show(LV_SYMBOL_WARNING " Delete ?", onDeleteFileConfirm, info);
             }
             break;
+
+        case LV_EVENT_SCROLL_BEGIN:
+        case LV_EVENT_SCROLL_END:
+        case LV_EVENT_SCROLL:
+        case LV_EVENT_GESTURE:
+            is_long = false;
+            break;
     }
 }
 
@@ -169,7 +176,7 @@ void rebuildTiles(int move_to) {
     lv_obj_clear_flag(_tile_view, LV_OBJ_FLAG_SCROLL_ELASTIC);      /// Flags
     lv_obj_set_style_bg_color(_tile_view, lv_color_hex(0x444444), LV_PART_MAIN | LV_STATE_DEFAULT);
 
-    std::vector<FTPListParser::FilePair*> pair = getFTPSWorker()->getModelImagePair();
+    std::list<FTPListParser::FilePair*> pair = getFTPSWorker()->getModelImagePair();
     for (FTPListParser::FilePair* p:pair) {
         if (p->isValid()) {
             if (cnt % imgs_per_tile == 0) {

@@ -14,7 +14,7 @@ std::vector<String> FTPListParser::_months = {
     "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Sep", "Nov", "Dec" };
 
 
-void FTPListParser::parse(std::vector<String*> logs, std::vector<FileInfo*> &result, int max, String ext, int sort) {
+void FTPListParser::parse(std::list<String*> logs, std::list<FileInfo*> &result, int max, String ext, int sort) {
     std::vector <char*> tokens;
     String fname;
     int cnt = 1;
@@ -51,20 +51,20 @@ void FTPListParser::parse(std::vector<String*> logs, std::vector<FileInfo*> &res
         }
     }
     if (sort == SORT_ASC)
-        std::sort(result.begin(), result.end(), FTPListParser::FileInfo::comp_asc);
+        result.sort(FTPListParser::FileInfo::comp_asc);
     else if (sort == SORT_DESC)
-        std::sort(result.begin(), result.end(), FTPListParser::FileInfo::comp_des);
+        result.sort(FTPListParser::FileInfo::comp_des);
 
     if (result.size() > max) {
-        for (int i = result.size() - 1; i >= max; i--) {
-            FileInfo* t = result.at(i);
-            result.erase(result.begin() + i);
+        for (int i = 0; i < result.size() - max; i++) {
+            FileInfo* t = result.back();
+            result.pop_back();
             delete t;
         }
     }
 }
 
-void FTPListParser::matches(std::vector <FTPListParser::FileInfo*> infoA, std::vector <FTPListParser::FileInfo*> infoB, std::vector <FTPListParser::FilePair*> &result, int sort) {
+void FTPListParser::matches(std::list <FTPListParser::FileInfo*> infoA, std::list <FTPListParser::FileInfo*> infoB, std::list <FTPListParser::FilePair*> &result, int sort) {
     FTPListParser::FilePair r;
     bool is_found;
 
@@ -84,12 +84,12 @@ void FTPListParser::matches(std::vector <FTPListParser::FileInfo*> infoA, std::v
             result.push_back(new FilePair(r));
     }
     if (sort == SORT_ASC)
-        std::sort(result.begin(), result.end(), FTPListParser::FilePair::comp_asc);
+        result.sort(FTPListParser::FilePair::comp_asc);
     else if (sort == SORT_DESC)
-        std::sort(result.begin(), result.end(), FTPListParser::FilePair::comp_des);
+        result.sort(FTPListParser::FilePair::comp_des);
 }
 
-void FTPListParser::diff(std::vector <FTPListParser::FileInfo*> a, std::vector <FTPListParser::FileInfo*> b, std::vector <FTPListParser::FileInfo*> &result, int by) {
+void FTPListParser::diff(std::list <FTPListParser::FileInfo*> a, std::list <FTPListParser::FileInfo*> b, std::list <FTPListParser::FileInfo*> &result, int by) {
     FTPListParser::FileInfo r;
     bool is_found;
 
@@ -109,13 +109,13 @@ void FTPListParser::diff(std::vector <FTPListParser::FileInfo*> a, std::vector <
     }
 }
 
-void FTPListParser::exportA(std::vector<FilePair*> pair, std::vector <FileInfo*> &result) {
+void FTPListParser::exportA(std::list<FilePair*> pair, std::list <FileInfo*> &result) {
     for (FilePair *p : pair) {
         result.push_back(p->a);
     }
 }
 
-void FTPListParser::exportB(std::vector<FilePair*> pair, std::vector <FileInfo*> &result) {
+void FTPListParser::exportB(std::list<FilePair*> pair, std::list <FileInfo*> &result) {
     for (FilePair *p : pair) {
         result.push_back(p->b);
     }
@@ -146,7 +146,7 @@ FTPSWorker::FTPSWorker(char* serverAdress, uint16_t port, char* userName, char* 
     // ESP32_FTPSClient ftps((char*)"192.168.137.1", 990, (char*)"bblp", (char*)"34801960", 10000, 2);
 }
 
-template<typename T> void FTPSWorker::freeList(std::vector<T> &list) {
+template<typename T> void FTPSWorker::freeList(std::list<T> &list) {
     for (T i : list) {
         if (i)
             delete i;
@@ -154,8 +154,8 @@ template<typename T> void FTPSWorker::freeList(std::vector<T> &list) {
     list.clear();
 }
 
-void FTPSWorker::downloadDir(String srcDir, String dstDir, std::vector<FTPListParser::FileInfo*> info, String ext) {
-    std::vector<String*> list;
+void FTPSWorker::downloadDir(String srcDir, String dstDir, std::list<FTPListParser::FileInfo*> info, String ext) {
+    std::list<String*> list;
     std::vector<String> tokens;
     String src;
     String dst;
@@ -193,9 +193,9 @@ void FTPSWorker::downloadDir(String srcDir, String dstDir, std::vector<FTPListPa
     LOGV("Completed...\n");
 }
 
-void FTPSWorker::listDir(String srcDir, std::vector<FTPListParser::FileInfo*> &info, String ext, int max) {
+void FTPSWorker::listDir(String srcDir, std::list<FTPListParser::FileInfo*> &info, String ext, int max) {
     FTPListParser *parser = new FTPListParser();
-    std::vector<String*> list;
+    std::list<String*> list;
 
     _ftps->InitFile("Type A");
     _ftps->DirLong(srcDir.c_str(), list);
@@ -220,7 +220,7 @@ void FTPSWorker::invalidate() {
     // pair.erase(std::remove(_pairList.begin(), _pairList.end(), p), _pairList.end());
 
     FTPListParser::FilePair* p;
-    std::vector<FTPListParser::FilePair*>::iterator it;
+    std::list<FTPListParser::FilePair*>::iterator it;
     for (it = _pairList.begin(); it != _pairList.end(); ) {
         p = *it;
         if (p->ts == 0) {
@@ -233,7 +233,7 @@ void FTPSWorker::invalidate() {
     }
 }
 
-void FTPSWorker::listDirSD(char *path, std::vector<FTPListParser::FileInfo*> &info, String ext) {
+void FTPSWorker::listDirSD(char *path, std::list<FTPListParser::FileInfo*> &info, String ext) {
     FTPListParser::FileInfo *item;
     File dir = SD.open(path);
     while (true) {
@@ -301,11 +301,11 @@ void FTPSWorker::syncImagesModels() {
     // download files not in SD card
     //
     // get image files from _pairList
-    std::vector<FTPListParser::FileInfo*> imageFiles;
+    std::list<FTPListParser::FileInfo*> imageFiles;
     _parser.exportB(_pairList, imageFiles);
 
     // make  TBU(to be updated) files after comparing files in SD card and ftps server lists
-    std::vector<FTPListParser::FileInfo*> tbu;
+    std::list<FTPListParser::FileInfo*> tbu;
     _parser.diff(_imageFilesSD, imageFiles, tbu, FTPListParser::BY_NAME);
     cnt = 1;
     LOGV("--------------- TBU ---------------\n");

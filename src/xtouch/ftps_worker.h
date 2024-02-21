@@ -94,11 +94,11 @@ public:
     FTPListParser() {
     }
 
-    void parse(std::vector<String*> logs, std::vector<FileInfo*> &result, int max, String ext="", int sort=SORT_ASC);
-    static void matches(std::vector<FileInfo*> infoA, std::vector<FileInfo*> infoB, std::vector<FilePair*> &result, int sort=SORT_ASC);
-    static void diff(std::vector<FileInfo*> a, std::vector<FileInfo*> b, std::vector<FileInfo*> &result, int by=BY_TS);
-    void exportA(std::vector<FilePair*> pair, std::vector <FileInfo*> &result);
-    void exportB(std::vector<FilePair*> pair, std::vector <FileInfo*> &result);
+    void parse(std::list<String*> logs, std::list<FileInfo*> &result, int max, String ext="", int sort=SORT_ASC);
+    static void matches(std::list<FileInfo*> infoA, std::list<FileInfo*> infoB, std::list<FilePair*> &result, int sort=SORT_ASC);
+    static void diff(std::list<FileInfo*> a, std::list<FileInfo*> b, std::list<FileInfo*> &result, int by=BY_TS);
+    void exportA(std::list<FilePair*> pair, std::list <FileInfo*> &result);
+    void exportB(std::list<FilePair*> pair, std::list <FileInfo*> &result);
 
 private:
     static std::vector<String> _months;
@@ -125,14 +125,14 @@ public:
     } cmd_q_t;
 
     FTPSWorker(char* serverAdress, uint16_t port, char* userName, char* passWord);
-    void downloadDir(String srcDir, String dstDir, std::vector<FTPListParser::FileInfo*> info, String ext="");
-    void listDir(String srcDir, std::vector<FTPListParser::FileInfo*> &info, String ext="", int max=30);
+    void downloadDir(String srcDir, String dstDir, std::list<FTPListParser::FileInfo*> info, String ext="");
+    void listDir(String srcDir, std::list<FTPListParser::FileInfo*> &info, String ext="", int max=30);
     void startSync();
-    void listDirSD(char *path, std::vector<FTPListParser::FileInfo*> &info, String ext="");
+    void listDirSD(char *path, std::list<FTPListParser::FileInfo*> &info, String ext="");
     void invalidate();
 
     void setCallback(Callback *cb) { _callback = cb; }
-    std::vector<FTPListParser::FilePair*> getModelImagePair() {
+    std::list<FTPListParser::FilePair*> getModelImagePair() {
         return _pairList;
     }
     static char *getImagePath(bool lv=false) { return (lv ? (char*)"S:/ftps/image/" : (char*)"/ftps/image/"); }
@@ -140,16 +140,16 @@ public:
 
 private:
     void syncImagesModels();
-    template<typename T> static void freeList(std::vector<T> &list);
+    template<typename T> static void freeList(std::list<T> &list);
 
     Callback         *_callback;
     ESP32_FTPSClient *_ftps;
     FTPListParser    _parser;
     QueueHandle_t    _queue_comm;
-    std::vector<FTPListParser::FileInfo*> _modelFiles;
-    std::vector<FTPListParser::FileInfo*> _imageFiles;
-    std::vector<FTPListParser::FileInfo*> _imageFilesSD;
-    std::vector<FTPListParser::FilePair*> _pairList;
+    std::list<FTPListParser::FileInfo*> _modelFiles;
+    std::list<FTPListParser::FileInfo*> _imageFiles;
+    std::list<FTPListParser::FileInfo*> _imageFilesSD;
+    std::list<FTPListParser::FilePair*> _pairList;
 
 #if _NO_NETWORK_
     static std::list<String> _testPair;
