@@ -1,5 +1,5 @@
-#ifndef _UI_COMP_BROWSERCOMPONENT_H
-#define _UI_COMP_BROWSERCOMPONENT_H
+#ifndef _UI_COMP_BROWSER_H
+#define _UI_COMP_BROWSER_H
 
 #include "../ui.h"
 

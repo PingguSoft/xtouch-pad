@@ -22,7 +22,7 @@ extern "C"
 #include "ui_comp_hmspanel.h"
 #include "ui_comp_mainscreenstatus.h"
 #include "ui_comp_filamentcomponent.h"
-#include "ui_comp_browsercomponent.h"
+#include "ui_comp_browser.h"
 
 #ifdef __cplusplus
 } /*extern "C"*/

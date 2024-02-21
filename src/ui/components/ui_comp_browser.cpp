@@ -1,5 +1,5 @@
 #include <list>
-#include "../ui.h"
+#include "ui_comp_browser.h"
 #include "../../xtouch/debug.h"
 #include "../../xtouch/ftps_worker.h"
 
@@ -166,57 +166,6 @@ void rebuildTiles(int move_to) {
         lv_obj_set_tile_id(_tile_view, 0, move_to, LV_ANIM_OFF);
     }
 }
-
-#if 0
-typedef struct {
-    char   *pngName;
-    char   *modelName;
-} file_info_t;
-static std::list <file_info_t*> _file_list;
-
-void build_file_list(char *path) {
-    lv_fs_dir_t dir;
-    lv_fs_res_t res;
-
-    for (file_info_t *info : _file_list) {
-        free_node(info);
-    }
-    _file_list.clear();
-    res = lv_fs_dir_open(&dir, path);
-    if (res != LV_FS_RES_OK) {
-        LOGE("Failed to open dir !!!\n");
-        return;
-    }
-
-    char fn[256];
-
-    while (1) {
-        res = lv_fs_dir_read(&dir, fn);
-        if (res != LV_FS_RES_OK) {
-            LOGE("Failed to read dir !!!\n");
-            break;
-        }
-        /*fn is empty, if not more files to read*/
-        int len = strlen(fn);
-        if (len == 0) {
-            break;
-        } else if (len > 4) {
-            char *ext = &fn[len - 4];
-            LOGV("%s\n", fn);
-            if (!strcasecmp(ext, ".png")) {
-                file_info_t *info = (file_info_t *)lv_mem_alloc(sizeof(file_info_t));
-                lv_memset_00(info, sizeof(file_info_t));
-                info->pngName = (char*)lv_mem_alloc(strlen(path) + strlen(fn) + 2);
-                strcpy(info->pngName, path);
-                strcat(info->pngName, "/");
-                strcat(info->pngName, fn);
-                _file_list.push_back(info);
-            }
-        }
-    }
-    lv_fs_dir_close(&dir);
-}
-#endif
 
 void onEventBrowserDeleted(lv_event_t *e) {
     LOGD("browser is deleted...\n");
