@@ -252,21 +252,21 @@ void FTPSWorker::listDirSD(char *path, std::vector<FTPListParser::FileInfo*> &in
 }
 
 #if _NO_NETWORK_
-std::vector<FTPListParser::FilePair*> FTPSWorker::_testPair = {
-    new FTPListParser::FilePair(107925, 4442,  "15137327011.png",  838822, "galaxy watch stand.gcode.3mf"),
-    new FTPListParser::FilePair(101717, 4684,  "28260101861.png",  667533, "11111111.gcode.3mf"),
-    new FTPListParser::FilePair( 97888, 4684,  "42885271611.png",  667533, "rpi3p_case.gcode.3mf"),
-    new FTPListParser::FilePair( 97874, 2540,   "9240571371.png",  810058, "plate_holder.gcode.3mf"),
-    new FTPListParser::FilePair( 94551, 4505,  "38297837321.png", 2108337, "controller-left.gcode.3mf"),
-    new FTPListParser::FilePair( 89469, 5285,  "14229151451.png",  953086, "1.gcode.3mf"),
-    new FTPListParser::FilePair( 85813, 4857,  "26698210481.png",  970885, "swerve-large-gear.gcode.3mf"),
-    new FTPListParser::FilePair( 85661, 1863,  "17930814601.png",  458648, "swerve-axle-gearx3.gcode.3mf"),
-    new FTPListParser::FilePair( 85235, 4081,      "2064281.png", 1548586, "rc_con_left_bottom.gcode.3mf"),
-    new FTPListParser::FilePair( 84326, 1182,  "19799488481.png",  767304, "swerve-gear-motorx6.gcode.3mf"),
-    new FTPListParser::FilePair( 84322, 2171,   "4678907721.png", 1029925, "hex_bits_holder_7x3.gcode.3mf"),
-    new FTPListParser::FilePair( 83511, 2755,  "10363259711.png",  710512, "hex_bits_holder_7 x 2.gcode.3mf"),
-    new FTPListParser::FilePair( 82040, 3609,   "2613376571.png",  413301, "No-Catch Y-Splitter Self-Tap (long slot) (9.4mm-M3x6 mount).gcode.3mf"),
-    new FTPListParser::FilePair( 81969, 3804,   "4380517671.png",  176374, "AMS_disconnect_tool_with_magnet_seperate_letters.gcode.3mf")
+std::list<String> FTPSWorker::_testPair = {
+    "107925,       4442,      15137327011.png,     838822, galaxy watch stand.gcode.3mf",
+    "101717,       4684,      28260101861.png,     667533, 11111111.gcode.3mf",
+    " 97888,       4684,      42885271611.png,     667533, rpi3p_case.gcode.3mf",
+    " 97874,       2540,       9240571371.png,     810058, plate_holder.gcode.3mf",
+    " 94551,       4505,      38297837321.png,    2108337, controller-left.gcode.3mf",
+    " 89469,       5285,      14229151451.png,     953086, 1.gcode.3mf",
+    " 85813,       4857,      26698210481.png,     970885, swerve-large-gear.gcode.3mf",
+    " 85661,       1863,      17930814601.png,     458648, swerve-axle-gearx3.gcode.3mf",
+    " 85235,       4081,          2064281.png,    1548586, rc_con_left_bottom.gcode.3mf",
+    " 84326,       1182,      19799488481.png,     767304, swerve-gear-motorx6.gcode.3mf",
+    " 84322,       2171,       4678907721.png,    1029925, hex_bits_holder_7x3.gcode.3mf",
+    " 83511,       2755,      10363259711.png,     710512, hex_bits_holder_7 x 2.gcode.3mf",
+    " 82040,       3609,       2613376571.png,     413301, No-Catch Y-Splitter Self-Tap (long slot) (9.4mm-M3x6 mount).gcode.3mf",
+    " 81969,       3804,       4380517671.png,     176374, AMS_disconnect_tool_with_magnet_seperate_letters.gcode.3mf"
 };
 #endif
 
@@ -320,13 +320,21 @@ void FTPSWorker::syncImagesModels() {
     freeList(_imageFilesSD);
     imageFiles.clear();
 #else
-    for (FTPListParser::FilePair* p : _testPair)
-        _pairList.push_back(new FTPListParser::FilePair(*p));
+    std::vector<String> tokens;
 
-    // LOGI("--------------- FILE MODEL & PNG ---------------\n");
-    // for (FTPListParser::FilePair *p:_pairList) {
-    //     LOGD("%3d %10ld, [%10ld] %20s, [%10ld] %s\n", cnt++, p->ts, p->b->size, p->b->name.c_str(), p->a->size, p->a->name.c_str());
-    // }
+    // pair : ts, <png size> <png name> <3mf size> <3mf name>
+    for (String s : _testPair) {
+        tokenize(s, ",", tokens);
+        tokens[2].trim();
+        tokens[4].trim();
+        _pairList.push_back(new FTPListParser::FilePair(tokens[0].toInt(), tokens[3].toInt(), tokens[4], tokens[1].toInt(), tokens[2]));
+        tokens.clear();
+    }
+
+    LOGI("--------------- FILE MODEL & PNG ---------------\n");
+    for (FTPListParser::FilePair *p:_pairList) {
+        LOGD("%3d %10ld, [%10ld] %20s, [%10ld] %s\n", cnt++, p->ts, p->b->size, p->b->name.c_str(), p->a->size, p->a->name.c_str());
+    }
 #endif
 
     if (_callback)

@@ -93,7 +93,10 @@ void setup() {
         // ESP32_FTPSClient ftps((char*)"192.168.0.159", 990, (char*)"bblp", (char*)"34801960", 10000, 2);
         _ftps = new FTPSWorker((char*)xTouchConfig.xTouchIP, 990, (char*)"bblp", (char*)xTouchConfig.xTouchAccessCode);
     }
+
+#if _NO_NETWORK_
     loadScreen(SCREEN_BROWSER);
+#endif
     _ftps->startSync();
 }
 

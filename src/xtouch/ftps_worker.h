@@ -1,6 +1,7 @@
 #ifndef __FTPS_WORKER__
 #define __FTPS_WORKER__
 
+#include <list>
 #include <vector>
 #include "freertos/FreeRTOS.h"
 #include "freertos/portmacro.h"
@@ -69,11 +70,11 @@ public:
             set(0, NULL, NULL);
         }
 
-        // for offline simulation, a and b are swapped
+        // for offline simulation
         FilePair(long ts, long a_size, String a_name, long b_size, String b_name) {
             this->ts = ts;
-            this->b = new FileInfo(ts, a_size, a_name);
-            this->a = new FileInfo(ts, b_size, b_name);
+            this->a = new FileInfo(ts, a_size, a_name);
+            this->b = new FileInfo(ts, b_size, b_name);
         }
 
         void invalid() {
@@ -151,7 +152,7 @@ private:
     std::vector<FTPListParser::FilePair*> _pairList;
 
 #if _NO_NETWORK_
-    static std::vector<FTPListParser::FilePair*> _testPair;
+    static std::list<String> _testPair;
 #endif
 };
 
