@@ -66,6 +66,9 @@ void fillScreenData(int screen) {
 extern void print_sram_info();
 
 void loadScreen(int screen) {
+    if (xTouchConfig.currentScreenIndex == screen)
+        return;
+
     if (xTouchConfig.currentScreenIndex != -1) {
         lv_obj_t *current = lv_scr_act();
         if (current != NULL) {

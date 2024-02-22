@@ -27,7 +27,7 @@ void xtouch_screen_wakeUp()
     LOGI("[XTouch][SCREEN] xtouch_screen_wakeUp\n");
     lv_timer_reset(xtouch_screen_onScreenOffTimer);
     xtouch_screen_touchFromPowerOff = false;
-    loadScreen(SCREEN_HOME);
+    // loadScreen(SCREEN_HOME);
     xtouch_screen_setBrightness(xTouchConfig.xTouchBacklightLevel);
 }
 

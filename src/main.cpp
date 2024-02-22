@@ -97,7 +97,6 @@ void setup() {
 #if _NO_NETWORK_
     loadScreen(SCREEN_BROWSER);
 #endif
-    _ftps->startSync();
 }
 
 void loop() {
