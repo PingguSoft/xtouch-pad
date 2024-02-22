@@ -18,19 +18,48 @@ void rebuildTiles(int move_to);
 *****************************************************************************************
 */
 class FTPSCallback : public FTPSWorker::Callback {
-    virtual int16_t onCallback(FTPSWorker::cmd_t cmd, void *pParam, uint16_t size) {
+public:
+    FTPSCallback() {
+        _obj = NULL;
+    }
+
+    void setRefreshObject(lv_obj_t *obj) {
+        _obj = obj;
+    }
+
+    std::list<FTPListParser::FilePair*> getFilePair() {
+        return _file_pair;
+    }
+
+    virtual int16_t onCallback(FTPSWorker::cmd_t cmd, void *param, int size) {
+        std::list<FTPListParser::FilePair*> *pair = (std::list<FTPListParser::FilePair*>*)param;
+
         switch (cmd) {
             case FTPSWorker::CMD_SYNC:
-                if (xTouchConfig.currentScreenIndex == SCREEN_BROWSER)
-                    rebuildTiles(0);
+                pullFilePair(*pair);
+                if (xTouchConfig.currentScreenIndex == SCREEN_BROWSER && _obj)
+                    lv_event_send(_obj, LV_EVENT_REFRESH, NULL);
                 break;
 
             case FTPSWorker::CMD_DOWNLOADING:
-                LOGD("downloading : %s\n", (char*)pParam);
+                LOGD("downloading : %s\n", (char*)param);
                 break;
         }
         return 0;
     }
+
+private:
+    void pullFilePair(std::list<FTPListParser::FilePair*> pair) {
+        for (FTPListParser::FilePair* p : _file_pair)
+            delete p;
+        _file_pair.clear();
+
+        for (FTPListParser::FilePair* p : pair)
+            _file_pair.push_back(new FTPListParser::FilePair(p));
+    }
+
+    lv_obj_t *_obj;
+    std::list<FTPListParser::FilePair*> _file_pair;
 };
 
 /*
@@ -38,7 +67,6 @@ class FTPSCallback : public FTPSWorker::Callback {
 * VARIABLES
 *****************************************************************************************
 */
-static lv_obj_t *_ui_browserComponent = NULL;
 static lv_obj_t *_tile_view = NULL;
 static int       _last_tile = 0;
 static FTPSCallback *_callback = new FTPSCallback();
@@ -51,15 +79,15 @@ static FTPSCallback *_callback = new FTPSCallback();
 */
 void onDeleteFileConfirm(void *user_data) {
     FTPListParser::FilePair *info = (FTPListParser::FilePair *)user_data;
-    LOGI("DELETED : %s\n", (char*)info->a->name.c_str());
+    LOGI("DELETED : %s\n", (char*)info->a.name.c_str());
 
     info->invalid();
-    rebuildTiles(_last_tile);
+    lv_event_send(_tile_view, LV_EVENT_REFRESH, &_last_tile);
 }
 
 void onPrintConfirm(void *user_data) {
     FTPListParser::FilePair *info = (FTPListParser::FilePair *)user_data;
-    LOGI("PRINTING : %s\n", (char*)info->a->name.c_str());
+    LOGI("PRINTING : %s\n", (char*)info->a.name.c_str());
 }
 
 void onEventItem(lv_event_t *e) {
@@ -71,7 +99,7 @@ void onEventItem(lv_event_t *e) {
     switch (event_code) {
         case LV_EVENT_CLICKED:
             if (!is_long && info != NULL) {
-                LOGI("PRINT? : %s\n", (char*)info->a->name.c_str());
+                LOGI("PRINT? : %s\n", (char*)info->a.name.c_str());
                 ui_confirmPanel_show(LV_SYMBOL_WARNING " Print ?", onPrintConfirm, info);
             }
             is_long = false;
@@ -83,7 +111,7 @@ void onEventItem(lv_event_t *e) {
 
         case LV_EVENT_RELEASED:
             if (is_long && info != NULL) {
-                LOGI("DELETE? : %s\n", (char*)info->a->name.c_str());
+                LOGI("DELETE? : %s\n", (char*)info->a.name.c_str());
                 _last_tile = lv_obj_get_index(lv_obj_get_parent(target));
                 ui_confirmPanel_show(LV_SYMBOL_WARNING " Delete ?", onDeleteFileConfirm, info);
             }
@@ -120,7 +148,7 @@ void addPNGToTile(lv_obj_t *tile, char *dir, FTPListParser::FilePair *info) {
     lv_obj_clear_flag(ui_png, LV_OBJ_FLAG_PRESS_LOCK | LV_OBJ_FLAG_CLICK_FOCUSABLE | LV_OBJ_FLAG_SNAPPABLE |
                       LV_OBJ_FLAG_SCROLLABLE | LV_OBJ_FLAG_SCROLL_ELASTIC);     /// Flags
     strcpy(pathPNG, dir);
-    strcat(pathPNG, info->b->name.c_str());
+    strcat(pathPNG, info->b.name.c_str());
     lv_img_set_src(ui_png, pathPNG);
 
     lv_obj_t *ui_labelFileName = lv_label_create(ui_containerItem);
@@ -134,7 +162,7 @@ void addPNGToTile(lv_obj_t *tile, char *dir, FTPListParser::FilePair *info) {
     lv_obj_set_style_text_opa(ui_labelFileName, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_align(ui_labelFileName, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
 
-    String title = info->a->name;
+    String title = info->a.name;
     title.replace(".gcode.3mf", "");
     lv_label_set_text(ui_labelFileName, title.c_str());
 }
@@ -164,20 +192,14 @@ void rebuildTiles(int move_to) {
     int cnt = 0;
     const int imgs_per_tile = 6;
 
-    if (_tile_view != NULL) {
-        lv_obj_clean(_tile_view);
-        lv_obj_del(_tile_view);
-        _tile_view = NULL;
+    LOGD("refresh tileview : %d\n", lv_obj_get_child_cnt(_tile_view));
+    for (int i = 0; i < lv_obj_get_child_cnt(_tile_view); i++) {
+        lv_obj_t *child = lv_obj_get_child(_tile_view, i);
+        lv_obj_clean(child);
+        lv_obj_del(child);
     }
-    _tile_view = lv_tileview_create(_ui_browserComponent);
-    lv_obj_set_width(_tile_view, lv_pct(100));
-    lv_obj_set_height(_tile_view, lv_pct(93));
-    lv_obj_set_align(_tile_view, LV_ALIGN_BOTTOM_LEFT);
-    lv_obj_clear_flag(_tile_view, LV_OBJ_FLAG_SCROLL_ELASTIC);      /// Flags
-    lv_obj_set_style_bg_color(_tile_view, lv_color_hex(0x444444), LV_PART_MAIN | LV_STATE_DEFAULT);
 
-    std::list<FTPListParser::FilePair*> pair = getFTPSWorker()->getModelImagePair();
-    for (FTPListParser::FilePair* p:pair) {
+    for (FTPListParser::FilePair* p:_callback->getFilePair()) {
         if (p->isValid()) {
             if (cnt % imgs_per_tile == 0) {
                 tile = addTile(_tile_view, cnt / imgs_per_tile);
@@ -195,6 +217,7 @@ void rebuildTiles(int move_to) {
         LOGI("move to %d / %d\n", move_to, max_tile_id);
         lv_obj_set_tile_id(_tile_view, 0, move_to, LV_ANIM_OFF);
     }
+    LOGD("refresh done, tiles:%d\n", cnt);
 }
 
 void onEventBrowserDeleted(lv_event_t *e) {
@@ -202,22 +225,30 @@ void onEventBrowserDeleted(lv_event_t *e) {
     getFTPSWorker()->invalidate();
 }
 
+void onEventTileViewRefresh(lv_event_t *e) {
+    // lv_event_code_t event_code = lv_event_get_code(e);
+    // lv_obj_t *target = lv_event_get_target(e);
+    int *p = (int*)lv_event_get_user_data(e);
+    rebuildTiles((p == NULL) ? 0 : *p);
+}
+
 lv_obj_t *ui_browserComponent_create(lv_obj_t *comp_parent) {
-    _ui_browserComponent = lv_obj_create(comp_parent);
-    lv_obj_remove_style_all(_ui_browserComponent);
-    lv_obj_set_width(_ui_browserComponent, lv_pct(85));
-    lv_obj_set_height(_ui_browserComponent, lv_pct(100));
-    lv_obj_set_align(_ui_browserComponent, LV_ALIGN_RIGHT_MID);
-    lv_obj_clear_flag(_ui_browserComponent, LV_OBJ_FLAG_SCROLLABLE);      /// Flags
-    lv_obj_set_style_bg_color(_ui_browserComponent, lv_color_hex(0x444444), LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_bg_opa(_ui_browserComponent, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_t *ui_browserComponent = lv_obj_create(comp_parent);
+    lv_obj_remove_style_all(ui_browserComponent);
+    lv_obj_set_width(ui_browserComponent, lv_pct(85));
+    lv_obj_set_height(ui_browserComponent, lv_pct(100));
+    lv_obj_set_align(ui_browserComponent, LV_ALIGN_RIGHT_MID);
+    lv_obj_clear_flag(ui_browserComponent, LV_OBJ_FLAG_SCROLLABLE);      /// Flags
+    lv_obj_set_style_bg_color(ui_browserComponent, lv_color_hex(0x444444), LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_opa(ui_browserComponent, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
 
-    lv_obj_set_style_pad_left(_ui_browserComponent, 0, LV_PART_SCROLLBAR | LV_STATE_DEFAULT);
-    lv_obj_set_style_pad_right(_ui_browserComponent, 0, LV_PART_SCROLLBAR | LV_STATE_DEFAULT);
-    lv_obj_set_style_pad_top(_ui_browserComponent, 0, LV_PART_SCROLLBAR | LV_STATE_DEFAULT);
-    lv_obj_set_style_pad_bottom(_ui_browserComponent, 0, LV_PART_SCROLLBAR | LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_left(ui_browserComponent, 0, LV_PART_SCROLLBAR | LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_right(ui_browserComponent, 0, LV_PART_SCROLLBAR | LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_top(ui_browserComponent, 0, LV_PART_SCROLLBAR | LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_bottom(ui_browserComponent, 0, LV_PART_SCROLLBAR | LV_STATE_DEFAULT);
+    lv_obj_add_event_cb(ui_browserComponent, onEventBrowserDeleted, LV_EVENT_DELETE, NULL);
 
-    lv_obj_t *ui_sd_browser = lv_label_create(_ui_browserComponent);
+    lv_obj_t *ui_sd_browser = lv_label_create(ui_browserComponent);
     lv_obj_set_height(ui_sd_browser, lv_pct(7));
     lv_obj_set_width(ui_sd_browser, LV_SIZE_CONTENT);   /// 1
     lv_obj_set_align(ui_sd_browser, LV_ALIGN_TOP_MID);
@@ -232,10 +263,18 @@ lv_obj_t *ui_browserComponent_create(lv_obj_t *comp_parent) {
     lv_obj_set_style_pad_top(ui_sd_browser, 10, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_pad_bottom(ui_sd_browser, 10, LV_PART_MAIN | LV_STATE_DEFAULT);
 
-    _tile_view = NULL;
-    lv_obj_add_event_cb(_ui_browserComponent, onEventBrowserDeleted, LV_EVENT_DELETE, NULL);
-    rebuildTiles(0);
-    getFTPSWorker()->setCallback(_callback);
+    _tile_view = lv_tileview_create(ui_browserComponent);
+    lv_obj_set_width(_tile_view, lv_pct(100));
+    lv_obj_set_height(_tile_view, lv_pct(93));
+    lv_obj_set_align(_tile_view, LV_ALIGN_BOTTOM_LEFT);
+    lv_obj_clear_flag(_tile_view, LV_OBJ_FLAG_SCROLL_ELASTIC);      /// Flags
+    lv_obj_set_style_bg_color(_tile_view, lv_color_hex(0x444444), LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_add_event_cb(_tile_view, onEventTileViewRefresh, LV_EVENT_REFRESH, NULL);
 
-    return _ui_browserComponent;
+    _callback->setRefreshObject(_tile_view);
+    getFTPSWorker()->setCallback(_callback);
+    getFTPSWorker()->startSync();
+    lv_event_send(_tile_view, LV_EVENT_REFRESH, NULL);
+
+    return ui_browserComponent;
 }

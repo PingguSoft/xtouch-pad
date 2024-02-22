@@ -38,6 +38,10 @@ public:
             set(0, 0, "");
         }
 
+        FileInfo(FileInfo *p) {
+            set(p->ts, p->size, p->name);
+        }
+
         FileInfo(long ts, long size, String name) {
             set(ts, size, name);
         }
@@ -57,24 +61,32 @@ public:
     class FilePair {
     public:
         long        ts;
-        FileInfo    *a;
-        FileInfo    *b;
+        FileInfo    a;
+        FileInfo    b;
 
-        void set(long ts, FileInfo *a, FileInfo *b) {
+        void set(long ts, FileInfo a, FileInfo b) {
             this->ts = ts;
             this->a  = a;
             this->b  = b;
         }
 
         FilePair() {
-            set(0, NULL, NULL);
+            this->ts = 0;
+        }
+
+        FilePair(FilePair *p) {
+            set(p->ts, p->a, p->b);
+        }
+
+        FilePair(long ts, FileInfo a, FileInfo b) {
+            set(ts, a, b);
         }
 
         // for offline simulation
         FilePair(long ts, long a_size, String a_name, long b_size, String b_name) {
             this->ts = ts;
-            this->a = new FileInfo(ts, a_size, a_name);
-            this->b = new FileInfo(ts, b_size, b_name);
+            this->a = FileInfo(ts, a_size, a_name);
+            this->b = FileInfo(ts, b_size, b_name);
         }
 
         void invalid() {
@@ -114,7 +126,7 @@ public:
     class Callback {
         public:
             virtual ~Callback() { }
-            virtual int16_t onCallback(cmd_t cmd, void *pParam, uint16_t size) = 0;
+            virtual int16_t onCallback(FTPSWorker::cmd_t cmd, void *param, int size) = 0;
     };
 
     typedef struct {
@@ -132,9 +144,6 @@ public:
     void invalidate();
 
     void setCallback(Callback *cb) { _callback = cb; }
-    std::list<FTPListParser::FilePair*> getModelImagePair() {
-        return _pairList;
-    }
     static char *getImagePath(bool lv=false) { return (lv ? (char*)"S:/ftps/image/" : (char*)"/ftps/image/"); }
     friend void taskFTPS(void* arg);
 
@@ -146,9 +155,6 @@ private:
     ESP32_FTPSClient *_ftps;
     FTPListParser    _parser;
     QueueHandle_t    _queue_comm;
-    std::list<FTPListParser::FileInfo*> _modelFiles;
-    std::list<FTPListParser::FileInfo*> _imageFiles;
-    std::list<FTPListParser::FileInfo*> _imageFilesSD;
     std::list<FTPListParser::FilePair*> _pairList;
 
 #if _NO_NETWORK_
