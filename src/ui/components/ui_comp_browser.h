@@ -17,6 +17,7 @@ extern "C"
     lv_obj_t *getPopupTitle();
     lv_obj_t *getPopupFileName();
     lv_obj_t *getPopupProgress();
+    lv_obj_t *getPopupSpinner();
 
 #ifdef __cplusplus
 } /*extern "C"*/
