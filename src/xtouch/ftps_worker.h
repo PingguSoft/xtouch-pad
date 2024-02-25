@@ -147,7 +147,7 @@ public:
     void setCallback(Callback *cb) { _callback = cb; }
 
     // ftps command functions
-    void startSync();
+    void startSync(bool textonly=false);
     void removeFile(FTPListParser::FilePair* pair);
     void removeFile();
 
@@ -156,7 +156,7 @@ public:
     friend void taskFTPS(void* arg);
 
 private:
-    void syncImagesModels();
+    void syncImagesModels(bool textonly);
     void downloadDirRemote(String srcDir, String dstDir, std::list<FTPListParser::FileInfo*> info, String ext="");
     void listDirRemote(String srcDir, std::list<FTPListParser::FileInfo*> &info, String ext="", int max=30);
     void listDirSD(char *path, std::list<FTPListParser::FileInfo*> &info, String ext="");

@@ -9,7 +9,8 @@
 * FUNCTION DEFINITION
 *****************************************************************************************
 */
-void addPNGToTile(lv_obj_t *scroll_view, char *dir, FTPListParser::FilePair *info);
+void addTextItem2ScrollView(lv_obj_t *scroll_view, char *dir, FTPListParser::FilePair *info);
+void addImageItem2ScrollView(lv_obj_t *scroll_view, char *dir, FTPListParser::FilePair *info);
 
 /*
 *****************************************************************************************
@@ -50,7 +51,6 @@ public:
                 if (xTouchConfig.currentScreenIndex == SCREEN_BROWSER) {
                     if (_popup)
                         lv_obj_add_flag(_popup, LV_OBJ_FLAG_HIDDEN);
-                        // lv_event_send(_popup, LV_EVENT_REFRESH, (void*)LV_OBJ_FLAG_HIDDEN);
                     if (_scroll_view)
                         lv_event_send(_scroll_view, LV_EVENT_REFRESH, NULL);
                 }
@@ -103,7 +103,7 @@ static lv_obj_t     *_scroll_view = NULL;
 static int           _sel_index = 0;
 static FTPSCallback *_callback = new FTPSCallback();
 static FTPSWorker   *_ftps = NULL;
-
+static bool          _is_text = true;
 /*
 *****************************************************************************************
 * EVENT FUNCTIONS
@@ -174,7 +174,10 @@ void onEventScrollViewRefresh(lv_event_t *e) {
     char *dir = _ftps->getImagePath(true);
     for (FTPListParser::FilePair* p:_callback->getFilePair()) {
         if (p->isValid()) {
-            addPNGToTile(_scroll_view, dir, p);
+            if (_is_text)
+                addTextItem2ScrollView(_scroll_view, dir, p);
+            else
+                addImageItem2ScrollView(_scroll_view, dir, p);
         }
     }
 
@@ -197,7 +200,7 @@ void onEventScrollViewRefresh(lv_event_t *e) {
 * FUNCTIONS
 *****************************************************************************************
 */
-void addPNGToTile(lv_obj_t *scroll_view, char *dir, FTPListParser::FilePair *info) {
+void addImageItem2ScrollView(lv_obj_t *scroll_view, char *dir, FTPListParser::FilePair *info) {
     char pathPNG[100];
 
     lv_obj_t *ui_containerItem = lv_obj_create(scroll_view);
@@ -238,39 +241,98 @@ void addPNGToTile(lv_obj_t *scroll_view, char *dir, FTPListParser::FilePair *inf
     lv_label_set_text(ui_labelFileName, title.c_str());
 }
 
-lv_obj_t *ui_browserComponent_create(lv_obj_t *comp_parent) {
+void addTextItem2ScrollView(lv_obj_t *scroll_view, char *dir, FTPListParser::FilePair *info) {
+    lv_obj_t *ui_container_item_list = lv_obj_create(scroll_view);
+    lv_obj_set_width(ui_container_item_list, lv_pct(100));
+    lv_obj_set_height(ui_container_item_list, lv_pct(12));
+    lv_obj_set_flex_flow(ui_container_item_list, LV_FLEX_FLOW_ROW);
+    lv_obj_set_flex_align(ui_container_item_list, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
+    lv_obj_clear_flag(ui_container_item_list, LV_OBJ_FLAG_SCROLLABLE | LV_OBJ_FLAG_SCROLL_ELASTIC);      /// Flags
+    lv_obj_set_style_radius(ui_container_item_list, 5, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_color(ui_container_item_list, lv_color_hex(0xFFFFFF), LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_opa(ui_container_item_list, 20, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_border_color(ui_container_item_list, lv_color_hex(0xFFFFFF), LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_border_opa(ui_container_item_list, 20, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_border_width(ui_container_item_list, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+
+    lv_obj_set_style_pad_left(ui_container_item_list, 5, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_right(ui_container_item_list, 5, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_top(ui_container_item_list, 5, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_bottom(ui_container_item_list, 5, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_row(ui_container_item_list, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_column(ui_container_item_list, 10, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_add_event_cb(ui_container_item_list, onEventItem, LV_EVENT_ALL, info);
+
+    lv_obj_t *ui_name = lv_label_create(ui_container_item_list);
+    lv_obj_set_width(ui_name, lv_pct(53));
+    lv_obj_set_height(ui_name, LV_SIZE_CONTENT);    /// 1
+    lv_obj_set_align(ui_name, LV_ALIGN_CENTER);
+    lv_label_set_long_mode(ui_name, LV_LABEL_LONG_SCROLL_CIRCULAR);
+    String title = info->a.name;
+    title.replace(".gcode.3mf", "");
+    lv_label_set_text(ui_name, title.c_str());
+    lv_obj_clear_flag(ui_name, LV_OBJ_FLAG_SCROLLABLE | LV_OBJ_FLAG_SCROLL_ELASTIC);      /// Flags
+    lv_obj_set_style_text_color(ui_name, lv_color_hex(0xFFFFFF), LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_text_opa(ui_name, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
+
+    lv_obj_t *ui_date = lv_label_create(ui_container_item_list);
+    lv_obj_set_width(ui_date, lv_pct(30));
+    lv_obj_set_height(ui_date, LV_SIZE_CONTENT);    /// 1
+    lv_obj_set_align(ui_date, LV_ALIGN_CENTER);
+    //lv_label_set_text(ui_date, "2023/12/31 12:20");
+    lv_label_set_text(ui_date, String(info->a.ts).c_str());
+    lv_obj_clear_flag(ui_date, LV_OBJ_FLAG_SCROLLABLE | LV_OBJ_FLAG_SCROLL_ELASTIC);      /// Flags
+    lv_obj_set_style_text_color(ui_date, lv_color_hex(0xFFFFFF), LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_text_opa(ui_date, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
+
+    lv_obj_t *ui_size = lv_label_create(ui_container_item_list);
+    lv_obj_set_width(ui_size, lv_pct(15));
+    lv_obj_set_height(ui_size, LV_SIZE_CONTENT);    /// 1
+    lv_obj_set_align(ui_size, LV_ALIGN_CENTER);
+    //lv_label_set_text(ui_size, "3.2MB");
+    lv_label_set_text(ui_size, String(info->a.size).c_str());
+    lv_obj_add_flag(ui_size, LV_OBJ_FLAG_CLICKABLE | LV_OBJ_FLAG_EVENT_BUBBLE);     /// Flags
+    lv_obj_set_style_text_color(ui_size, lv_color_hex(0xFFFFFF), LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_text_opa(ui_size, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
+}
+
+lv_obj_t *ui_browserComponent_create_image(lv_obj_t *comp_parent) {
     lv_obj_t *ui_browserComponent = lv_obj_create(comp_parent);
     lv_obj_remove_style_all(ui_browserComponent);
     lv_obj_set_width(ui_browserComponent, lv_pct(85));
     lv_obj_set_height(ui_browserComponent, lv_pct(100));
     lv_obj_set_align(ui_browserComponent, LV_ALIGN_RIGHT_MID);
+    lv_obj_set_flex_flow(ui_browserComponent, LV_FLEX_FLOW_COLUMN);
+    lv_obj_set_flex_align(ui_browserComponent, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
     lv_obj_clear_flag(ui_browserComponent, LV_OBJ_FLAG_SCROLLABLE);      /// Flags
     lv_obj_set_style_bg_color(ui_browserComponent, lv_color_hex(0x444444), LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_bg_opa(ui_browserComponent, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_row(ui_browserComponent, 5, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_column(ui_browserComponent, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_pad_left(ui_browserComponent, 0, LV_PART_SCROLLBAR | LV_STATE_DEFAULT);
     lv_obj_set_style_pad_right(ui_browserComponent, 0, LV_PART_SCROLLBAR | LV_STATE_DEFAULT);
     lv_obj_set_style_pad_top(ui_browserComponent, 0, LV_PART_SCROLLBAR | LV_STATE_DEFAULT);
     lv_obj_set_style_pad_bottom(ui_browserComponent, 0, LV_PART_SCROLLBAR | LV_STATE_DEFAULT);
     lv_obj_add_event_cb(ui_browserComponent, onEventBrowserDeleted, LV_EVENT_DELETE, NULL);
 
-    lv_obj_t *ui_sd_browser = lv_label_create(ui_browserComponent);
-    lv_obj_set_height(ui_sd_browser, lv_pct(7));
-    lv_obj_set_width(ui_sd_browser, LV_SIZE_CONTENT);   /// 1
-    lv_obj_set_align(ui_sd_browser, LV_ALIGN_TOP_MID);
-    lv_obj_set_flex_flow(ui_sd_browser, LV_FLEX_FLOW_COLUMN);
-    lv_obj_set_flex_align(ui_sd_browser, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
-    lv_label_set_text(ui_sd_browser, "REMOTE SD CARD BROWSER");
-    lv_obj_set_style_text_color(ui_sd_browser, lv_color_hex(0xFFFFFF), LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_text_opa(ui_sd_browser, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_text_font(ui_sd_browser, &lv_font_montserrat_14, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_pad_left(ui_sd_browser, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_pad_right(ui_sd_browser, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_pad_top(ui_sd_browser, 10, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_pad_bottom(ui_sd_browser, 10, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_t *ui_sd_browser_title = lv_label_create(ui_browserComponent);
+    lv_obj_set_height(ui_sd_browser_title, LV_SIZE_CONTENT);
+    lv_obj_set_width(ui_sd_browser_title, LV_SIZE_CONTENT);   /// 1
+    lv_obj_set_align(ui_sd_browser_title, LV_ALIGN_TOP_MID);
+    lv_obj_set_flex_flow(ui_sd_browser_title, LV_FLEX_FLOW_COLUMN);
+    lv_obj_set_flex_align(ui_sd_browser_title, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
+    lv_label_set_text(ui_sd_browser_title, "REMOTE SD CARD BROWSER");
+    lv_obj_set_style_text_color(ui_sd_browser_title, lv_color_hex(0xFFFFFF), LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_text_opa(ui_sd_browser_title, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_text_font(ui_sd_browser_title, &lv_font_montserrat_14, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_left(ui_sd_browser_title, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_right(ui_sd_browser_title, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_top(ui_sd_browser_title, 10, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_bottom(ui_sd_browser_title, 10, LV_PART_MAIN | LV_STATE_DEFAULT);
 
     _scroll_view = lv_obj_create(ui_browserComponent);
     lv_obj_set_width(_scroll_view, lv_pct(100));
-    lv_obj_set_height(_scroll_view, lv_pct(93));
+    lv_obj_set_height(_scroll_view, lv_pct(91));
     lv_obj_set_align(_scroll_view, LV_ALIGN_BOTTOM_LEFT);
     lv_obj_set_flex_flow(_scroll_view, LV_FLEX_FLOW_ROW_WRAP);
     lv_obj_set_flex_align(_scroll_view, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_START);
@@ -279,12 +341,146 @@ lv_obj_t *ui_browserComponent_create(lv_obj_t *comp_parent) {
     lv_obj_set_style_bg_opa(_scroll_view, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_border_color(_scroll_view, lv_color_hex(0x444444), LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_border_opa(_scroll_view, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_border_width(_scroll_view, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_pad_left(_scroll_view, 30, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_pad_right(_scroll_view, 3, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_pad_top(_scroll_view, 8, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_pad_bottom(_scroll_view, 8, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_pad_row(_scroll_view, 10, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_pad_column(_scroll_view, 30, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_add_event_cb(_scroll_view, onEventScrollViewRefresh, LV_EVENT_REFRESH, NULL);
+
+    lv_obj_t *popup = ui_download_popupscreen_init(lv_layer_top());
+    _callback->setTilePopup(_scroll_view, popup);
+
+    if (_ftps == NULL) {
+        // ESP32_FTPSClient ftps((char*)"192.168.0.159", 990, (char*)"bblp", (char*)"34801960", 10000, 2);
+        _ftps = new FTPSWorker((char*)xTouchConfig.xTouchIP, 990, (char*)"bblp", (char*)xTouchConfig.xTouchAccessCode);
+    }
+    _ftps->setCallback(_callback);
+    _ftps->startSync();
+    lv_event_send(_scroll_view, LV_EVENT_REFRESH, NULL);
+
+    return ui_browserComponent;
+}
+
+
+lv_obj_t *ui_browserComponent_create(lv_obj_t *comp_parent) {
+    lv_obj_t *ui_browserComponent = lv_obj_create(comp_parent);
+    lv_obj_remove_style_all(ui_browserComponent);
+    lv_obj_set_width(ui_browserComponent, lv_pct(85));
+    lv_obj_set_height(ui_browserComponent, lv_pct(100));
+    lv_obj_set_align(ui_browserComponent, LV_ALIGN_RIGHT_MID);
+    lv_obj_set_flex_flow(ui_browserComponent, LV_FLEX_FLOW_COLUMN);
+    lv_obj_set_flex_align(ui_browserComponent, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
+    lv_obj_clear_flag(ui_browserComponent, LV_OBJ_FLAG_SCROLLABLE);      /// Flags
+    lv_obj_set_style_bg_color(ui_browserComponent, lv_color_hex(0x444444), LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_opa(ui_browserComponent, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_row(ui_browserComponent, 5, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_column(ui_browserComponent, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_left(ui_browserComponent, 0, LV_PART_SCROLLBAR | LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_right(ui_browserComponent, 0, LV_PART_SCROLLBAR | LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_top(ui_browserComponent, 0, LV_PART_SCROLLBAR | LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_bottom(ui_browserComponent, 0, LV_PART_SCROLLBAR | LV_STATE_DEFAULT);
+    lv_obj_add_event_cb(ui_browserComponent, onEventBrowserDeleted, LV_EVENT_DELETE, NULL);
+
+    lv_obj_t *ui_sd_browser_title = lv_label_create(ui_browserComponent);
+    lv_obj_set_height(ui_sd_browser_title, LV_SIZE_CONTENT);
+    lv_obj_set_width(ui_sd_browser_title, LV_SIZE_CONTENT);   /// 1
+    lv_obj_set_align(ui_sd_browser_title, LV_ALIGN_TOP_MID);
+    lv_obj_set_flex_flow(ui_sd_browser_title, LV_FLEX_FLOW_COLUMN);
+    lv_obj_set_flex_align(ui_sd_browser_title, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
+    lv_label_set_text(ui_sd_browser_title, "REMOTE SD CARD BROWSER");
+    lv_obj_set_style_text_color(ui_sd_browser_title, lv_color_hex(0xFFFFFF), LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_text_opa(ui_sd_browser_title, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_text_font(ui_sd_browser_title, &lv_font_montserrat_14, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_left(ui_sd_browser_title, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_right(ui_sd_browser_title, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_top(ui_sd_browser_title, 10, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_bottom(ui_sd_browser_title, 10, LV_PART_MAIN | LV_STATE_DEFAULT);
+
+    lv_obj_t *ui_container_noname1 = lv_obj_create(ui_browserComponent);
+    lv_obj_remove_style_all(ui_container_noname1);
+    lv_obj_set_width(ui_container_noname1, lv_pct(100));
+    lv_obj_set_height(ui_container_noname1, lv_pct(91));
+    lv_obj_set_align(ui_container_noname1, LV_ALIGN_CENTER);
+    lv_obj_set_flex_flow(ui_container_noname1, LV_FLEX_FLOW_COLUMN);
+    lv_obj_set_flex_align(ui_container_noname1, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_START);
+    lv_obj_clear_flag(ui_container_noname1,
+                      LV_OBJ_FLAG_CLICKABLE | LV_OBJ_FLAG_PRESS_LOCK | LV_OBJ_FLAG_CLICK_FOCUSABLE | LV_OBJ_FLAG_GESTURE_BUBBLE |
+                      LV_OBJ_FLAG_SNAPPABLE | LV_OBJ_FLAG_SCROLLABLE | LV_OBJ_FLAG_SCROLL_ELASTIC | LV_OBJ_FLAG_SCROLL_MOMENTUM |
+                      LV_OBJ_FLAG_SCROLL_CHAIN);     /// Flags
+    lv_obj_set_style_pad_row(ui_container_noname1, 10, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_column(ui_container_noname1, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+
+    lv_obj_t *ui_container_header = lv_obj_create(ui_container_noname1);
+    lv_obj_remove_style_all(ui_container_header);
+    lv_obj_set_width(ui_container_header, lv_pct(100));
+    lv_obj_set_height(ui_container_header, LV_SIZE_CONTENT);    /// 1
+    lv_obj_set_flex_flow(ui_container_header, LV_FLEX_FLOW_ROW);
+    lv_obj_set_flex_align(ui_container_header, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
+    lv_obj_clear_flag(ui_container_header,
+                      LV_OBJ_FLAG_CLICKABLE | LV_OBJ_FLAG_PRESS_LOCK | LV_OBJ_FLAG_CLICK_FOCUSABLE | LV_OBJ_FLAG_GESTURE_BUBBLE |
+                      LV_OBJ_FLAG_SNAPPABLE | LV_OBJ_FLAG_SCROLLABLE | LV_OBJ_FLAG_SCROLL_ELASTIC | LV_OBJ_FLAG_SCROLL_MOMENTUM |
+                      LV_OBJ_FLAG_SCROLL_CHAIN);     /// Flags
+    lv_obj_set_style_pad_left(ui_container_header, 10, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_right(ui_container_header, 10, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_top(ui_container_header, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_bottom(ui_container_header, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_row(ui_container_header, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_column(ui_container_header, 10, LV_PART_MAIN | LV_STATE_DEFAULT);
+
+    lv_obj_t *ui_header_name = lv_label_create(ui_container_header);
+    lv_obj_set_width(ui_header_name, lv_pct(53));
+    lv_obj_set_height(ui_header_name, LV_SIZE_CONTENT);    /// 1
+    lv_obj_set_align(ui_header_name, LV_ALIGN_CENTER);
+    lv_label_set_text(ui_header_name, "Name");
+    lv_obj_clear_flag(ui_header_name, LV_OBJ_FLAG_PRESS_LOCK | LV_OBJ_FLAG_CLICK_FOCUSABLE | LV_OBJ_FLAG_GESTURE_BUBBLE |
+                      LV_OBJ_FLAG_SNAPPABLE | LV_OBJ_FLAG_SCROLLABLE | LV_OBJ_FLAG_SCROLL_ELASTIC | LV_OBJ_FLAG_SCROLL_MOMENTUM |
+                      LV_OBJ_FLAG_SCROLL_CHAIN);     /// Flags
+    lv_obj_set_style_text_color(ui_header_name, lv_color_hex(0xFFFFFF), LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_text_opa(ui_header_name, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
+
+    lv_obj_t *ui_header_date = lv_label_create(ui_container_header);
+    lv_obj_set_width(ui_header_date, lv_pct(30));
+    lv_obj_set_height(ui_header_date, LV_SIZE_CONTENT);    /// 1
+    lv_obj_set_align(ui_header_date, LV_ALIGN_CENTER);
+    lv_label_set_text(ui_header_date, "Date");
+    lv_obj_clear_flag(ui_header_date, LV_OBJ_FLAG_PRESS_LOCK | LV_OBJ_FLAG_CLICK_FOCUSABLE | LV_OBJ_FLAG_GESTURE_BUBBLE |
+                      LV_OBJ_FLAG_SNAPPABLE | LV_OBJ_FLAG_SCROLLABLE | LV_OBJ_FLAG_SCROLL_ELASTIC | LV_OBJ_FLAG_SCROLL_MOMENTUM |
+                      LV_OBJ_FLAG_SCROLL_CHAIN);     /// Flags
+    lv_obj_set_style_text_color(ui_header_date, lv_color_hex(0xFFFFFF), LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_text_opa(ui_header_date, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
+
+    lv_obj_t *ui_header_size = lv_label_create(ui_container_header);
+    lv_obj_set_width(ui_header_size, lv_pct(15));
+    lv_obj_set_height(ui_header_size, LV_SIZE_CONTENT);    /// 1
+    lv_obj_set_align(ui_header_size, LV_ALIGN_CENTER);
+    lv_label_set_text(ui_header_size, "Size");
+    lv_obj_clear_flag(ui_header_size, LV_OBJ_FLAG_PRESS_LOCK | LV_OBJ_FLAG_CLICK_FOCUSABLE | LV_OBJ_FLAG_GESTURE_BUBBLE |
+                      LV_OBJ_FLAG_SNAPPABLE | LV_OBJ_FLAG_SCROLLABLE | LV_OBJ_FLAG_SCROLL_ELASTIC |
+                      LV_OBJ_FLAG_SCROLL_MOMENTUM);     /// Flags
+    lv_obj_set_style_text_color(ui_header_size, lv_color_hex(0xFFFFFF), LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_text_opa(ui_header_size, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
+
+    _scroll_view = lv_obj_create(ui_container_noname1);
+    lv_obj_set_width(_scroll_view, lv_pct(100));
+    lv_obj_set_height(_scroll_view, lv_pct(94));
+    lv_obj_set_align(_scroll_view, LV_ALIGN_BOTTOM_LEFT);
+    lv_obj_set_flex_flow(_scroll_view, LV_FLEX_FLOW_COLUMN);
+    lv_obj_set_flex_align(_scroll_view, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_START);
+    lv_obj_clear_flag(_scroll_view, LV_OBJ_FLAG_SCROLL_ELASTIC);      /// Flags
+    lv_obj_set_style_radius(_scroll_view, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_color(_scroll_view, lv_color_hex(0x444444), LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_opa(_scroll_view, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_border_color(_scroll_view, lv_color_hex(0x444444), LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_border_opa(_scroll_view, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_left(_scroll_view, 10, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_right(_scroll_view, 10, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_top(_scroll_view, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_bottom(_scroll_view, 1, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_row(_scroll_view, 10, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_column(_scroll_view, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_add_event_cb(_scroll_view, onEventScrollViewRefresh, LV_EVENT_REFRESH, NULL);
 
     lv_obj_t *popup = ui_download_popupscreen_init(lv_layer_top());
