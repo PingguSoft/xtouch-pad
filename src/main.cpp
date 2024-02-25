@@ -28,34 +28,57 @@
 #include "xtouch/connection.h"
 #include "xtouch/coldboot.h"
 #include "lv_fs_if.h"
-#include "xtouch/ftps_worker.h"
+#include "main.h"
 
-static FTPSWorker *_ftps = NULL;
+/*
+*****************************************************************************************
+* VARIABLES
+*****************************************************************************************
+*/
+static SemaphoreHandle_t   _lock;
 
-FTPSWorker *getFTPSWorker() {
-    return _ftps;
+
+/*
+*****************************************************************************************
+* UTILITY FUNCTIONS
+*****************************************************************************************
+*/
+void lv_lock() {
+    while(xSemaphoreTake(_lock, portMAX_DELAY) != pdPASS);
 }
 
-extern "C" {
-    void print_sram_info() {
-        LOGI("[PSRAM] free:%d, heap:%d\n", ESP.getFreePsram(), ESP.getFreeHeap());
-    }
+void lv_unlock() {
+    xSemaphoreGive(_lock);
 }
 
+void print_sram_info() {
+    LOGI("[PSRAM] free:%d, heap:%d\n", ESP.getFreePsram(), ESP.getFreeHeap());
+}
+
+
+/*
+*****************************************************************************************
+* FUNCTION DEFINITION
+*****************************************************************************************
+*/
 void xtouch_intro_show(void) {
     loadScreen(SCREEN_INTRO);
     lv_timer_handler();
 }
 
+
+
 void setup() {
 #if XTOUCH_USE_SERIAL == true || XTOUCH_DEBUG_ERROR == true || XTOUCH_DEBUG_DEBUG == true || XTOUCH_DEBUG_INFO == true
     Serial.begin(115200);
 #endif
-
     LOGI("setup start !!!\n");
     LOGI("[CPU] speed:%ld\n", getCpuFrequencyMhz());
     LOGI("[ROM]  size:%d, speed:%d\n", ESP.getFlashChipSize(), ESP.getFlashChipSpeed());
-    LOGI("[RAM]  heap:%d, PSRAM:%d\n", ESP.getFreeHeap(), ESP.getPsramSize());
+    LOGI("[RAM]  heap:%d, PSRAM:%d\n", ESP.getHeapSize(), ESP.getPsramSize());
+    heap_caps_malloc_extmem_enable(4096);
+
+    _lock = xSemaphoreCreateMutex();
 
     xtouch_eeprom_setup();
     xtouch_globals_init();
@@ -88,20 +111,23 @@ void setup() {
 #endif
 
     xtouch_chamber_timer_init();
-    LOGD("priority : %d\n", uxTaskPriorityGet(NULL));
-    if (_ftps == NULL) {
-        // ESP32_FTPSClient ftps((char*)"192.168.0.159", 990, (char*)"bblp", (char*)"34801960", 10000, 2);
-        _ftps = new FTPSWorker((char*)xTouchConfig.xTouchIP, 990, (char*)"bblp", (char*)xTouchConfig.xTouchAccessCode);
-    }
+    LOGD("priority : before %d\n", uxTaskPriorityGet(NULL));
+    vTaskPrioritySet(NULL, 5);
+    LOGD("priority : before %d\n", uxTaskPriorityGet(NULL));
 
 #if _NO_NETWORK_
     loadScreen(SCREEN_BROWSER);
 #endif
+
+    uint32_t fh = ESP.getFreeHeap();
+    uint32_t fp = ESP.getFreePsram();
+    LOGI("[FREE]  heap:%d, PSRAM:%d, Total:%d\n", fh, fp, fh + fp);
 }
 
 void loop() {
-    lv_timer_handler();
+    lv_lock();
     lv_task_handler();
+    lv_unlock();
 #if !_NO_NETWORK_
     xtouch_mqtt_loop();
 #endif

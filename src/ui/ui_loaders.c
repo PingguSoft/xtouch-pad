@@ -1,5 +1,6 @@
 #include "ui.h"
 #include "ui_msgs.h"
+#include "main.h"
 
 typedef struct {
     int         id;
@@ -63,7 +64,6 @@ void fillScreenData(int screen) {
             break;
     }
 }
-extern void print_sram_info();
 
 void loadScreen(int screen) {
     if (xTouchConfig.currentScreenIndex == screen)

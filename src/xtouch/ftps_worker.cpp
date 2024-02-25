@@ -152,7 +152,7 @@ void taskFTPS(void* arg);
 FTPSWorker::FTPSWorker(char* serverAdress, uint16_t port, char* userName, char* passWord) {
     _ftps = new ESP32_FTPSClient(serverAdress, port, userName, passWord);
     _queue_comm  = xQueueCreate(5, sizeof(cmd_q_t));
-    xTaskCreate(&taskFTPS, "taskFTPS", 8192, this, 8, NULL);
+    xTaskCreate(&taskFTPS, "taskFTPS", 8192, this, 4, NULL);
     _is_first = true;
 
     char bufs[60];
@@ -383,8 +383,9 @@ void FTPSWorker::syncImagesModels() {
     }
     cnt = _is_first ? _testPair.size() : 0;
 #endif
-    if (_callback)
+    if (_callback) {
         _callback->onCallback(CMD_SYNC_DONE, &pairList, cnt);
+    }
 
     freeList(pairList);
     freeList(imageFilesSD);
