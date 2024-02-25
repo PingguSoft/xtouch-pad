@@ -9,6 +9,9 @@
 #include "freertos/queue.h"
 #include "ESP32_FTPSClient.h"
 
+#define PATH_IMG         "/image/"
+#define PATH_MODEL       "/"
+
 class FTPListParser {
 public:
     enum {
@@ -108,7 +111,7 @@ public:
 
     void parse(std::list<String*> logs, std::list<FileInfo*> &result, int max, String ext="", int sort=SORT_ASC);
     static void matches(std::list<FileInfo*> infoA, std::list<FileInfo*> infoB, std::list<FilePair*> &result, int sort=SORT_ASC);
-    static void diff(std::list<FileInfo*> a, std::list<FileInfo*> b, std::list<FileInfo*> &result, int by=BY_TS);
+    static void sub(std::list<FileInfo*> a, std::list<FileInfo*> b, std::list<FileInfo*> &result, int by=BY_TS);
     void exportA(std::list<FilePair*> pair, std::list <FileInfo*> &result);
     void exportB(std::list<FilePair*> pair, std::list <FileInfo*> &result);
 
@@ -120,7 +123,10 @@ class FTPSWorker {
 public:
     typedef enum {
         CMD_SYNC    = 1,
+        CMD_SYNC_DONE,
+        CMD_DOWNLOAD_START,
         CMD_DOWNLOADING,
+        CMD_REMOVE_FILE,
     } cmd_t;
 
     class Callback {
@@ -137,25 +143,34 @@ public:
     } cmd_q_t;
 
     FTPSWorker(char* serverAdress, uint16_t port, char* userName, char* passWord);
-    void downloadDir(String srcDir, String dstDir, std::list<FTPListParser::FileInfo*> info, String ext="");
-    void listDir(String srcDir, std::list<FTPListParser::FileInfo*> &info, String ext="", int max=30);
-    void startSync();
-    void listDirSD(char *path, std::list<FTPListParser::FileInfo*> &info, String ext="");
-    void invalidate();
-
+    void invalidate(std::list<FTPListParser::FilePair*> pair);
     void setCallback(Callback *cb) { _callback = cb; }
-    static char *getImagePath(bool lv=false) { return (lv ? (char*)"S:/ftps/image/" : (char*)"/ftps/image/"); }
+
+    // ftps command functions
+    void startSync();
+    void removeFile(FTPListParser::FilePair* pair);
+    void removeFile();
+
+    char *getImagePath(bool lv=false) { return lv ? (char*)_img_path.c_str() : (char*)&_img_path.c_str()[2];    }
+    char *getModelPath(bool lv=false) { return lv ? (char*)_model_path.c_str() : (char*)&_model_path.c_str()[2];}
     friend void taskFTPS(void* arg);
 
 private:
     void syncImagesModels();
+    void downloadDirRemote(String srcDir, String dstDir, std::list<FTPListParser::FileInfo*> info, String ext="");
+    void listDirRemote(String srcDir, std::list<FTPListParser::FileInfo*> &info, String ext="", int max=30);
+    void listDirSD(char *path, std::list<FTPListParser::FileInfo*> &info, String ext="");
+    void removeFileRemote(FTPListParser::FilePair* pair);
+
     template<typename T> static void freeList(std::list<T> &list);
 
+    bool             _is_first;
+    String           _img_path;
+    String           _model_path;
     Callback         *_callback;
     ESP32_FTPSClient *_ftps;
     FTPListParser    _parser;
     QueueHandle_t    _queue_comm;
-    std::list<FTPListParser::FilePair*> _pairList;
 
 #if _NO_NETWORK_
     static std::list<String> _testPair;

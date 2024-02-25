@@ -20,11 +20,20 @@ void rebuildTiles(int move_to);
 class FTPSCallback : public FTPSWorker::Callback {
 public:
     FTPSCallback() {
-        _obj = NULL;
+        _tile = NULL;
+        _popup = NULL;
     }
 
-    void setRefreshObject(lv_obj_t *obj) {
-        _obj = obj;
+    void setTilePopup(lv_obj_t *tile, lv_obj_t *popup) {
+        _tile = tile;
+        _popup = popup;
+    }
+
+    void quit() {
+        lv_obj_clean(_popup);
+        lv_obj_del(_popup);
+        _tile = NULL;
+        _popup = NULL;
     }
 
     std::list<FTPListParser::FilePair*> getFilePair() {
@@ -35,13 +44,29 @@ public:
         std::list<FTPListParser::FilePair*> *pair = (std::list<FTPListParser::FilePair*>*)param;
 
         switch (cmd) {
-            case FTPSWorker::CMD_SYNC:
-                pullFilePair(*pair);
-                if (xTouchConfig.currentScreenIndex == SCREEN_BROWSER && _obj)
-                    lv_event_send(_obj, LV_EVENT_REFRESH, NULL);
+            case FTPSWorker::CMD_SYNC_DONE:
+                if (size > 0)
+                    deepCopy(*pair);
+                if (xTouchConfig.currentScreenIndex == SCREEN_BROWSER) {
+                    if (_tile)
+                        lv_event_send(_tile, LV_EVENT_REFRESH, NULL);
+                    if (_popup)
+                        lv_obj_add_flag(_popup, LV_OBJ_FLAG_HIDDEN);
+                }
+                break;
+
+            case FTPSWorker::CMD_DOWNLOAD_START:
+                _download_cnt = size;
+                _download_idx = 0;
+                lv_bar_set_range(getPopupProgress(), 0, size);
+                lv_label_set_text(getPopupTitle(), (char*)"Downloading");
+                lv_obj_clear_flag(getPopupProgress(), LV_OBJ_FLAG_HIDDEN);
+                lv_obj_clear_flag(getPopupFileName(), LV_OBJ_FLAG_HIDDEN);
                 break;
 
             case FTPSWorker::CMD_DOWNLOADING:
+                lv_bar_set_value(getPopupProgress(), ++_download_idx, LV_ANIM_OFF);
+                lv_label_set_text(getPopupFileName(), (char*)param);
                 LOGD("downloading : %s\n", (char*)param);
                 break;
         }
@@ -49,7 +74,7 @@ public:
     }
 
 private:
-    void pullFilePair(std::list<FTPListParser::FilePair*> pair) {
+    void deepCopy(std::list<FTPListParser::FilePair*> pair) {
         for (FTPListParser::FilePair* p : _file_pair)
             delete p;
         _file_pair.clear();
@@ -58,7 +83,10 @@ private:
             _file_pair.push_back(new FTPListParser::FilePair(p));
     }
 
-    lv_obj_t *_obj;
+    int _download_cnt;
+    int _download_idx;
+    lv_obj_t *_tile;
+    lv_obj_t *_popup;
     std::list<FTPListParser::FilePair*> _file_pair;
 };
 
@@ -74,7 +102,7 @@ static FTPSCallback *_callback = new FTPSCallback();
 
 /*
 *****************************************************************************************
-* FUNCTIONS
+* EVENT FUNCTIONS
 *****************************************************************************************
 */
 void onDeleteFileConfirm(void *user_data) {
@@ -83,6 +111,7 @@ void onDeleteFileConfirm(void *user_data) {
 
     info->invalid();
     lv_event_send(_tile_view, LV_EVENT_REFRESH, &_last_tile);
+    getFTPSWorker()->removeFile(info);
 }
 
 void onPrintConfirm(void *user_data) {
@@ -126,6 +155,25 @@ void onEventItem(lv_event_t *e) {
     }
 }
 
+void onEventBrowserDeleted(lv_event_t *e) {
+    LOGD("browser is deleted...\n");
+    if (_callback)
+        _callback->quit();
+}
+
+void onEventTileViewRefresh(lv_event_t *e) {
+    // lv_event_code_t event_code = lv_event_get_code(e);
+    // lv_obj_t *target = lv_event_get_target(e);
+    int *p = (int*)lv_event_get_user_data(e);
+    rebuildTiles((p == NULL) ? 0 : *p);
+}
+
+
+/*
+*****************************************************************************************
+* FUNCTIONS
+*****************************************************************************************
+*/
 void addPNGToTile(lv_obj_t *tile, char *dir, FTPListParser::FilePair *info) {
     char pathPNG[100];
 
@@ -217,19 +265,7 @@ void rebuildTiles(int move_to) {
         LOGI("move to %d / %d\n", move_to, max_tile_id);
         lv_obj_set_tile_id(_tile_view, 0, move_to, LV_ANIM_OFF);
     }
-    LOGD("refresh done, tiles:%d\n", cnt);
-}
-
-void onEventBrowserDeleted(lv_event_t *e) {
-    LOGD("browser is deleted...\n");
-    getFTPSWorker()->invalidate();
-}
-
-void onEventTileViewRefresh(lv_event_t *e) {
-    // lv_event_code_t event_code = lv_event_get_code(e);
-    // lv_obj_t *target = lv_event_get_target(e);
-    int *p = (int*)lv_event_get_user_data(e);
-    rebuildTiles((p == NULL) ? 0 : *p);
+    LOGD("refresh done, tiles:%d\n", lv_obj_get_child_cnt(_tile_view));
 }
 
 lv_obj_t *ui_browserComponent_create(lv_obj_t *comp_parent) {
@@ -271,7 +307,9 @@ lv_obj_t *ui_browserComponent_create(lv_obj_t *comp_parent) {
     lv_obj_set_style_bg_color(_tile_view, lv_color_hex(0x444444), LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_add_event_cb(_tile_view, onEventTileViewRefresh, LV_EVENT_REFRESH, NULL);
 
-    _callback->setRefreshObject(_tile_view);
+    lv_obj_t *popup = ui_download_popupscreen_init(lv_layer_top());
+    _callback->setTilePopup(_tile_view, popup);
+
     getFTPSWorker()->setCallback(_callback);
     getFTPSWorker()->startSync();
     lv_event_send(_tile_view, LV_EVENT_REFRESH, NULL);
