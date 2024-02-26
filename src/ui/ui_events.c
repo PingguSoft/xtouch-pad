@@ -136,6 +136,11 @@ void onSettingsTFTFlip(lv_event_t *e)
     ui_confirmPanel_show(LV_SYMBOL_WARNING " Flip LCD\n" LV_SYMBOL_REFRESH " Reboot", onSettingsTFTFlipConfirm, NULL);
 }
 
+void onSettingsBrowserText(lv_event_t *e) {
+    xTouchConfig.xTouchBrowserText = !xTouchConfig.xTouchBrowserText;
+    lv_msg_send(XTOUCH_SETTINGS_SAVE, NULL);
+}
+
 /* filament */
 void onNozzleUp(lv_event_t *e)
 {

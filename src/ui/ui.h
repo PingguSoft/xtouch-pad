@@ -79,6 +79,7 @@ extern lv_obj_t *ui_settingsTFTOFFValue;
 extern lv_obj_t *ui_settingsTFTInvertSwitch;
 extern lv_obj_t *ui_settingsWOPSwitch;
 extern lv_obj_t *ui_settingsTFTFlipSwitch;
+extern lv_obj_t *ui_settingsBrowserTextSwitch;
 extern lv_obj_t *ui_settings_auxFanSwitch;
 extern lv_obj_t *ui_settings_chamberFanSwitch;
 extern lv_obj_t *ui_settings_chamberSensorSwitch;

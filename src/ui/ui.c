@@ -19,6 +19,7 @@ lv_obj_t *ui_settingsTFTOFFValue;
 lv_obj_t *ui_settingsTFTInvertSwitch;
 lv_obj_t *ui_settingsWOPSwitch;
 lv_obj_t *ui_settingsTFTFlipSwitch;
+lv_obj_t *ui_settingsBrowserTextSwitch;
 lv_obj_t *ui_settings_auxFanSwitch;
 lv_obj_t *ui_settings_chamberFanSwitch;
 lv_obj_t *ui_settings_chamberSensorSwitch;

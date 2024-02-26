@@ -82,6 +82,15 @@ void ui_event_comp_settingsComponent_onTFTFlip(lv_event_t *e)
     }
 }
 
+void ui_event_comp_settingsComponent_onBrowserText(lv_event_t *e)
+{
+    lv_event_code_t event_code = lv_event_get_code(e);
+    if (event_code == LV_EVENT_VALUE_CHANGED)
+    {
+        onSettingsBrowserText(e);
+    }
+}
+
 void ui_event_comp_settingsComponent_onOTA(lv_event_t *e)
 {
     lv_event_code_t event_code = lv_event_get_code(e);
@@ -405,6 +414,47 @@ lv_obj_t *ui_settingsComponent_create(lv_obj_t *comp_parent)
         lv_obj_add_state(ui_settingsTFTFlipSwitch, LV_STATE_CHECKED);
     }
 
+//
+//
+    lv_obj_t *cui_settingsBrowserText = lv_obj_create(cui_settingsComponent);
+    lv_obj_set_width(cui_settingsBrowserText, lv_pct(100));
+    lv_obj_set_height(cui_settingsBrowserText, LV_SIZE_CONTENT); /// 50
+    lv_obj_set_flex_flow(cui_settingsBrowserText, LV_FLEX_FLOW_ROW);
+    lv_obj_set_flex_align(cui_settingsBrowserText, LV_FLEX_ALIGN_SPACE_BETWEEN, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
+    lv_obj_set_scrollbar_mode(cui_settingsBrowserText, LV_SCROLLBAR_MODE_OFF);
+    lv_obj_set_style_bg_color(cui_settingsBrowserText, lv_color_hex(0x222222), LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_opa(cui_settingsBrowserText, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_border_width(cui_settingsBrowserText, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_left(cui_settingsBrowserText, 16, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_right(cui_settingsBrowserText, 16, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_top(cui_settingsBrowserText, 16, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_bottom(cui_settingsBrowserText, 16, LV_PART_MAIN | LV_STATE_DEFAULT);
+
+    lv_obj_t *cui_settingsBrowserTextLabel = lv_label_create(cui_settingsBrowserText);
+    lv_obj_set_width(cui_settingsBrowserTextLabel, LV_SIZE_CONTENT);  /// 1
+    lv_obj_set_height(cui_settingsBrowserTextLabel, LV_SIZE_CONTENT); /// 1
+    lv_label_set_text(cui_settingsBrowserTextLabel, LV_SYMBOL_FILE " Browser Text Only");
+    lv_obj_set_scrollbar_mode(cui_settingsBrowserTextLabel, LV_SCROLLBAR_MODE_OFF);
+
+    // lv_obj_t *ui_settingsTFTInvertSwitch;
+    ui_settingsBrowserTextSwitch = lv_switch_create(cui_settingsBrowserText);
+    lv_obj_set_width(ui_settingsBrowserTextSwitch, 50);
+    lv_obj_set_height(ui_settingsBrowserTextSwitch, 25);
+
+    lv_obj_set_style_bg_color(ui_settingsBrowserTextSwitch, lv_color_hex(0x2AFF00), LV_PART_INDICATOR | LV_STATE_CHECKED);
+    lv_obj_set_style_bg_opa(ui_settingsBrowserTextSwitch, 255, LV_PART_INDICATOR | LV_STATE_CHECKED);
+
+    lv_obj_set_style_bg_color(ui_settingsBrowserTextSwitch, lv_color_hex(0x2AFF00), LV_PART_KNOB | LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_opa(ui_settingsBrowserTextSwitch, 255, LV_PART_KNOB | LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_color(ui_settingsBrowserTextSwitch, lv_color_hex(0x000000), LV_PART_KNOB | LV_STATE_CHECKED);
+    lv_obj_set_style_bg_opa(ui_settingsBrowserTextSwitch, 255, LV_PART_KNOB | LV_STATE_CHECKED);
+    if (xTouchConfig.xTouchBrowserText)
+    {
+        lv_obj_add_state(ui_settingsBrowserTextSwitch, LV_STATE_CHECKED);
+    }
+//
+//
+
     lv_obj_t *cui_pairingTitle;
     cui_pairingTitle = lv_label_create(cui_settingsComponent);
     lv_obj_set_width(cui_pairingTitle, lv_pct(100));
@@ -725,6 +775,8 @@ lv_obj_t *ui_settingsComponent_create(lv_obj_t *comp_parent)
     lv_obj_add_event_cb(ui_settings_chamberFanSwitch, ui_event_comp_settingsComponent_onChamberFan, LV_EVENT_VALUE_CHANGED, NULL);
     lv_obj_add_event_cb(ui_settings_chamberSensorSwitch, ui_event_comp_settingsComponent_onChamberTemp, LV_EVENT_VALUE_CHANGED, NULL);
     lv_obj_add_event_cb(ui_settingsTFTFlipSwitch, ui_event_comp_settingsComponent_onTFTFlip, LV_EVENT_VALUE_CHANGED, NULL);
+    lv_obj_add_event_cb(ui_settingsBrowserTextSwitch, ui_event_comp_settingsComponent_onBrowserText, LV_EVENT_VALUE_CHANGED, NULL);
+
     lv_obj_add_event_cb(ui_settings_otaSwitch, ui_event_comp_settingsComponent_onOTA, LV_EVENT_VALUE_CHANGED, NULL);
 
     ui_comp_settingsComponent_create_hook(cui_settingsComponent);

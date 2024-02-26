@@ -158,6 +158,7 @@ extern "C"
         bool xTouchWakeOnPrint;
         int currentScreenIndex;
         char xTouchIP[16];
+        bool xTouchBrowserText;
     } XTouchConfig;
 
     extern XTouchConfig xTouchConfig;
