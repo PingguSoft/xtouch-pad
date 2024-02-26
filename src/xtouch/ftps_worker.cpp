@@ -380,7 +380,7 @@ void FTPSWorker::syncImagesModels(bool textonly) {
         // _testpair : ts, <png size> <png name> <3mf size> <3mf name>
         // pair : ts, <3mf> <png>
         if (textonly) {
-            pairList.push_back(new FTPListParser::FilePair(tokens[0].toInt(), 0, "", tokens[1].toInt(), tokens[2]));
+            pairList.push_back(new FTPListParser::FilePair(tokens[0].toInt(), tokens[3].toInt(), tokens[4], 0, ""));
         } else {
             pairList.push_back(new FTPListParser::FilePair(tokens[0].toInt(), tokens[3].toInt(), tokens[4], tokens[1].toInt(), tokens[2]));
         }

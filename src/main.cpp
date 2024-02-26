@@ -51,8 +51,8 @@ void lv_unlock() {
     xSemaphoreGive(_lock);
 }
 
-void print_sram_info() {
-    LOGI("[PSRAM] free:%d, heap:%d\n", ESP.getFreePsram(), ESP.getFreeHeap());
+void print_ram_info() {
+    LOGI("[RAM FREE] PSRAM:%d, HEAP:%d\n", ESP.getFreePsram(), ESP.getFreeHeap());
 }
 
 

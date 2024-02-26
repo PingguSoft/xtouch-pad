@@ -8,7 +8,7 @@ extern "C"
 
     void lv_lock();
     void lv_unlock();
-    void print_sram_info();
+    void print_ram_info();
 
 #ifdef __cplusplus
 } /*extern "C"*/

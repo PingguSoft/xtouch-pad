@@ -8,6 +8,7 @@ extern "C"
 {
 #endif
     void ui_sidebarComponent_set_active(int index);
+    lv_obj_t *ui_sidebarComponent_create(lv_obj_t *comp_parent);
 #ifdef __cplusplus
 } /*extern "C"*/
 #endif
