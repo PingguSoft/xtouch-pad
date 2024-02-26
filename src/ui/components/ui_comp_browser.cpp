@@ -241,6 +241,41 @@ void addImageItem2ScrollView(lv_obj_t *scroll_view, char *dir, FTPListParser::Fi
     lv_label_set_text(ui_labelFileName, title.c_str());
 }
 
+void parseTS(long ts, int *d) {
+    long div;
+    int tbl[] = { 60, 24, 31, 365 };
+
+    // 2024-02-12 22:45
+    // long ts  = min + (hour * 60L) + (day * 60 * 24L) + (mon * 60 * 24 * 31L) + (year * 60 * 24 * 31 * 365L);
+    for (int i = 4; i >= 0; i--) {
+        div = 1;
+        for (int j = i - 1; j >= 0; j--) {
+            div *= tbl[j];
+        }
+        d[i] = ts / div;
+        ts -= (d[i] * div);
+    }
+}
+
+char *parseSize(long size, char *buf, int len) {
+    float sz;
+    char  *fmt;
+
+    if (size > (1024 * 1024L)) {
+        sz = size / (1024 * 1024.0);
+        fmt = (char*)"%.1fMB";
+    } else if (size > 1024) {
+        sz = size / 1024.0;
+        fmt = (char*)"%.1fKB";
+    } else {
+        sz = size;
+        fmt = (char*)"%.0f";
+    }
+    snprintf(buf, len, fmt, sz);
+
+    return buf;
+}
+
 void addTextItem2ScrollView(lv_obj_t *scroll_view, char *dir, FTPListParser::FilePair *info) {
     lv_obj_t *ui_container_item_list = lv_obj_create(scroll_view);
     lv_obj_set_width(ui_container_item_list, lv_pct(100));
@@ -254,7 +289,6 @@ void addTextItem2ScrollView(lv_obj_t *scroll_view, char *dir, FTPListParser::Fil
     lv_obj_set_style_border_color(ui_container_item_list, lv_color_hex(0xFFFFFF), LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_border_opa(ui_container_item_list, 20, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_border_width(ui_container_item_list, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
-
     lv_obj_set_style_pad_left(ui_container_item_list, 5, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_pad_right(ui_container_item_list, 5, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_pad_top(ui_container_item_list, 5, LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -264,10 +298,10 @@ void addTextItem2ScrollView(lv_obj_t *scroll_view, char *dir, FTPListParser::Fil
     lv_obj_add_event_cb(ui_container_item_list, onEventItem, LV_EVENT_ALL, info);
 
     lv_obj_t *ui_name = lv_label_create(ui_container_item_list);
-    lv_obj_set_width(ui_name, lv_pct(53));
+    lv_obj_set_width(ui_name, lv_pct(50));
     lv_obj_set_height(ui_name, LV_SIZE_CONTENT);    /// 1
     lv_obj_set_align(ui_name, LV_ALIGN_CENTER);
-    lv_label_set_long_mode(ui_name, LV_LABEL_LONG_SCROLL_CIRCULAR);
+    lv_label_set_long_mode(ui_name, LV_LABEL_LONG_SCROLL);
     String title = info->a.name;
     title.replace(".gcode.3mf", "");
     lv_label_set_text(ui_name, title.c_str());
@@ -275,22 +309,30 @@ void addTextItem2ScrollView(lv_obj_t *scroll_view, char *dir, FTPListParser::Fil
     lv_obj_set_style_text_color(ui_name, lv_color_hex(0xFFFFFF), LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_opa(ui_name, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
 
+    int  d[5];
+    char buf[40];
     lv_obj_t *ui_date = lv_label_create(ui_container_item_list);
     lv_obj_set_width(ui_date, lv_pct(30));
     lv_obj_set_height(ui_date, LV_SIZE_CONTENT);    /// 1
     lv_obj_set_align(ui_date, LV_ALIGN_CENTER);
-    //lv_label_set_text(ui_date, "2023/12/31 12:20");
-    lv_label_set_text(ui_date, String(info->a.ts).c_str());
+    parseTS(info->a.ts, d);
+    if (d[4] >= 120) {
+        snprintf(buf, sizeof(buf), "----/%02d/%02d %02d:%02d", d[3], d[2], d[1], d[0]);
+    } else {
+        snprintf(buf, sizeof(buf), "%4d/%02d/%02d %02d:%02d", 1980 + d[4], d[3], d[2], d[1], d[0]);
+    }
+    lv_label_set_text(ui_date, buf);
     lv_obj_clear_flag(ui_date, LV_OBJ_FLAG_SCROLLABLE | LV_OBJ_FLAG_SCROLL_ELASTIC);      /// Flags
     lv_obj_set_style_text_color(ui_date, lv_color_hex(0xFFFFFF), LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_opa(ui_date, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
 
     lv_obj_t *ui_size = lv_label_create(ui_container_item_list);
-    lv_obj_set_width(ui_size, lv_pct(15));
+    lv_obj_set_width(ui_size, lv_pct(18));
     lv_obj_set_height(ui_size, LV_SIZE_CONTENT);    /// 1
     lv_obj_set_align(ui_size, LV_ALIGN_CENTER);
-    //lv_label_set_text(ui_size, "3.2MB");
-    lv_label_set_text(ui_size, String(info->a.size).c_str());
+    lv_label_set_long_mode(ui_name, LV_LABEL_LONG_SCROLL);
+    parseSize(info->a.size, buf, sizeof(buf));
+    lv_label_set_text(ui_size, buf);
     lv_obj_add_flag(ui_size, LV_OBJ_FLAG_CLICKABLE | LV_OBJ_FLAG_EVENT_BUBBLE);     /// Flags
     lv_obj_set_style_text_color(ui_size, lv_color_hex(0xFFFFFF), LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_opa(ui_size, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -358,14 +400,13 @@ lv_obj_t *ui_browserComponent_create_image(lv_obj_t *comp_parent) {
         _ftps = new FTPSWorker((char*)xTouchConfig.xTouchIP, 990, (char*)"bblp", (char*)xTouchConfig.xTouchAccessCode);
     }
     _ftps->setCallback(_callback);
-    _ftps->startSync();
+    _ftps->startSync(_is_text);
     lv_event_send(_scroll_view, LV_EVENT_REFRESH, NULL);
 
     return ui_browserComponent;
 }
 
-
-lv_obj_t *ui_browserComponent_create(lv_obj_t *comp_parent) {
+lv_obj_t *ui_browserComponent_create_text(lv_obj_t *comp_parent) {
     lv_obj_t *ui_browserComponent = lv_obj_create(comp_parent);
     lv_obj_remove_style_all(ui_browserComponent);
     lv_obj_set_width(ui_browserComponent, lv_pct(85));
@@ -423,15 +464,15 @@ lv_obj_t *ui_browserComponent_create(lv_obj_t *comp_parent) {
                       LV_OBJ_FLAG_CLICKABLE | LV_OBJ_FLAG_PRESS_LOCK | LV_OBJ_FLAG_CLICK_FOCUSABLE | LV_OBJ_FLAG_GESTURE_BUBBLE |
                       LV_OBJ_FLAG_SNAPPABLE | LV_OBJ_FLAG_SCROLLABLE | LV_OBJ_FLAG_SCROLL_ELASTIC | LV_OBJ_FLAG_SCROLL_MOMENTUM |
                       LV_OBJ_FLAG_SCROLL_CHAIN);     /// Flags
-    lv_obj_set_style_pad_left(ui_container_header, 10, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_pad_right(ui_container_header, 10, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_left(ui_container_header, 5, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_right(ui_container_header, 5, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_pad_top(ui_container_header, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_pad_bottom(ui_container_header, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_pad_row(ui_container_header, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_pad_column(ui_container_header, 10, LV_PART_MAIN | LV_STATE_DEFAULT);
 
     lv_obj_t *ui_header_name = lv_label_create(ui_container_header);
-    lv_obj_set_width(ui_header_name, lv_pct(53));
+    lv_obj_set_width(ui_header_name, lv_pct(50));
     lv_obj_set_height(ui_header_name, LV_SIZE_CONTENT);    /// 1
     lv_obj_set_align(ui_header_name, LV_ALIGN_CENTER);
     lv_label_set_text(ui_header_name, "Name");
@@ -453,7 +494,7 @@ lv_obj_t *ui_browserComponent_create(lv_obj_t *comp_parent) {
     lv_obj_set_style_text_opa(ui_header_date, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
 
     lv_obj_t *ui_header_size = lv_label_create(ui_container_header);
-    lv_obj_set_width(ui_header_size, lv_pct(15));
+    lv_obj_set_width(ui_header_size, lv_pct(18));
     lv_obj_set_height(ui_header_size, LV_SIZE_CONTENT);    /// 1
     lv_obj_set_align(ui_header_size, LV_ALIGN_CENTER);
     lv_label_set_text(ui_header_size, "Size");
@@ -475,10 +516,10 @@ lv_obj_t *ui_browserComponent_create(lv_obj_t *comp_parent) {
     lv_obj_set_style_bg_opa(_scroll_view, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_border_color(_scroll_view, lv_color_hex(0x444444), LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_border_opa(_scroll_view, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_pad_left(_scroll_view, 10, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_pad_right(_scroll_view, 10, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_left(_scroll_view, 5, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_right(_scroll_view, 5, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_pad_top(_scroll_view, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_pad_bottom(_scroll_view, 1, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_bottom(_scroll_view, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_pad_row(_scroll_view, 10, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_pad_column(_scroll_view, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_add_event_cb(_scroll_view, onEventScrollViewRefresh, LV_EVENT_REFRESH, NULL);
@@ -491,8 +532,13 @@ lv_obj_t *ui_browserComponent_create(lv_obj_t *comp_parent) {
         _ftps = new FTPSWorker((char*)xTouchConfig.xTouchIP, 990, (char*)"bblp", (char*)xTouchConfig.xTouchAccessCode);
     }
     _ftps->setCallback(_callback);
-    _ftps->startSync();
+    _ftps->startSync(_is_text);
     lv_event_send(_scroll_view, LV_EVENT_REFRESH, NULL);
 
     return ui_browserComponent;
+}
+
+lv_obj_t *ui_browserComponent_create(lv_obj_t *comp_parent) {
+    _is_text = xTouchConfig.xTouchBrowserText;
+    return _is_text ? ui_browserComponent_create_text(comp_parent) : ui_browserComponent_create_image(comp_parent);
 }

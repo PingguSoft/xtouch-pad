@@ -173,7 +173,8 @@ private:
     QueueHandle_t    _queue_comm;
 
 #if _NO_NETWORK_
-    static std::list<String> _testPair;
+    static std::list<String*> _testModels;
+    static std::list<String*> _testImages;
 #endif
 };
 

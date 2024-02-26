@@ -45,12 +45,16 @@ void FTPListParser::parse(std::list<String*> logs, std::list<FileInfo*> &result,
 
             int hour = 0;
             int min  = 0;
+            int year = 2100;
             if (tokens[7][2] == ':') {
                 tokens[7][2] = '\0';
                 hour = atoi(tokens[7]);
                 min  = atoi(&tokens[7][3]);
+                year = year - 1980;
+            } else {
+                year = atoi(tokens[7]) - 1980;
             }
-            long ts  = min + (hour * 60) + (day * 60 * 24) + (mon * 60 * 24 * 31);
+            long ts  = min + (hour * 60L) + (day * 60 * 24L) + (mon * 60 * 24 * 31L) + (year * 60 * 24 * 31 * 365L);
             fname = tokens[8];
             for (int i = 9; i < tokens.size(); i++)
                 fname = fname + ' ' + tokens[i];
@@ -230,7 +234,7 @@ void FTPSWorker::listDirRemote(String srcDir, std::list<FTPListParser::FileInfo*
 }
 
 void FTPSWorker::startSync(bool textonly) {
-    cmd_q_t q = { CMD_SYNC, NULL, textonly ? 0 : 1, false };
+    cmd_q_t q = { CMD_SYNC, NULL, (uint16_t)(textonly ? 1 : 0), false };
     xQueueSend(_queue_comm, &q, portMAX_DELAY);
 }
 
@@ -285,26 +289,58 @@ void FTPSWorker::listDirSD(char *path, std::list<FTPListParser::FileInfo*> &info
 }
 
 #if _NO_NETWORK_
-std::list<String> FTPSWorker::_testPair = {
-    "107925,       4442,      15137327011.png,     838822, galaxy watch stand.gcode.3mf",
-    "101717,       4684,      28260101861.png,     667533, 11111111.gcode.3mf",
-    " 97888,       4684,      42885271611.png,     667533, rpi3p_case.gcode.3mf",
-    " 97874,       2540,       9240571371.png,     810058, plate_holder.gcode.3mf",
-    " 94551,       4505,      38297837321.png,    2108337, controller-left.gcode.3mf",
-    " 89469,       5285,      14229151451.png,     953086, 1.gcode.3mf",
-    " 85813,       4857,      26698210481.png,     970885, swerve-large-gear.gcode.3mf",
-    " 85661,       1863,      17930814601.png,     458648, swerve-axle-gearx3.gcode.3mf",
-    " 85235,       4081,          2064281.png,    1548586, rc_con_left_bottom.gcode.3mf",
-    " 84326,       1182,      19799488481.png,     767304, swerve-gear-motorx6.gcode.3mf",
-    " 84322,       2171,       4678907721.png,    1029925, hex_bits_holder_7x3.gcode.3mf",
-    " 83511,       2755,      10363259711.png,     710512, hex_bits_holder_7 x 2.gcode.3mf",
-    " 82040,       3609,       2613376571.png,     413301, No-Catch Y-Splitter Self-Tap (long slot) (9.4mm-M3x6 mount).gcode.3mf",
-    " 81969,       3804,       4380517671.png,     176374, AMS_disconnect_tool_with_magnet_seperate_letters.gcode.3mf"
+std::list<String*> FTPSWorker::_testModels = {
+    new String("drw-rw-rw-   1 root  root      1234 Jan 01 1980 time_test.3mf"),
+    new String("-rw-rw-rw-   1 root  root    326780 Jan 23 22:57 HKR -AMS Side mount spool holder.gcode.3mf"),
+    new String("-rw-rw-rw-   1 root  root    595232 Jan 24 09:26 X1_Touch.gcode.3mf"),
+    new String("-rw-rw-rw-   1 root  root    413301 Jan 25 23:20 No-Catch Y-Splitter Self-Tap (long slot) (9.4mm-M3x6 mount).gcode.3mf"),
+    new String("-rw-rw-rw-   1 root  root    698414 Jan 24 21:58 Bambu Trash_plate_1.gcode.3mf"),
+    new String("-rw-rw-rw-   1 root  root    301823 Jan 25 00:08 Bambu Trash_plate_3.gcode.3mf"),
+    new String("-rw-rw-rw-   1 root  root    176374 Jan 25 22:09 AMS_disconnect_tool_with_magnet_seperate_letters.gcode.3mf"),
+    new String("-rw-rw-rw-   1 root  root    710512 Jan 26 23:51 hex_bits_holder_7 x 2.gcode.3mf"),
+    new String("-rw-rw-rw-   1 root  root   1029925 Jan 27 13:22 hex_bits_holder_7x3.gcode.3mf"),
+    new String("-rw-rw-rw-   1 root  root    767304 Jan 27 13:26 swerve-gear-motorx6.gcode.3mf"),
+    new String("-rw-rw-rw-   1 root  root   1548586 Jan 28 04:35 rc_con_left_bottom.gcode.3mf"),
+    new String("-rw-rw-rw-   1 root  root    458648 Jan 28 11:41 swerve-axle-gearx3.gcode.3mf"),
+    new String("-rw-rw-rw-   1 root  root    970885 Jan 28 14:13 swerve-large-gear.gcode.3mf"),
+    new String("-rw-rw-rw-   1 root  root   2108337 Feb 03 15:51 controller-left.gcode.3mf"),
+    new String("-rw-rw-rw-   1 root  root    810058 Feb 05 23:14 plate_holder.gcode.3mf"),
+    new String("-rw-rw-rw-   1 root  root    667533 Feb 05 23:28 rpi3p_case.gcode.3mf"),
+    new String("-rw-rw-rw-   1 root  root    838822 Feb 12 22:45 galaxy watch stand.gcode.3mf"),
+    new String("-rw-rw-rw-   1 root  root   1573271 Feb 22 06:17 Pikachu.gcode.3mf"),
+    new String("-rw-rw-rw-   1 root  root   1196949 Feb 22 06:26 hello-kitty-6-Dom.gcode.3mf"),
+    new String("-rw-rw-rw-   1 root  root    766263 Feb 25 01:52 Cute Schnauzer keychain.gcode.3mf")
+};
+
+std::list<String*> FTPSWorker::_testImages = {
+    new String("drw-rw-rw-   1 root  root      1234 Jan 01 1980 time_test.png"),
+    new String("-rw-rw-rw-   1 root  root      4796 Jan 23 22:57 39585176581.png"),
+    new String("-rw-rw-rw-   1 root  root      5034 Feb 25 01:52 17540064941.png"),
+    new String("-rw-rw-rw-   1 root  root      4043 Jan 24 09:26 22181592811.png"),
+    new String("-rw-rw-rw-   1 root  root      3609 Jan 25 23:20 2613376571.png"),
+    new String("-rw-rw-rw-   1 root  root      2157 Jan 24 21:58 7143709141.png"),
+    new String("-rw-rw-rw-   1 root  root      3186 Jan 25 00:08 3553883803.png"),
+    new String("-rw-rw-rw-   1 root  root      3804 Jan 25 22:09 4380517671.png"),
+    new String("-rw-rw-rw-   1 root  root      3471 Jan 26 23:16 15642952511.png"),
+    new String("-rw-rw-rw-   1 root  root      2755 Jan 26 23:51 10363259711.png"),
+    new String("-rw-rw-rw-   1 root  root      2171 Jan 27 13:22 4678907721.png"),
+    new String("-rw-rw-rw-   1 root  root      1182 Jan 27 13:26 19799488481.png"),
+    new String("-rw-rw-rw-   1 root  root      4081 Jan 28 04:35 2064281.png"),
+    new String("-rw-rw-rw-   1 root  root      1863 Jan 28 11:41 17930814601.png"),
+    new String("-rw-rw-rw-   1 root  root      4857 Jan 28 14:13 26698210481.png"),
+    new String("-rw-rw-rw-   1 root  root      4796 Jan 24 01:06 12718038631.png"),
+    new String("-rw-rw-rw-   1 root  root      4505 Feb 03 15:51 38297837321.png"),
+    new String("-rw-rw-rw-   1 root  root      2540 Feb 05 23:13 9240571371.png"),
+    new String("-rw-rw-rw-   1 root  root      4684 Feb 05 23:28 42885271611.png"),
+    new String("-rw-rw-rw-   1 root  root      4442 Feb 12 22:44 15137327011.png"),
+    new String("-rw-rw-rw-   1 root  root      2082 Feb 22 06:16 1270915251.png"),
+    new String("-rw-rw-rw-   1 root  root      5206 Feb 22 06:26 29877475381.png")
 };
 #endif
 
 void FTPSWorker::syncImagesModels(bool textonly) {
     int  cnt;
+    int  max_items = textonly ? 100 : 30;
 
     std::list<FTPListParser::FileInfo*> modelFilesRemote;
     std::list<FTPListParser::FileInfo*> imageFilesRemote;
@@ -322,11 +358,18 @@ void FTPSWorker::syncImagesModels(bool textonly) {
 
 #if !_NO_NETWORK_
     _ftps->OpenConnection(false, true);
-    listDirRemote(getModelPath(), modelFilesRemote, ".3mf", 30);     // model files
+    listDirRemote(getModelPath(), modelFilesRemote, ".3mf", max_items);     // model files
+#else
+    FTPListParser parser;
+    parser.parse(_testModels, modelFilesRemote, max_items, ".3mf", FTPListParser::SORT_DESC);
+#endif
 
     if (!textonly) {
-        listDirRemote(getImagePath(), imageFilesRemote, ".png", 30);     // image files
-
+#if _NO_NETWORK_
+        parser.parse(_testImages, imageFilesRemote, max_items, ".png", FTPListParser::SORT_DESC);
+#else
+        listDirRemote(getImagePath(), imageFilesRemote, ".png", max_items);     // image files
+#endif
         // make pairList after matching timestamp
         FTPListParser::matches(modelFilesRemote, imageFilesRemote, pairList, FTPListParser::SORT_DESC);
         cnt = 1;
@@ -335,6 +378,7 @@ void FTPSWorker::syncImagesModels(bool textonly) {
             LOGV("%3d %10ld, [%10ld] %20s, [%10ld] %s\n", cnt++, p->ts, p->b.size, p->b.name.c_str(), p->a.size, p->a.name.c_str());
         }
 
+#if !_NO_NETWORK_
         //
         // download files not in SD card
         //
@@ -363,41 +407,25 @@ void FTPSWorker::syncImagesModels(bool textonly) {
         }
         cnt = _is_first ? pairList.size() : imageFilesDownload.size();
         freeList(imageFilesDownload);
+#endif
     } else {
         for (FTPListParser::FileInfo* info : modelFilesRemote) {
             pairList.push_back(new FTPListParser::FilePair(info->ts, FTPListParser::FileInfo(info), FTPListParser::FileInfo()));
         }
-    }
-    _ftps->CloseConnection();
-    freeList(imageFilesRemote);
-    freeList(modelFilesRemote);
-#else
-    std::vector<String> tokens;
-    for (String s : _testPair) {
-        tokenize(s, ",", tokens);
-        tokens[2].trim();
-        tokens[4].trim();
-        // _testpair : ts, <png size> <png name> <3mf size> <3mf name>
-        // pair : ts, <3mf> <png>
-        if (textonly) {
-            pairList.push_back(new FTPListParser::FilePair(tokens[0].toInt(), tokens[3].toInt(), tokens[4], 0, ""));
-        } else {
-            pairList.push_back(new FTPListParser::FilePair(tokens[0].toInt(), tokens[3].toInt(), tokens[4], tokens[1].toInt(), tokens[2]));
-        }
-        tokens.clear();
+        cnt = pairList.size();
     }
 
-    LOGI("--------------- FILE MODEL & PNG ---------------\n");
-    for (FTPListParser::FilePair *p:pairList) {
-        LOGD("%3d %10ld, [%10ld] %20s, [%10ld] %s\n", cnt++, p->ts, p->b.size, p->b.name.c_str(), p->a.size, p->a.name.c_str());
-    }
-    cnt = _is_first ? _testPair.size() : 0;
+#if !_NO_NETWORK_
+    _ftps->CloseConnection();
 #endif
+
     if (_callback) {
         _callback->onCallback(CMD_SYNC_DONE, &pairList, cnt);
     }
     freeList(pairList);
     freeList(imageFilesSD);
+    freeList(imageFilesRemote);
+    freeList(modelFilesRemote);
 
     if (_is_first)
         _is_first = false;
@@ -417,7 +445,7 @@ void taskFTPS(void* arg) {
         if (xQueueReceive(pWorker->_queue_comm, q, pdMS_TO_TICKS(10)) == pdTRUE) {
             switch (q->cmd) {
                 case FTPSWorker::CMD_SYNC:
-                    pWorker->syncImagesModels(q->size);
+                    pWorker->syncImagesModels(q->size == 1);
                     break;
 
                 case FTPSWorker::CMD_REMOVE_FILE: {
