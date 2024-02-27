@@ -1,8 +1,7 @@
 #ifndef _XLCD_SETTINGS
 #define _XLCD_SETTINGS
 
-void xtouch_settings_save(bool onlyRoot = false)
-{
+void xtouch_settings_save(bool onlyRoot = false) {
     DynamicJsonDocument doc(512);
     doc["backlight"] = xTouchConfig.xTouchBacklightLevel;
     doc["tftOff"] = xTouchConfig.xTouchTFTOFFValue;
@@ -14,8 +13,7 @@ void xtouch_settings_save(bool onlyRoot = false)
 
     xtouch_filesystem_writeJson(SD, xtouch_paths_settings, doc);
 
-    if (onlyRoot)
-    {
+    if (onlyRoot) {
         return;
     }
 
@@ -29,10 +27,8 @@ void xtouch_settings_save(bool onlyRoot = false)
     xtouch_filesystem_writeJson(SD, xtouch_paths_printers, printers);
 }
 
-void xtouch_settings_loadSettings()
-{
-    if (!xtouch_filesystem_exist(SD, xtouch_paths_settings))
-    {
+void xtouch_settings_loadSettings() {
+    if (!xtouch_filesystem_exist(SD, xtouch_paths_settings)) {
         DynamicJsonDocument doc(512);
         xTouchConfig.xTouchBacklightLevel = 255;
         xTouchConfig.xTouchTFTOFFValue = 15;
@@ -54,8 +50,7 @@ void xtouch_settings_loadSettings()
     xTouchConfig.xTouchChamberSensorReadingDiff = settings.containsKey("chamberTempDiff") ? settings["chamberTempDiff"].as<int8_t>() : 0;
     xTouchConfig.xTouchBrowserText = settings.containsKey("browser_text") ? settings["browser_text"].as<bool>() : false;
 
-    if (xtouch_ssdp_is_paired())
-    {
+    if (xtouch_ssdp_is_paired()) {
         xtouch_ssdp_load_pair();
         JsonObject currentPrinterSettings = xtouch_ssdp_load_printer()[xTouchConfig.xTouchSerialNumber]["settings"];
         //
@@ -64,9 +59,7 @@ void xtouch_settings_loadSettings()
         // xTouchConfig.xTouchChamberSensorEnabled = currentPrinterSettings.containsKey("chamberTemp") ? currentPrinterSettings["chamberTemp"].as<bool>() : false;
         // xTouchConfig.xTouchAuxFanEnabled = currentPrinterSettings.containsKey("auxFan") ? currentPrinterSettings["auxFan"].as<bool>() : false;
         // xTouchConfig.xTouchChamberFanEnabled = currentPrinterSettings.containsKey("chamberFan") ? currentPrinterSettings["chamberFan"].as<bool>() : false;
-    }
-    else
-    {
+    } else {
         xTouchConfig.xTouchChamberSensorEnabled = false;
         xTouchConfig.xTouchAuxFanEnabled = false;
         xTouchConfig.xTouchChamberFanEnabled = false;

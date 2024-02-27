@@ -3,27 +3,28 @@
 
 #include <esp32_smartdisplay.h>
 
-static const uint16_t screenWidth = 480;
-static const uint16_t screenHeight = 480;
+static const uint16_t screenWidth = LCD_WIDTH;
+static const uint16_t screenHeight = LCD_HEIGHT;
 
-
-#include "ui/ui.h"
 #include "touch.h"
+#include "ui/ui.h"
 #include "xtouch/globals.h"
 
 bool xtouch_screen_touchFromPowerOff = false;
 
-void xtouch_screen_setBrightness(byte brightness)
-{
-    smartdisplay_lcd_set_backlight((float)(brightness / 255.0f));
+void xtouch_screen_setBrightness(byte brightness) {
+    float duty = brightness / 255.0f;
+    if (0 < duty && duty < 0.5) {
+        duty = 0.5;
+    }
+    LOGD("duty : %f\n", duty);
+    smartdisplay_lcd_set_backlight(duty);
 }
 
-void xtouch_screen_setBackLedOff()
-{
+void xtouch_screen_setBackLedOff() {
 }
 
-void xtouch_screen_wakeUp()
-{
+void xtouch_screen_wakeUp() {
     LOGI("[XTouch][SCREEN] xtouch_screen_wakeUp\n");
     lv_timer_reset(xtouch_screen_onScreenOffTimer);
     xtouch_screen_touchFromPowerOff = false;
@@ -31,15 +32,13 @@ void xtouch_screen_wakeUp()
     xtouch_screen_setBrightness(xTouchConfig.xTouchBacklightLevel);
 }
 
-void xtouch_screen_onScreenOff(lv_timer_t *timer)
-{
+void xtouch_screen_onScreenOff(lv_timer_t *timer) {
     // if (bambuStatus.print_status == XTOUCH_PRINT_STATUS_RUNNING)
     // {
     //     return;
     // }
 
-    if (xTouchConfig.xTouchTFTOFFValue < XTOUCH_LCD_MIN_SLEEP_TIME)
-    {
+    if (xTouchConfig.xTouchTFTOFFValue < XTOUCH_LCD_MIN_SLEEP_TIME) {
         return;
     }
 
@@ -48,42 +47,35 @@ void xtouch_screen_onScreenOff(lv_timer_t *timer)
     xtouch_screen_touchFromPowerOff = true;
 }
 
-void xtouch_screen_setupScreenTimer()
-{
+void xtouch_screen_setupScreenTimer() {
     xtouch_screen_onScreenOffTimer = lv_timer_create(xtouch_screen_onScreenOff, xTouchConfig.xTouchTFTOFFValue * 1000 * 60, NULL);
     lv_timer_pause(xtouch_screen_onScreenOffTimer);
 }
 
-void xtouch_screen_startScreenTimer()
-{
+void xtouch_screen_startScreenTimer() {
     lv_timer_resume(xtouch_screen_onScreenOffTimer);
 }
 
-void xtouch_screen_setScreenTimer(uint32_t period)
-{
+void xtouch_screen_setScreenTimer(uint32_t period) {
     lv_timer_set_period(xtouch_screen_onScreenOffTimer, period);
 }
 
-void xtouch_screen_invertColors()
-{
+void xtouch_screen_invertColors() {
     // tft.invertDisplay(xTouchConfig.xTouchTFTInvert);
 }
 
-byte xtouch_screen_getTFTFlip()
-{
+byte xtouch_screen_getTFTFlip() {
     byte val = xtouch_eeprom_read(XTOUCH_EEPROM_POS_TFTFLIP);
     xTouchConfig.xTouchTFTFlip = val;
     return val;
 }
 
-void xtouch_screen_setTFTFlip(byte mode)
-{
+void xtouch_screen_setTFTFlip(byte mode) {
     xTouchConfig.xTouchTFTFlip = mode;
     xtouch_eeprom_write(XTOUCH_EEPROM_POS_TFTFLIP, mode);
 }
 
-void xtouch_screen_toggleTFTFlip()
-{
+void xtouch_screen_toggleTFTFlip() {
     xtouch_screen_setTFTFlip(!xtouch_screen_getTFTFlip());
     // xtouch_resetTouchConfig();
 
@@ -91,23 +83,19 @@ void xtouch_screen_toggleTFTFlip()
     lv_disp_set_rotation(dispp, xTouchConfig.xTouchTFTFlip ? LV_DISP_ROT_180 : LV_DISP_ROT_NONE);
 }
 
-void xtouch_screen_dispFlush(lv_disp_drv_t *disp, const lv_area_t *area, lv_color_t *color_p)
-{
+void xtouch_screen_dispFlush(lv_disp_drv_t *disp, const lv_area_t *area, lv_color_t *color_p) {
     // lv_disp_flush_ready(disp);
 }
 
-void xtouch_screen_touchRead(lv_indev_drv_t *indev_driver, lv_indev_data_t *data)
-{
+void xtouch_screen_touchRead(lv_indev_drv_t *indev_driver, lv_indev_data_t *data) {
     lv_timer_reset(xtouch_screen_onScreenOffTimer);
     // dont pass first touch after power on
-    if (xtouch_screen_touchFromPowerOff)
-    {
+    if (xtouch_screen_touchFromPowerOff) {
         xtouch_screen_wakeUp();
     }
 }
 
-void xtouch_screen_setup()
-{
+void xtouch_screen_setup() {
     xtouch_screen_setBackLedOff();
     smartdisplay_init();
     smartdisplay_set_touch_cb(xtouch_screen_touchRead);
