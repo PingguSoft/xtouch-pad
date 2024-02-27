@@ -31,8 +31,10 @@ void FTPListParser::parse(std::list<String*> logs, std::list<FileInfo*> &result,
     String fname;
     int cnt = 1;
 
-    for (String *line: logs) {
-        char *token = strtok((char*)line->c_str(), " ");
+    String line;
+    for (String *l: logs) {
+        line = *l;
+        char *token = strtok((char*)line.c_str(), " ");
         while (token != NULL) {
             tokens.push_back(token);
             token = strtok(NULL, " ");
@@ -157,7 +159,6 @@ FTPSWorker::FTPSWorker(char* serverAdress, uint16_t port, char* userName, char* 
     _ftps = new ESP32_FTPSClient(serverAdress, port, userName, passWord);
     _queue_comm  = xQueueCreate(5, sizeof(cmd_q_t));
     xTaskCreate(&taskFTPS, "taskFTPS", 8192, this, 4, NULL);
-    _is_first = true;
 
     char bufs[60];
     char drv;
@@ -201,7 +202,7 @@ void FTPSWorker::downloadDirRemote(String srcDir, String dstDir, std::list<FTPLi
         dstDir += '/';
 
     int cnt = 1;
-    LOGV("Start downloading...\n");
+    LOGD("Start downloading...\n");
     for (FTPListParser::FileInfo* i : info) {
         src = srcDir + i->name;
         dst = dstDir + i->name;
@@ -214,16 +215,15 @@ void FTPSWorker::downloadDirRemote(String srcDir, String dstDir, std::list<FTPLi
         _ftps->DownloadFile(src.c_str(), i->size, &file);
         file.close();
     }
-    LOGV("Completed...\n");
+    LOGD("Completed...\n");
 }
 
 void FTPSWorker::listDirRemote(String srcDir, std::list<FTPListParser::FileInfo*> &info, String ext, int max) {
-    FTPListParser parser;
     std::list<String*> list;
 
     _ftps->InitFile("Type A");
     _ftps->DirLong(srcDir.c_str(), list);
-    parser.parse(list, info, max, ext, FTPListParser::SORT_DESC);
+    _parser.parse(list, info, max, ext, FTPListParser::SORT_DESC);
     freeList(list);
 
     int cnt = 1;
@@ -342,9 +342,9 @@ void FTPSWorker::syncImagesModels(bool textonly) {
     int  cnt;
     int  max_items = textonly ? 100 : 30;
 
+    std::list<FTPListParser::FileInfo*> imageFilesSD;
     std::list<FTPListParser::FileInfo*> modelFilesRemote;
     std::list<FTPListParser::FileInfo*> imageFilesRemote;
-    std::list<FTPListParser::FileInfo*> imageFilesSD;
     std::list<FTPListParser::FilePair*> pairList;
 
     if (!textonly) {
@@ -360,18 +360,17 @@ void FTPSWorker::syncImagesModels(bool textonly) {
     _ftps->OpenConnection(false, true);
     listDirRemote(getModelPath(), modelFilesRemote, ".3mf", max_items);     // model files
 #else
-    FTPListParser parser;
-    parser.parse(_testModels, modelFilesRemote, max_items, ".3mf", FTPListParser::SORT_DESC);
+    _parser.parse(_testModels, modelFilesRemote, max_items, ".3mf", FTPListParser::SORT_DESC);
 #endif
 
     if (!textonly) {
 #if _NO_NETWORK_
-        parser.parse(_testImages, imageFilesRemote, max_items, ".png", FTPListParser::SORT_DESC);
+        _parser.parse(_testImages, imageFilesRemote, max_items, ".png", FTPListParser::SORT_DESC);
 #else
         listDirRemote(getImagePath(), imageFilesRemote, ".png", max_items);     // image files
 #endif
         // make pairList after matching timestamp
-        FTPListParser::matches(modelFilesRemote, imageFilesRemote, pairList, FTPListParser::SORT_DESC);
+        _parser.matches(modelFilesRemote, imageFilesRemote, pairList, FTPListParser::SORT_DESC);
         cnt = 1;
         LOGV("--------------- FILE MODEL & PNG ---------------\n");
         for (FTPListParser::FilePair *p:pairList) {
@@ -396,16 +395,16 @@ void FTPSWorker::syncImagesModels(bool textonly) {
         imageFilesRemoteFinal.clear();
 
         cnt = 1;
-        LOGD("--------------- TBU ---------------\n");
+        LOGV("--------------- TBU ---------------\n");
         for (FTPListParser::FileInfo *p:imageFilesDownload) {
-            LOGD("%3d %10ld, [%10ld] %s\n", cnt++, p->ts, p->size, p->name.c_str());
+            LOGV("%3d %10ld, [%10ld] %s\n", cnt++, p->ts, p->size, p->name.c_str());
         }
         if (imageFilesDownload.size() > 0) {
             if (_callback)
                 _callback->onCallback(CMD_DOWNLOAD_START, NULL, imageFilesDownload.size());
             downloadDirRemote(getImagePath(), getImagePath(), imageFilesDownload, ".png");
         }
-        cnt = _is_first ? pairList.size() : imageFilesDownload.size();
+        cnt = pairList.size();
         freeList(imageFilesDownload);
 #endif
     } else {
@@ -419,16 +418,14 @@ void FTPSWorker::syncImagesModels(bool textonly) {
     _ftps->CloseConnection();
 #endif
 
+    freeList(imageFilesSD);
+    freeList(modelFilesRemote);
+    freeList(imageFilesRemote);
+
     if (_callback) {
         _callback->onCallback(CMD_SYNC_DONE, &pairList, cnt);
     }
     freeList(pairList);
-    freeList(imageFilesSD);
-    freeList(imageFilesRemote);
-    freeList(modelFilesRemote);
-
-    if (_is_first)
-        _is_first = false;
 }
 
 /*

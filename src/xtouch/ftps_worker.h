@@ -164,7 +164,6 @@ private:
 
     template<typename T> static void freeList(std::list<T> &list);
 
-    bool             _is_first;
     String           _img_path;
     String           _model_path;
     Callback         *_callback;
