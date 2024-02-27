@@ -168,7 +168,7 @@ void onEventBrowserDeleted(lv_event_t *e) {
 void onEventScrollViewRefresh(lv_event_t *e) {
     int move_to = (int)lv_event_get_param(e);
 
-    LOGV("refresh tileview : %d\n", lv_obj_get_child_cnt(_scroll_view));
+    LOGV("refresh children : %d\n", lv_obj_get_child_cnt(_scroll_view));
     lv_obj_clean(_scroll_view);
 
     char *dir = _ftps->getImagePath(true);
@@ -191,13 +191,13 @@ void onEventScrollViewRefresh(lv_event_t *e) {
         lv_obj_t *here = lv_obj_get_child(_scroll_view, move_to);
         lv_obj_scroll_to_view(here, LV_ANIM_OFF);
     }
-    LOGV("refresh done, tiles:%d\n", lv_obj_get_child_cnt(_scroll_view));
+    LOGV("refresh done, children:%d\n", lv_obj_get_child_cnt(_scroll_view));
 }
 
 
 /*
 *****************************************************************************************
-* FUNCTIONS
+* Image Scroll View
 *****************************************************************************************
 */
 void addImageItem2ScrollView(lv_obj_t *scroll_view, char *dir, FTPListParser::FilePair *info) {
@@ -239,103 +239,6 @@ void addImageItem2ScrollView(lv_obj_t *scroll_view, char *dir, FTPListParser::Fi
     String title = info->a.name;
     title.replace(".gcode.3mf", "");
     lv_label_set_text(ui_labelFileName, title.c_str());
-}
-
-void parseTS(long ts, int *d) {
-    long div;
-    int tbl[] = { 60, 24, 31, 365 };
-
-    // 2024-02-12 22:45
-    // long ts  = min + (hour * 60L) + (day * 60 * 24L) + (mon * 60 * 24 * 31L) + (year * 60 * 24 * 31 * 365L);
-    for (int i = 4; i >= 0; i--) {
-        div = 1;
-        for (int j = i - 1; j >= 0; j--) {
-            div *= tbl[j];
-        }
-        d[i] = ts / div;
-        ts -= (d[i] * div);
-    }
-}
-
-char *parseSize(long size, char *buf, int len) {
-    float sz;
-    char  *fmt;
-
-    if (size > (1024 * 1024L)) {
-        sz = size / (1024 * 1024.0);
-        fmt = (char*)"%.1fMB";
-    } else if (size > 1024) {
-        sz = size / 1024.0;
-        fmt = (char*)"%.1fKB";
-    } else {
-        sz = size;
-        fmt = (char*)"%.0f";
-    }
-    snprintf(buf, len, fmt, sz);
-
-    return buf;
-}
-
-void addTextItem2ScrollView(lv_obj_t *scroll_view, char *dir, FTPListParser::FilePair *info) {
-    lv_obj_t *ui_container_item_list = lv_obj_create(scroll_view);
-    lv_obj_set_width(ui_container_item_list, lv_pct(100));
-    lv_obj_set_height(ui_container_item_list, lv_pct(12));
-    lv_obj_set_flex_flow(ui_container_item_list, LV_FLEX_FLOW_ROW);
-    lv_obj_set_flex_align(ui_container_item_list, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
-    lv_obj_clear_flag(ui_container_item_list, LV_OBJ_FLAG_SCROLLABLE | LV_OBJ_FLAG_SCROLL_ELASTIC);      /// Flags
-    lv_obj_set_style_radius(ui_container_item_list, 5, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_bg_color(ui_container_item_list, lv_color_hex(0xFFFFFF), LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_bg_opa(ui_container_item_list, 20, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_border_color(ui_container_item_list, lv_color_hex(0xFFFFFF), LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_border_opa(ui_container_item_list, 20, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_border_width(ui_container_item_list, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_pad_left(ui_container_item_list, 5, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_pad_right(ui_container_item_list, 5, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_pad_top(ui_container_item_list, 5, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_pad_bottom(ui_container_item_list, 5, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_pad_row(ui_container_item_list, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_pad_column(ui_container_item_list, 10, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_add_event_cb(ui_container_item_list, onEventItem, LV_EVENT_ALL, info);
-
-    lv_obj_t *ui_name = lv_label_create(ui_container_item_list);
-    lv_obj_set_width(ui_name, lv_pct(50));
-    lv_obj_set_height(ui_name, LV_SIZE_CONTENT);    /// 1
-    lv_obj_set_align(ui_name, LV_ALIGN_CENTER);
-    lv_label_set_long_mode(ui_name, LV_LABEL_LONG_SCROLL);
-    String title = info->a.name;
-    title.replace(".gcode.3mf", "");
-    lv_label_set_text(ui_name, title.c_str());
-    lv_obj_clear_flag(ui_name, LV_OBJ_FLAG_SCROLLABLE | LV_OBJ_FLAG_SCROLL_ELASTIC);      /// Flags
-    lv_obj_set_style_text_color(ui_name, lv_color_hex(0xFFFFFF), LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_text_opa(ui_name, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
-
-    int  d[5];
-    char buf[40];
-    lv_obj_t *ui_date = lv_label_create(ui_container_item_list);
-    lv_obj_set_width(ui_date, lv_pct(30));
-    lv_obj_set_height(ui_date, LV_SIZE_CONTENT);    /// 1
-    lv_obj_set_align(ui_date, LV_ALIGN_CENTER);
-    parseTS(info->a.ts, d);
-    if (d[4] >= 120) {
-        snprintf(buf, sizeof(buf), "----/%02d/%02d %02d:%02d", d[3], d[2], d[1], d[0]);
-    } else {
-        snprintf(buf, sizeof(buf), "%4d/%02d/%02d %02d:%02d", 1980 + d[4], d[3], d[2], d[1], d[0]);
-    }
-    lv_label_set_text(ui_date, buf);
-    lv_obj_clear_flag(ui_date, LV_OBJ_FLAG_SCROLLABLE | LV_OBJ_FLAG_SCROLL_ELASTIC);      /// Flags
-    lv_obj_set_style_text_color(ui_date, lv_color_hex(0xFFFFFF), LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_text_opa(ui_date, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
-
-    lv_obj_t *ui_size = lv_label_create(ui_container_item_list);
-    lv_obj_set_width(ui_size, lv_pct(18));
-    lv_obj_set_height(ui_size, LV_SIZE_CONTENT);    /// 1
-    lv_obj_set_align(ui_size, LV_ALIGN_CENTER);
-    lv_label_set_long_mode(ui_name, LV_LABEL_LONG_SCROLL);
-    parseSize(info->a.size, buf, sizeof(buf));
-    lv_label_set_text(ui_size, buf);
-    lv_obj_add_flag(ui_size, LV_OBJ_FLAG_CLICKABLE | LV_OBJ_FLAG_EVENT_BUBBLE);     /// Flags
-    lv_obj_set_style_text_color(ui_size, lv_color_hex(0xFFFFFF), LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_text_opa(ui_size, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
 }
 
 lv_obj_t *ui_browserComponent_create_image(lv_obj_t *comp_parent) {
@@ -404,6 +307,108 @@ lv_obj_t *ui_browserComponent_create_image(lv_obj_t *comp_parent) {
     lv_event_send(_scroll_view, LV_EVENT_REFRESH, NULL);
 
     return ui_browserComponent;
+}
+
+/*
+*****************************************************************************************
+* Text Scroll View
+*****************************************************************************************
+*/
+void parseTS(long ts, int *d) {
+    long div;
+    int tbl[] = { 60, 24, 31, 365 };
+
+    // 2024-02-12 22:45
+    // long ts  = min + (hour * 60L) + (day * 60 * 24L) + (mon * 60 * 24 * 31L) + (year * 60 * 24 * 31 * 365L);
+    for (int i = 4; i >= 0; i--) {
+        div = 1;
+        for (int j = i - 1; j >= 0; j--) {
+            div *= tbl[j];
+        }
+        d[i] = ts / div;
+        ts -= (d[i] * div);
+    }
+}
+
+char *parseSize(long size, char *buf, int len) {
+    float sz;
+    char  *fmt;
+
+    if (size > (1024 * 1024L)) {
+        sz = size / (1024 * 1024.0);
+        fmt = (char*)"%.1fMB";
+    } else if (size > 1024) {
+        sz = size / 1024.0;
+        fmt = (char*)"%.1fKB";
+    } else {
+        sz = size;
+        fmt = (char*)"%.0f";
+    }
+    snprintf(buf, len, fmt, sz);
+
+    return buf;
+}
+
+void addTextItem2ScrollView(lv_obj_t *scroll_view, char *dir, FTPListParser::FilePair *info) {
+    lv_obj_t *ui_container_item_list = lv_obj_create(scroll_view);
+    lv_obj_set_width(ui_container_item_list, lv_pct(100));
+    lv_obj_set_height(ui_container_item_list, lv_pct(12));
+    lv_obj_set_flex_flow(ui_container_item_list, LV_FLEX_FLOW_ROW);
+    lv_obj_set_flex_align(ui_container_item_list, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
+    lv_obj_clear_flag(ui_container_item_list, LV_OBJ_FLAG_SCROLLABLE | LV_OBJ_FLAG_SCROLL_ELASTIC);      /// Flags
+    lv_obj_set_style_radius(ui_container_item_list, 5, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_color(ui_container_item_list, lv_color_hex(0xFFFFFF), LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_opa(ui_container_item_list, 20, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_border_color(ui_container_item_list, lv_color_hex(0xFFFFFF), LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_border_opa(ui_container_item_list, 20, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_border_width(ui_container_item_list, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_left(ui_container_item_list, 5, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_right(ui_container_item_list, 5, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_top(ui_container_item_list, 5, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_bottom(ui_container_item_list, 5, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_row(ui_container_item_list, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_column(ui_container_item_list, 10, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_add_event_cb(ui_container_item_list, onEventItem, LV_EVENT_ALL, info);
+
+    lv_obj_t *ui_name = lv_label_create(ui_container_item_list);
+    lv_obj_set_width(ui_name, lv_pct(50));
+    lv_obj_set_height(ui_name, LV_SIZE_CONTENT);    /// 1
+    lv_obj_set_align(ui_name, LV_ALIGN_CENTER);
+    lv_label_set_long_mode(ui_name, LV_LABEL_LONG_SCROLL_CIRCULAR);
+    String title = info->a.name;
+    title.replace(".gcode.3mf", "");
+    lv_label_set_text(ui_name, title.c_str());
+    lv_obj_clear_flag(ui_name, LV_OBJ_FLAG_SCROLLABLE | LV_OBJ_FLAG_SCROLL_ELASTIC);      /// Flags
+    lv_obj_set_style_text_color(ui_name, lv_color_hex(0xFFFFFF), LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_text_opa(ui_name, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
+
+    int  d[5];
+    char buf[40];
+    lv_obj_t *ui_date = lv_label_create(ui_container_item_list);
+    lv_obj_set_width(ui_date, lv_pct(30));
+    lv_obj_set_height(ui_date, LV_SIZE_CONTENT);    /// 1
+    lv_obj_set_align(ui_date, LV_ALIGN_CENTER);
+    parseTS(info->a.ts, d);
+    if (d[4] >= 120) {
+        snprintf(buf, sizeof(buf), "----/%02d/%02d %02d:%02d", d[3], d[2], d[1], d[0]);
+    } else {
+        snprintf(buf, sizeof(buf), "%4d/%02d/%02d %02d:%02d", 1980 + d[4], d[3], d[2], d[1], d[0]);
+    }
+    lv_label_set_text(ui_date, buf);
+    lv_obj_clear_flag(ui_date, LV_OBJ_FLAG_SCROLLABLE | LV_OBJ_FLAG_SCROLL_ELASTIC);      /// Flags
+    lv_obj_set_style_text_color(ui_date, lv_color_hex(0xFFFFFF), LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_text_opa(ui_date, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
+
+    lv_obj_t *ui_size = lv_label_create(ui_container_item_list);
+    lv_obj_set_width(ui_size, lv_pct(18));
+    lv_obj_set_height(ui_size, LV_SIZE_CONTENT);    /// 1
+    lv_obj_set_align(ui_size, LV_ALIGN_CENTER);
+    lv_label_set_long_mode(ui_name, LV_LABEL_LONG_SCROLL_CIRCULAR);
+    parseSize(info->a.size, buf, sizeof(buf));
+    lv_label_set_text(ui_size, buf);
+    lv_obj_add_flag(ui_size, LV_OBJ_FLAG_CLICKABLE | LV_OBJ_FLAG_EVENT_BUBBLE);     /// Flags
+    lv_obj_set_style_text_color(ui_size, lv_color_hex(0xFFFFFF), LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_text_opa(ui_size, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
 }
 
 lv_obj_t *ui_browserComponent_create_text(lv_obj_t *comp_parent) {
