@@ -32,7 +32,7 @@ class ESP32_FTPSClient
 
   char* userName;
   char* passWord;
-  char* serverAdress;
+  char* serverAddress;
   uint16_t port;
   bool _isConnected = false;
   bool _is_secure = true;

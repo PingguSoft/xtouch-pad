@@ -2,19 +2,19 @@
 #include "debug.h"
 #include <WiFiClientSecure.h>
 
-ESP32_FTPSClient::ESP32_FTPSClient(char *_serverAdress, uint16_t _port, char *_userName, char *_passWord, uint16_t _timeout, uint8_t _verbose) {
+ESP32_FTPSClient::ESP32_FTPSClient(char *_serverAddress, uint16_t _port, char *_userName, char *_passWord, uint16_t _timeout, uint8_t _verbose) {
     userName = _userName;
     passWord = _passWord;
-    serverAdress = _serverAdress;
+    serverAddress = _serverAddress;
     port = _port;
     timeout = _timeout;
     verbose = _verbose;
 }
 
-ESP32_FTPSClient::ESP32_FTPSClient(char *_serverAdress, char *_userName, char *_passWord, uint16_t _timeout, uint8_t _verbose) {
+ESP32_FTPSClient::ESP32_FTPSClient(char *_serverAddress, char *_userName, char *_passWord, uint16_t _timeout, uint8_t _verbose) {
     userName = _userName;
     passWord = _passWord;
-    serverAdress = _serverAdress;
+    serverAddress = _serverAddress;
     port = 21;
     timeout = _timeout;
     verbose = _verbose;
@@ -143,7 +143,7 @@ void ESP32_FTPSClient::CloseConnection() {
 }
 
 void ESP32_FTPSClient::OpenConnection(bool secure, bool implicit) {
-    LOGV("Connecting to: %s\n", serverAdress);
+    LOGV("Connecting to: %s\n", serverAddress);
 
     _is_secure = secure;
     _is_implicit = implicit;
@@ -151,7 +151,7 @@ void ESP32_FTPSClient::OpenConnection(bool secure, bool implicit) {
         client.setInsecure();
     }
 
-    if (client.connect(serverAdress, port, timeout)) {
+    if (client.connect(serverAddress, port, timeout)) {
         LOGV("Command connected\n");
     }
     GetFTPAnswer();

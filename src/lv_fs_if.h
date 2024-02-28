@@ -1,6 +1,6 @@
 #include "ui/ui.h"
 #include "FS.h"
-#include "xtouch/debug.h"
+#include "debug.h"
 
 #ifndef _LV_FS_IF_
 #define _LV_FS_IF_

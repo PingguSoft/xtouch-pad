@@ -1,4 +1,4 @@
-#include "../../xtouch/debug.h"
+#include "debug.h"
 #include "ui_comp_browser.h"
 
 static lv_obj_t *ui_popup_title;

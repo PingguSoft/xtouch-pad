@@ -1,7 +1,7 @@
 #include <list>
 #include "ui_comp_browser.h"
-#include "../../xtouch/debug.h"
-#include "../../xtouch/ftps_worker.h"
+#include "debug.h"
+#include "clients/ftps_worker.h"
 #include "main.h"
 
 /*

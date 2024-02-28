@@ -1,7 +1,7 @@
 #include "ui.h"
 #include "ui_msgs.h"
 #include "main.h"
-#include "../xtouch/debug.h"
+#include "debug.h"
 
 typedef struct {
     int         id;

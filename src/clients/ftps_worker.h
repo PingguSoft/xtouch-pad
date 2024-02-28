@@ -142,7 +142,7 @@ public:
         bool        reqBufDel;
     } cmd_q_t;
 
-    FTPSWorker(char* serverAdress, uint16_t port, char* userName, char* passWord);
+    FTPSWorker(char* serverAddress, uint16_t port, char* userName, char* passWord);
     void invalidate(std::list<FTPListParser::FilePair*> pair);
     void setCallback(Callback *cb) { _callback = cb; }
 

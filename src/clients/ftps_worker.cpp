@@ -155,8 +155,8 @@ void tokenize(String &line, String token, std::vector<String> &tokens) {
 
 void taskFTPS(void* arg);
 
-FTPSWorker::FTPSWorker(char* serverAdress, uint16_t port, char* userName, char* passWord) {
-    _ftps = new ESP32_FTPSClient(serverAdress, port, userName, passWord);
+FTPSWorker::FTPSWorker(char* serverAddress, uint16_t port, char* userName, char* passWord) {
+    _ftps = new ESP32_FTPSClient(serverAddress, port, userName, passWord);
     _queue_comm  = xQueueCreate(5, sizeof(cmd_q_t));
     xTaskCreate(&taskFTPS, "taskFTPS", 8192, this, 4, NULL);
 

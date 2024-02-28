@@ -1,5 +1,5 @@
-#ifndef _XLCD_DEBUG
-#define _XLCD_DEBUG
+#ifndef _XTOUCH_DEBUG_
+#define _XTOUCH_DEBUG_
 
 #include <Arduino.h>
 
@@ -8,7 +8,7 @@
 * FEATURES
 *****************************************************************************************
 */
-#define _NO_NETWORK_  1
+#define _NO_NETWORK_  0
 
 /*
 *****************************************************************************************
