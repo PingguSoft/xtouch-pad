@@ -1,6 +1,6 @@
 #include <Arduino.h>
 #include <ArduinoJson.h>
-#include "xtouch/debug.h"
+#include "debug.h"
 #include "xtouch/paths.h"
 #include "xtouch/eeprom.h"
 #include "xtouch/types.h"
@@ -29,6 +29,8 @@
 #include "xtouch/coldboot.h"
 #include "lv_fs_if.h"
 #include "main.h"
+
+#include "clients/camera_worker.h"
 
 /*
 *****************************************************************************************
@@ -66,7 +68,7 @@ void xtouch_intro_show(void) {
     lv_timer_handler();
 }
 
-
+CameraWorker *_cam;
 
 void setup() {
 #if XTOUCH_USE_SERIAL == true || XTOUCH_DEBUG_ERROR == true || XTOUCH_DEBUG_DEBUG == true || XTOUCH_DEBUG_INFO == true
@@ -122,6 +124,9 @@ void setup() {
     uint32_t fh = ESP.getFreeHeap();
     uint32_t fp = ESP.getFreePsram();
     LOGI("[FREE]  heap:%d, PSRAM:%d, Total:%d\n", fh, fp, fh + fp);
+
+    _cam = new CameraWorker((char*)xTouchConfig.xTouchIP, 6000, (char*)"bblp", (char*)xTouchConfig.xTouchAccessCode);
+    _cam->connect();
 }
 
 void loop() {
