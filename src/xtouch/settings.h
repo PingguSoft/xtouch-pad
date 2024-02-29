@@ -52,13 +52,12 @@ void xtouch_settings_loadSettings() {
 
     if (xtouch_ssdp_is_paired()) {
         xtouch_ssdp_load_pair();
-        JsonObject currentPrinterSettings = xtouch_ssdp_load_printer()[xTouchConfig.xTouchSerialNumber]["settings"];
-        //
-        // DEBUG below lines !!!!
-        //
-        // xTouchConfig.xTouchChamberSensorEnabled = currentPrinterSettings.containsKey("chamberTemp") ? currentPrinterSettings["chamberTemp"].as<bool>() : false;
-        // xTouchConfig.xTouchAuxFanEnabled = currentPrinterSettings.containsKey("auxFan") ? currentPrinterSettings["auxFan"].as<bool>() : false;
-        // xTouchConfig.xTouchChamberFanEnabled = currentPrinterSettings.containsKey("chamberFan") ? currentPrinterSettings["chamberFan"].as<bool>() : false;
+
+        DynamicJsonDocument ssdp = xtouch_ssdp_load_printer();
+        JsonObject currentPrinterSettings = ssdp[xTouchConfig.xTouchSerialNumber]["settings"];
+        xTouchConfig.xTouchChamberSensorEnabled = currentPrinterSettings.containsKey("chamberTemp") ? currentPrinterSettings["chamberTemp"].as<bool>() : false;
+        xTouchConfig.xTouchAuxFanEnabled = currentPrinterSettings.containsKey("auxFan") ? currentPrinterSettings["auxFan"].as<bool>() : false;
+        xTouchConfig.xTouchChamberFanEnabled = currentPrinterSettings.containsKey("chamberFan") ? currentPrinterSettings["chamberFan"].as<bool>() : false;
     } else {
         xTouchConfig.xTouchChamberSensorEnabled = false;
         xTouchConfig.xTouchAuxFanEnabled = false;
