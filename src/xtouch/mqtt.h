@@ -733,7 +733,7 @@ void xtouch_mqtt_connect()
         String clientId = "XTOUCH-CLIENT-" + String(xtouch_mqtt_generateRandomKey(16));
         if (xtouch_pubSubClient.connect(clientId.c_str(), "bblp", xTouchConfig.xTouchAccessCode))
         {
-            LOGI("[XTouch][MQTT] ---- CONNECTED ----");
+            LOGI("[XTouch][MQTT] ---- CONNECTED ----\n");
 
             xtouch_pubSubClient.subscribe(xtouch_mqtt_report_topic.c_str());
             xtouch_device_pushall();

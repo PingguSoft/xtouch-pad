@@ -10,7 +10,7 @@ static SPIClass _spi_sd(HSPI);
 
 bool xtouch_sdcard_setup() {
     _spi_sd.begin(SD_SCK, SD_MISO, SD_MOSI, -1);
-    if (!SD.begin(SD_CS, _spi_sd)) {
+    if (!SD.begin(SD_CS, _spi_sd, 4000000, "/sd", 10, false)) {
         LOGE("[XTouch][SD] Card Mount Failed\n");
         return false;
     }
