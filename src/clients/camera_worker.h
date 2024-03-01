@@ -11,40 +11,31 @@
 
 class CameraWorker {
 public:
-    typedef enum {
-        CMD_START = 1,
-        CMD_STOP
-    } cmd_t;
-
     class Callback {
         public:
             virtual ~Callback() { }
-            virtual int16_t onCallback(CameraWorker::cmd_t cmd, void *param, int size) = 0;
+            virtual void onJpeg(uint8_t *param, int size) = 0;
     };
 
-    typedef struct {
-        cmd_t       cmd;
-        uint8_t     *pData;
-        uint16_t    size;
-        bool        reqBufDel;
-    } cmd_q_t;
-
-    CameraWorker(char* serverAddress, uint16_t port, char* userName, char* passWord);
+    CameraWorker(char* ipAddress, uint16_t port, char* user, char* accessCode);
     void setCallback(Callback *cb) { _callback = cb; }
 
-    void connect();
-    void disconnect();
-    void grabJPEG();
+    void start();
+    void stop();
+    void lock();
+    void unlock();
+
     friend void taskCamera(void* arg);
 
 private:
+    void grabJPEG();
+
     WiFiClientSecure  _client;
     Callback         *_callback;
-    QueueHandle_t    _queue_comm;
 
-    char* _userName;
-    char* _passWord;
-    char* _serverAddress;
+    char* _user;
+    char* _accessCode;
+    char* _ipAddress;
     uint16_t _port;
     uint16_t _timeout = 10000;
     bool _isConnected = false;
@@ -52,11 +43,12 @@ private:
 
     int _pos;
     int _pos_scan;
-    int _pos_jpeg_st;
+    int _pos_jpeg_beg;
     int _pos_jpeg_end;
 
-    uint8_t *_pJPEGData;
+    uint8_t *_pJpegBuf;
     uint8_t *_pChunk;
+    SemaphoreHandle_t _lock;
 
     static const uint16_t kChunkSize = 1024;
     static const uint32_t kMaxJPEGSize = (256 * 1024U);

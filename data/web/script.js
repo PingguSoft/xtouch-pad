@@ -40,7 +40,7 @@ function encode (input) {
 
     while (i < input.length) {
         chr1 = input[i++];
-        chr2 = i < input.length ? input[i++] : Number.NaN; // Not sure if the index 
+        chr2 = i < input.length ? input[i++] : Number.NaN; // Not sure if the index
         chr3 = i < input.length ? input[i++] : Number.NaN; // checks are needed here
 
         enc1 = chr1 >> 2;
@@ -62,23 +62,35 @@ function encode (input) {
 // Function that receives the message from the ESP32 with the readings
 function onMessage(event) {
     console.log(event.data);
-    var myObj = JSON.parse(event.data);
-    var keys = Object.keys(myObj);
 
-    for (var i = 0; i < keys.length; i++) {
-        var key = keys[i];
-        if (key == "ws_image") {
-            var bytes = new Uint8Array(myObj[key]);
-            var image = document.getElementById(key);
+    if(event.data instanceof ArrayBuffer) {
+        var bytes = new Uint8Array(event.data);
+        var id = new Uint32Array(bytes.buffer.slice(0, 4))[0];
+
+        console.log(id);
+        if (id == 0xe0ffd8ff) {         // jpeg
+            var image = document.getElementById('jpeg_image');
+            image.src = 'data:image/jpeg;base64,' + encode(bytes);
+        } else if (id == 0x474e5089) {  // png
+            var image = document.getElementById('png_image');
             image.src = 'data:image/png;base64,' + encode(bytes);
-        } else {
+        }
+        // for (var i = 0; i < bytes.length; i++) {
+        //   msg += String.fromCharCode(bytes[i]);
+        // }
+    } else {
+        var myObj = JSON.parse(event.data);
+        var keys = Object.keys(myObj);
+
+        for (var i = 0; i < keys.length; i++) {
+            var key = keys[i];
             document.getElementById(key).innerHTML = myObj[key];
         }
     }
 }
 
 function drawImage(data) {
-    var imageWidth = 128, imageHeight = 128; // hardcoded width & height. 
+    var imageWidth = 128, imageHeight = 128; // hardcoded width & height.
     var byteArray = new Uint8Array(data);
 
     var canvas = document.createElement('canvas');

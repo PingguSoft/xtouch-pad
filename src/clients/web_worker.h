@@ -10,8 +10,9 @@
 #include "freertos/portmacro.h"
 #include "freertos/task.h"
 #include "freertos/queue.h"
+#include "camera_worker.h"
 
-class WebWorker {
+class WebWorker : public CameraWorker::Callback {
 public:
     typedef enum {
         CMD_START = 1,
@@ -31,18 +32,28 @@ public:
         bool        reqBufDel;
     } cmd_q_t;
 
+    typedef struct {
+        char    *web_dir;
+        fs::FS  *fs;
+        char    *fs_dir;
+    } mount_t;
+
     WebWorker(fs::FS *fs, char *root, uint16_t port);
-    void start();
+    void start(char *ip, char *acccessCode);
     void stop();
+    void addMount(char *web_dir, fs::FS *fs, char *fs_dir);
     void onEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType type, void *arg, uint8_t *data, size_t len);
     void handleWebSocketMessage(void *arg, uint8_t *data, size_t len);
     void listDirSD(char *path, std::vector<String> &info, String ext);
     void setCallback(Callback *cb) { _callback = cb; }
-    String getSensorReadings();
+    void sendFile(char *path);
+    void sendPNG();
 
-    void connect();
-    void disconnect();
+
+    String getSensorReadings();
     void loop();
+
+    virtual void onJpeg(uint8_t *param, int size);
     friend void taskWeb(void* arg);
 
 private:
@@ -51,15 +62,18 @@ private:
 
     Callback         *_callback;
     QueueHandle_t    _queue_comm;
-    char            *_web_root;
+    String           _web_root;
     AsyncWebServer  *_server;
     AsyncWebSocket  *_ws;
     fs::FS          *_fs;
     uint16_t        _port;
     long            _last_ts;
     int             _pos;
-
+    char            *_ip;
+    char            *_access;
+    CameraWorker    *_cam;
     std::vector<String> _list_sd;
+    std::list<mount_t> _list_mnt;
 };
 
 #endif

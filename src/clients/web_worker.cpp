@@ -4,16 +4,19 @@
 #include "debug.h"
 #include "web_worker.h"
 
+
 void taskWeb(void* arg);
 
 WebWorker::WebWorker(fs::FS *fs, char *root, uint16_t port) {
     _fs = fs;
-    _web_root = root;    
     _port = port;
     _server = NULL;
     _ws = NULL;
     _last_ts = 0;
-
+    _web_root = root;
+    if (!_web_root.endsWith("/")) {
+        _web_root += "/";
+    }
     _queue_comm  = xQueueCreate(5, sizeof(cmd_q_t));
     xTaskCreate(&taskWeb, "taskWeb", 8192, this, 4, NULL);
 }
@@ -42,10 +45,9 @@ void WebWorker::listDirSD(char *path, std::vector<String> &info, String ext) {
     delete new_path;
 }
 
-void WebWorker::start() {
-    _pos = 0;
-    listDirSD("/image", _list_sd, ".png");
-
+void WebWorker::start(char *ip, char *acccessCode) {
+    _ip = ip;
+    _access = acccessCode;
     cmd_q_t q = { CMD_START, NULL, 0, false };
     xQueueSend(_queue_comm, &q, portMAX_DELAY);
 }
@@ -55,29 +57,70 @@ void WebWorker::stop() {
     xQueueSend(_queue_comm, &q, portMAX_DELAY);
 }
 
+void WebWorker::addMount(char *web_dir, fs::FS *fs, char *fs_dir) {
+    _list_mnt.push_back({web_dir, fs, fs_dir});
+}
+
+void WebWorker::onJpeg(uint8_t *param, int size) {
+    if (_ws->count() > 0) {
+        _ws->binaryAll(param, size);
+    }
+}
+
+void WebWorker::sendFile(char *path) {
+    File file = SD.open(path, "rb");
+    LOGD("image file : %s %d\n", path, file.size());
+
+    uint8_t *buf = (uint8_t*)malloc(file.size());
+    file.read(buf, file.size());
+    if (_ws->count() > 0) {
+        _ws->binaryAll(buf, file.size());
+    }
+    file.close();
+    free(buf);
+}
+
+void WebWorker::sendPNG() {
+    if (_list_sd.size() > 0) {
+        String str = _list_sd[_pos];
+        str = "/image/" + str;
+        sendFile((char*)str.c_str());
+        _pos = (_pos + 1) % _list_sd.size();
+    }
+}
+
 void WebWorker::_start() {
+    _pos = 0;
+    listDirSD("/image", _list_sd, ".png");
+
     if (!_server)
         _server = new AsyncWebServer(_port);
     if (!_ws)
         _ws = new AsyncWebSocket("/ws");
 
-    std::function<void(AsyncWebSocket *, AsyncWebSocketClient *, AwsEventType , void *, uint8_t *, size_t)> f = 
+    std::function<void(AsyncWebSocket *, AsyncWebSocketClient *, AwsEventType , void *, uint8_t *, size_t)> f =
         std::bind(&WebWorker::onEvent, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5, std::placeholders::_6);
 
     _ws->onEvent(f);
     _server->addHandler(_ws);
-    _server->on("/", HTTP_GET, 
+    _server->on("/", HTTP_GET,
         [this](AsyncWebServerRequest *request) {
-            String buf(this->_web_root);
-            buf = buf + "index.html";
-            request->send(*(this->_fs), buf.c_str(), "text/html"); 
+            String buf(_web_root + "index.html");
+            request->send(*(this->_fs), buf.c_str(), "text/html");
         });
-    _server->serveStatic("/image/", *_fs, "/image/");
-    _server->serveStatic("/", *_fs, "/web/");
+    _server->serveStatic("/", *_fs, _web_root.c_str());
+    for (mount_t m : _list_mnt) {
+        _server->serveStatic(m.web_dir, *m.fs, m.fs_dir);
+    }
     _server->begin();
+
+    _cam = new CameraWorker(_ip, 6000, (char*)"bblp", _access);
+    _cam->setCallback(this);
+    _cam->start();
 }
 
 void WebWorker::_stop() {
+    _cam->stop();
     _server->end();
 
     if (_ws) {
@@ -90,30 +133,15 @@ void WebWorker::_stop() {
     }
 }
 
-JsonDocument readings;
-
 String WebWorker::getSensorReadings() {
-    readings.clear();
-    readings["temperature"] = String(random(30));
-    readings["humidity"] = String(random(100));
-    readings["pressure"] = String(random(20));
-    
-    JsonArray data = readings["ws_image"].to<JsonArray>();
-    if (_list_sd.size() > 0) {
-        String str = _list_sd[_pos];
+    JsonDocument json;
 
-        str = "/image/" + str;
-        File file = SD.open(str.c_str(), "rb");
-        LOGD("image file : %s %d\n", str.c_str(), file.size());
-        for (int i = 0; i < file.size(); i++) {
-            data.add(file.read());
-        }
-        file.close();
-        _pos = (_pos + 1) % _list_sd.size();
-    }
+    json["temperature"] = String(random(30));
+    json["humidity"] = String(random(100));
+    json["pressure"] = String(random(20));
 
     String output;
-    serializeJson(readings, output);
+    serializeJson(json, output);
     return output;
 }
 
@@ -124,6 +152,7 @@ void WebWorker::handleWebSocketMessage(void *arg, uint8_t *data, size_t len) {
             String sensorReadings = getSensorReadings();
             // LOGD("%s\n", sensorReadings.c_str());
             _ws->textAll(sensorReadings);
+            sendPNG();
         }
     }
 }
@@ -146,21 +175,25 @@ void WebWorker::onEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, Aw
 }
 
 void WebWorker::loop() {
-    if (_server && _ws) {
-        long ts = millis();
-        if ((ts - _last_ts) > 5000) {
+    if (!_server || !_ws)
+        return;
+
+    long ts = millis();
+    if ((ts - _last_ts) > 5000) {
+        if (_ws->count() > 0) {
             String sensorReadings = getSensorReadings();
             _ws->textAll(sensorReadings);
-            _last_ts = ts;
+            sendPNG();
         }
-        _ws->cleanupClients();
+        _last_ts = ts;
     }
+    _ws->cleanupClients();
 }
 
 
 /*
 *****************************************************************************************
-* taskCamera
+* taskWeb
 *****************************************************************************************
 */
 void taskWeb(void* arg) {

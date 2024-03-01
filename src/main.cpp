@@ -13,9 +13,9 @@
 #include "xtouch/ssdp.h"
 
 #if defined(ESP32_2432S028R)
-#include "devices/2.8/screen.h"
+#    include "devices/2.8/screen.h"
 #elif defined(ESP32_4848S040CIY1)
-#include "devices/4.0/screen.h"
+#    include "devices/4.0/screen.h"
 #endif
 
 #include "xtouch/pair.h"
@@ -39,8 +39,7 @@
 * VARIABLES
 *****************************************************************************************
 */
-static SemaphoreHandle_t   _lock;
-
+static SemaphoreHandle_t _lock;
 
 /*
 *****************************************************************************************
@@ -48,7 +47,8 @@ static SemaphoreHandle_t   _lock;
 *****************************************************************************************
 */
 void lv_lock() {
-    while(xSemaphoreTake(_lock, portMAX_DELAY) != pdPASS);
+    while (xSemaphoreTake(_lock, portMAX_DELAY) != pdPASS)
+        ;
 }
 
 void lv_unlock() {
@@ -58,7 +58,6 @@ void lv_unlock() {
 void print_ram_info() {
     LOGI("[RAM FREE] PSRAM:%d, HEAP:%d\n", ESP.getFreePsram(), ESP.getFreeHeap());
 }
-
 
 /*
 *****************************************************************************************
@@ -70,40 +69,51 @@ void xtouch_intro_show(void) {
     lv_timer_handler();
 }
 
-
 CameraWorker *_cam;
-WebWorker    *_web;
+WebWorker *_web;
 
-void listDir(fs::FS &fs, const char * dirname, uint8_t levels){
+void listDir(fs::FS &fs, const char *dirname, uint8_t levels) {
     LOGD("Listing directory: %s\r\n", dirname);
 
     File root = fs.open(dirname);
-    if(!root){
+    if (!root) {
         LOGE("- failed to open directory\n");
         return;
     }
-    if(!root.isDirectory()){
+    if (!root.isDirectory()) {
         LOGE(" - not a directory\n");
         return;
     }
 
     File file = root.openNextFile();
-    while(file){
-        if(file.isDirectory()){
-            time_t t= file.getLastWrite();
-            struct tm * tmstruct = localtime(&t);
-            LOGD("%4d-%02d-%02d %02d:%02d:%02d <DIR> %8s %s\n",(tmstruct->tm_year) + 1900,( tmstruct->tm_mon) + 1, 
-                tmstruct->tm_mday,tmstruct->tm_hour , tmstruct->tm_min, tmstruct->tm_sec,
-                "", file.name());
-            if(levels) {
+    while (file) {
+        if (file.isDirectory()) {
+            time_t t = file.getLastWrite();
+            struct tm *tmstruct = localtime(&t);
+            LOGD("%4d-%02d-%02d %02d:%02d:%02d <DIR> %8s %s\n",
+                 (tmstruct->tm_year) + 1900,
+                 (tmstruct->tm_mon) + 1,
+                 tmstruct->tm_mday,
+                 tmstruct->tm_hour,
+                 tmstruct->tm_min,
+                 tmstruct->tm_sec,
+                 "",
+                 file.name());
+            if (levels) {
                 listDir(fs, file.name(), levels - 1);
             }
         } else {
-            time_t t= file.getLastWrite();
-            struct tm * tmstruct = localtime(&t);
-            LOGD("%4d-%02d-%02d %02d:%02d:%02d       %8ld %s\n",(tmstruct->tm_year) + 1900,( tmstruct->tm_mon) + 1, 
-                tmstruct->tm_mday,tmstruct->tm_hour , tmstruct->tm_min, tmstruct->tm_sec,
-                file.size(), file.name());
+            time_t t = file.getLastWrite();
+            struct tm *tmstruct = localtime(&t);
+            LOGD("%4d-%02d-%02d %02d:%02d:%02d       %8ld %s\n",
+                 (tmstruct->tm_year) + 1900,
+                 (tmstruct->tm_mon) + 1,
+                 tmstruct->tm_mday,
+                 tmstruct->tm_hour,
+                 tmstruct->tm_min,
+                 tmstruct->tm_sec,
+                 file.size(),
+                 file.name());
         }
         file = root.openNextFile();
     }
@@ -115,17 +125,17 @@ void setup() {
 #endif
     LOGI("setup start !!!\n");
     LOGI("[CPU] speed:%ld\n", getCpuFrequencyMhz());
-    LOGI("[ROM]  size:%d, speed:%d\n", ESP.getFlashChipSize(), ESP.getFlashChipSpeed());
+    LOGI("[ROM]  size:%d, speed:%d mode:%d\n", ESP.getFlashChipSize(), ESP.getFlashChipSpeed(), ESP.getFlashChipMode());
     LOGI("[RAM]  heap:%d, PSRAM:%d\n", ESP.getHeapSize(), ESP.getPsramSize());
     heap_caps_malloc_extmem_enable(4096);
 
-    // if(!LittleFS.begin(true)){
-    //     LOGE("LittleFS Mount Failed\n");
-    //     return;
-    // } else {
-    //     LOGD("LittleFS mounted : %d\n", LittleFS.totalBytes());
-    // }
-    // listDir(LittleFS, "/", 2);
+    if (!SPIFFS.begin()) {
+        LOGE("SPIFFS Mount Failed\n");
+        while (1)
+            ;
+    } else {
+        LOGD("SPIFFS mounted : %d\n", SPIFFS.totalBytes());
+    }
 
     _lock = xSemaphoreCreateMutex();
 
@@ -146,10 +156,11 @@ void setup() {
     xtouch_firmware_checkFirmwareUpdate();
     xtouch_touch_setup();
 
-// #if !_NO_NETWORK_
-    while (!xtouch_wifi_setup());
+    // #if !_NO_NETWORK_
+    while (!xtouch_wifi_setup())
+        ;
     // xtouch_firmware_checkOnlineFirmwareUpdate();
-// #endif
+    // #endif
 
     xtouch_screen_setupScreenTimer();
     xtouch_setupGlobalEvents();
@@ -172,11 +183,11 @@ void setup() {
     uint32_t fp = ESP.getFreePsram();
     LOGI("[FREE]  heap:%d, PSRAM:%d, Total:%d\n", fh, fp, fh + fp);
 
-    // _cam = new CameraWorker((char*)xTouchConfig.xTouchIP, 6000, (char*)"bblp", (char*)xTouchConfig.xTouchAccessCode);
-    // _cam->connect();
+    listDir(SPIFFS, "/", 2);
 
-    _web = new WebWorker(&SD, "/web/", 80);
-    _web->start();
+    _web = new WebWorker(&SPIFFS, "/web", 80);
+    _web->addMount("/image", &SD, "/image/");
+    _web->start((char*)xTouchConfig.xTouchIP, (char*)xTouchConfig.xTouchAccessCode);
 }
 
 void loop() {

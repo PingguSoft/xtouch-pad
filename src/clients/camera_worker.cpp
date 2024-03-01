@@ -3,16 +3,15 @@
 
 void taskCamera(void* arg);
 
-CameraWorker::CameraWorker(char* serverAddress, uint16_t port, char* userName, char* passWord) {
-    this->_serverAddress = serverAddress;
+CameraWorker::CameraWorker(char* ipAddress, uint16_t port, char* user, char* accessCode) {
+    this->_ipAddress = ipAddress;
     this->_port = port;
-    this->_userName = userName;
-    this->_passWord = passWord;
+    this->_user = user;
+    this->_accessCode = accessCode;
 
-    _queue_comm  = xQueueCreate(5, sizeof(cmd_q_t));
-    xTaskCreate(&taskCamera, "taskCamera", 8192, this, 4, NULL);
+    _lock = xSemaphoreCreateMutex();
+    xTaskCreate(&taskCamera, "taskCamera", 8192, this, 3, NULL);
 }
-
 
 typedef struct {
     uint32_t    id1;
@@ -23,60 +22,67 @@ typedef struct {
     uint8_t     access_code[32];
 } __attribute__((packed)) auth_t;
 
-void CameraWorker::connect() {
+void CameraWorker::start() {
     _client.setInsecure();
-    if (_client.connect((char*)_serverAddress, _port, _timeout)) {
+    LOGD("connect to : %s %s\n", _ipAddress, _accessCode);
+    if (_client.connect(_ipAddress, _port, _timeout)) {
         LOGD("Camera connected\n");
-
-        // _sclient = new WiFiClientSecure(_client.fd());
-
         auth_t auth = { 0x40, 0x3000, 0, 0, 0, 0};
-        strcpy((char*)auth.user, _userName);
-        strcpy((char*)auth.access_code, _passWord);
+        strcpy((char*)auth.user, _user);
+        strcpy((char*)auth.access_code, _accessCode);
         _client.write((uint8_t*)&auth, sizeof(auth));
 
         _isConnected = true;
-        _pJPEGData = (uint8_t*)malloc(kMaxJPEGSize);
+        _pJpegBuf = (uint8_t*)malloc(kMaxJPEGSize);
         _pChunk = (uint8_t*)malloc(kChunkSize);
         _pos = 0;
         _pos_scan = 0;
-        _pos_jpeg_st = -1;
+        _pos_jpeg_beg = -1;
         _pos_jpeg_end = -1;
     } else {
-        LOGE("connection failed : %s\n", _serverAddress);
+        LOGE("connection failed : %s\n", _ipAddress);
     }
 }
 
-void CameraWorker::disconnect() {
+void CameraWorker::lock() {
+    xSemaphoreTake(_lock, portMAX_DELAY);
+}
+
+void CameraWorker::unlock() {
+    xSemaphoreGive(_lock);
+}
+
+void CameraWorker::stop() {
     _isConnected = false;
+    _client.stop();
     free(_pChunk);
-    free(_pJPEGData);
+    free(_pJpegBuf);
 }
 
 void CameraWorker::grabJPEG() {
     int sz = _client.readBytes(_pChunk, kChunkSize);
 
-    memcpy(_pJPEGData + _pos, _pChunk, sz);
+    memcpy(_pJpegBuf + _pos, _pChunk, sz);
 
-    if (_pos_jpeg_st < 0) {
+    if (_pos_jpeg_beg < 0) {
         const uint32_t jpeg_sof = 0xe0ffd8ff;
         for (int i = _pos_scan; i < _pos + sz - 3; i++) {
-            if (memcmp(_pJPEGData + i, &jpeg_sof, 4) == 0) {
-                _pos_jpeg_st = i;
+            if (memcmp(_pJpegBuf + i, &jpeg_sof, 4) == 0) {
+                _pos_jpeg_beg = i;
                 _pos_scan = i + 4;
-                LOGD("JPEG START : %d\n", _pos_jpeg_st);
+                LOGD("JPEG START : %d\n", _pos_jpeg_beg);
                 break;
             }
         }
-        if (_pos_jpeg_st < 0) {
+        if (_pos_jpeg_beg < 0) {
             _pos_scan = _pos + sz - 3;
         }
     }
 
-    if (_pos_jpeg_st >= 0) {
+    if (_pos_jpeg_beg >= 0) {
         const uint16_t jpeg_eof = 0xd9ff;
         for (int i = _pos_scan; i < _pos + sz - 1; i++) {
-            if (memcmp(_pJPEGData + i, &jpeg_eof, 2) == 0) {
+            if (memcmp(_pJpegBuf + i, &jpeg_eof, 2) == 0) {
                 _pos_jpeg_end = i + 1;
                 break;
             }
@@ -84,12 +90,16 @@ void CameraWorker::grabJPEG() {
         if (_pos_jpeg_end < 0) {
             _pos_scan = _pos + sz - 1;
         } else {
-            LOGD("JPEG END : %d, size:%d\n", _pos_jpeg_end, _pos_jpeg_end - _pos_jpeg_st);
+            uint32_t jpg_size = _pos_jpeg_end - _pos_jpeg_beg + 1;
+            LOGD("JPEG END : %d, size:%d\n", _pos_jpeg_end, jpg_size);
+            if (_callback) {
+                _callback->onJpeg(&_pJpegBuf[_pos_jpeg_beg], jpg_size);
+            }
 
             // copy remained buffer to front back
             int remain = (_pos + sz) - (_pos_jpeg_end + 1);
-            memcpy(_pJPEGData, _pJPEGData + _pos_jpeg_end + 1, remain);
-            _pos_jpeg_st = -1;
+            memcpy(_pJpegBuf, _pJpegBuf + _pos_jpeg_end + 1, remain);
+            _pos_jpeg_beg = -1;
             _pos_jpeg_end = -1;
             _pos_scan = 0;
             _pos = 0;
@@ -106,30 +116,14 @@ void CameraWorker::grabJPEG() {
 */
 void taskCamera(void* arg) {
     CameraWorker *pWorker = (CameraWorker*)arg;
-    CameraWorker::cmd_q_t *q = new CameraWorker::cmd_q_t;
 
     LOGD("taskCamera created !\n");
     while (true) {
         if (pWorker->_isConnected) {
             pWorker->grabJPEG();
         } else {
-            vTaskDelay(pdMS_TO_TICKS(20));
+            vTaskDelay(pdMS_TO_TICKS(50));
         }
-        // if (xQueueReceive(pWorker->_queue_comm, q, pdMS_TO_TICKS(10)) == pdTRUE) {
-        //     switch (q->cmd) {
-        //         case CameraWorker::CMD_START:
-        //             pWorker->connect();
-        //             break;
-
-        //         case CameraWorker::CMD_STOP:
-        //             pWorker->disconnect();
-        //             break;
-        //     }
-        //     if (q->reqBufDel)
-        //         delete q->pData;
-        // }
     }
-
-    delete q;
     vTaskDelete(NULL);
 }
