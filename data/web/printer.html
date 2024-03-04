@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Temperature / Axis</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="icon" type="image/png" href="favicon.png">
+        <link rel="stylesheet" type="text/css" href="style.css">
+    </head>
+    <body>
+        <div class="topnav">
+            <h1>Temperature / Axis</h1>
+        </div>
+
+        <div id="temperature">
+            <table class="container">
+                <thead>
+                <tr>
+                    <th scope="col">
+                        <button class="custom-btn btn-1">
+                            <img src="asset/images/ic_hotend.svg" width="100">
+                        </button>
+                    </th>
+                    <th scope="col">
+                        <button class="custom-btn btn-1">
+                            <img src="asset/images/ic_hotbed.svg" width="100">
+                        </button>
+                    </th>
+                    <th scope="col">
+                        <button class="custom-btn btn-1">
+                            <img src="asset/images/ic_chamber.svg" width="90">
+                        </button>
+                    </th>
+                    <th scope="col">
+                        <button class="custom-btn btn-1">
+                            <img src="asset/images/ic_sport.svg" width="90">
+                        </button>
+                    </th>
+                </tr>
+                </thead>
+                <tbody style="font-size: 1.2em; font-weight: 600;">
+                    <tr>
+                      <td>
+                        27/0 ℃
+                      </td>
+                      <td>
+                        27/0 ℃
+                      </td>
+                      <td>
+                        27 ℃
+                      </td>
+                      <td>
+                        100%
+                      </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="hl"></div>
+
+
+
+
+
+
+        <div id="axis">
+            <table class="container">
+                <tbody>
+                    <tr>
+                        <td style="width:20%">
+                            <strong>Build Plate</strong>
+                        </td>
+                        <td rowspan="5" style="width:60%">
+                            <div id="head_control">
+                                <table class="container" style="width: 30%;">
+                                    <tbody>
+                                        <tr>
+                                            <td colspan="3">
+                                                <button class="custom-btn btn-1" style="width: 130px; height: 50px;">
+                                                    <img src="asset/images/monitor_extruder_up.svg" width="40">
+                                                </button>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>
+                                                <button class="custom-btn btn-1" style="width: 50px; height: 130px;">
+                                                    <img src="asset/images/monitor_extruder_up.svg" height="40" style="transform:rotate(-90deg);"">
+                                                </button>
+                                            </td>
+                                            <td>
+                                                <table>
+                                                    <tbody>
+                                                        <tr>
+                                                            <td style="width:20%" colspan="5">
+                                                                <button class="custom-btn btn-2" style="width: 50px; height: 50px;">
+                                                                    <img src="asset/images/monitor_extruder_up.svg" width="33px">
+                                                                </button>
+                                                            </td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td style="width:20%">
+                                                                <button class="custom-btn btn-2" style="width: 50px; height: 50px;">
+                                                                    <img src="asset/images/monitor_extruder_up.svg" width="35px" style="transform:rotate(-90deg);"">
+                                                                </button>
+                                                            </td>
+                                                            <td style="width:20%;">
+                                                                <button class="custom-btn btn-1" style="width: 60px; height: 60px;">
+                                                                    <img src="asset/images/home_circle_outline.svg" width="41px">
+                                                                </button>
+                                                            </td>
+                                                            <td style="width:20%">
+                                                                <button class="custom-btn btn-2" style="width: 50px; height: 50px;">
+                                                                    <img src="asset/images/monitor_extruder_up.svg" width="35px" style="transform:rotate(90deg);"">
+                                                                </button>
+                                                            </td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td style="width:20%"  colspan="5">
+                                                                <button class="custom-btn btn-2" style="width: 50px; height: 50px;">
+                                                                    <img src="asset/images/monitor_extruder_down.svg" width="33px"">
+                                                                </button>
+                                                            </td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
+                                            </td>
+                                            <td>
+                                                <button class="custom-btn btn-1" style="width: 50px; height: 130px;">
+                                                    <img src="asset/images/monitor_extruder_up.svg" height="40" style="transform:rotate(90deg);"">
+                                                </button>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td colspan="3">
+                                                <button class="custom-btn btn-1" style="width: 130px; height: 50px;">
+                                                    <img src="asset/images/monitor_extruder_down.svg"  width="40">
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                        </td>
+                        <td style="width:20%"><strong>Extruder</strong></td>
+                    </tr>
+                    <tr>
+                        <td style="width:20%">
+                            <button class="custom-btn btn-1" style="width: 80px; height: 80px;">
+                                <img src="asset/images/monitor_bed_up.svg" width="30" style="padding-right: 3px;">
+                                10
+                            </button>
+                        </td>
+                        <td style="width:20%">
+                            <button class="custom-btn btn-1" style="width: 80px; height: 80px;">
+                                <img src="asset/images/monitor_extruder_up.svg" width="60">
+                            </button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="width:20%">
+                            <button class="custom-btn btn-2" style="width: 80px; height: 80px;">
+                                <img src="asset/images/monitor_bed_up.svg"  width="30" style="padding-right: 3px;">
+                                1
+                            </button>
+                        </td>
+                        <td colspan="1" rowspan="2" style="width:20%">
+                            <img src="asset/images/monitor_extruder_empty_load.png" width="50">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="width:20%">
+                            <button class="custom-btn btn-2" style="width: 80px; height: 80px;">
+                                <img src="asset/images/monitor_bed_down.svg"  width="30" style="padding-right: 3px;">
+                                1
+                            </button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="width:20%">
+                            <button class="custom-btn btn-1" style="width: 80px; height: 80px;">
+                                <img src="asset/images/monitor_bed_down.svg"  width="30" style="padding-right: 3px;">
+                                10
+                            </button>
+                        </td>
+                        <td style="width:20%">
+                            <button class="custom-btn btn-1" style="width: 80px; height: 80px;">
+                                <img src="asset/images/monitor_extruder_down.svg"  width="60">
+                            </button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="hl"></div>
+
+        <div id="fan">
+            <table class="container">
+                <tbody>
+                    <tr>
+                        <td>
+                            <button class="custom-btn btn-1" style="width: 80px; height: 80px;">
+                                <img src="asset/images/ic_light_off.svg" width="60" style="padding-bottom: 10px;">Light
+                            </button>
+                        </td>
+                        <td class="vl">
+                            <button class="custom-btn btn-1" style="width: 80px; height: 80px;">
+                                <img src="asset/images/ic_fan_off.svg" width="60" style="padding-bottom: 10px;">Part
+                            </button>
+                        </td>
+                        <td>
+                            <button class="custom-btn btn-1" style="width: 80px; height: 80px;">
+                                <img src="asset/images/ic_fan_off.svg" width="60" style="padding-bottom: 10px;">Aux.
+                            </button>
+                        </td>
+                        <td>
+                            <button class="custom-btn btn-1" style="width: 80px; height: 80px;">
+                                <img src="asset/images/ic_fan_off.svg" width="60" style="padding-bottom: 10px;">Chamber
+                            </button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </body>
+</html>
