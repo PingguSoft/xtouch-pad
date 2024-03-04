@@ -114,3 +114,8 @@ function drawImage(data) {
     var div = document.getElementById('img');
     div.appendChild(image);
 }
+
+
+function onClickButton(id) {
+    alert(id);
+}
