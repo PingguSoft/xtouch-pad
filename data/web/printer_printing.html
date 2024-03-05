@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Temperature / Axis</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="icon" type="image/png" href="favicon.png">
+        <link rel="stylesheet" type="text/css" href="style.css">
+    </head>
+    <body>
+        <div class="topnav">
+            <h1>Printing</h1>
+        </div>
+
+<!--
+    MONITORING SCREEN
+ -->
+        <div id="monitoring" style="height:480px">
+            <img src="asset/images/monitor_camera.svg" height="100%" id="camera_view">
+        </div>
+        <div class="hl"></div>
+
+<!--
+    PRINTING INFO
+ -->
+        <div id="printing_info">
+            <table class="container" border="0">
+                <tbody>
+                    <tr style="vertical-align: top">
+                        <td style="width:40%; height:200px;">
+                            <img src="asset/images/ic_comment_model.svg" height="240px" id="model_preview">
+                        </td>
+                        <td>
+                            <table class="container" border="0" align="top">
+                                <tbody>
+                                    <tr>
+                                        <td  colspan="2" style="text-align: left; height: 60px;">
+                                            <label id="printing_model_name" style="font-weight: bold; font-size: 1.3em;">
+                                                Folderable Book or Tablet Stand
+                                            </label>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td  colspan="2" style="text-align: left; height: 40px; vertical-align: top">
+                                            <label id="printing_model_aux" style="font-weight: bold; font-size: 1.1em;color:gray">
+                                                Standard Book Stand, 0.2...
+                                            </label>
+                                        </td>
+                                    </tr>
+                                    <tr >
+                                        <td style="text-align: left; font-weight: bold; font-size: 1.2em">
+                                            Printed layers
+                                        </td>
+                                        <td style="text-align: right; font-weight: bold; font-size: 1.2em">
+                                            <label style="font-weight: bold; font-size: 1.2em; color:green" id="printing_cur_layer">
+                                                0
+                                            </label>
+                                            <label>/</label>
+                                            <label id="printing_max_layer">91</label>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td style="text-align: left; font-weight: bold; font-size: 1.2em; color:green">
+                                            <label id="printing_cur_prog_percentage">0 %</label>
+                                        </td>
+                                        <td style="text-align: right; font-weight: bold; font-size: 1.2em; color:gray">
+                                            <label id="printing_remaining_time">-4h 11m</label>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td colspan="2" style="text-align: center; font-weight: bold; font-size: 1.2em; color:gray">
+                                            <progress max="100" value="30" style="width: 95%; height:40px; padding-left: 10px; padding-right: 10px;" id="printing_cur_prog_bar">
+                                            </progress>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <table class="container" style="padding: 0px 0px 20px 0px;">
+                <tbody>
+                    <tr>
+                        <td>
+                            <button class="custom-btn btn-1" style="width: 80px; height: 80px;" id="btn_print" onClick="onClickButton(this.id)">
+                                <img src="asset/images/print_control_resume.svg" width="30"><br>
+                                <label>Print</label>
+                            </button>
+                        </td>
+                        <td class="vl">
+                            <button class="custom-btn btn-1" style="width: 80px; height: 80px;" id="btn_stop" onClick="onClickButton(this.id)">
+                                <img src="asset/images/print_control_stop.svg" width="30"><br>
+                                <label>Stop</label>
+                            </button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="hl"></div>
+
+<!--
+    PRINTER INFO
+ -->
+        <div id="printer_info">
+            <table class="container" border="0" style="padding: 20px 0px 5px 0px;">
+                <tbody>
+                    <tr style="vertical-align: center;">
+                        <td style="width: 130px;">
+                            <button class="custom-btn btn-noclick" style="width: 85px; height: 85px;">
+                                <img src="asset/images/ic_device.svg" width="60" style="padding-bottom: 10px;">
+                            </button> <br>
+                            <label style="text-align: center; font-weight: bold; font-size: 1.2em;">Printer</label>
+                        </td>
+                        <td class="vl">
+                            <button class="custom-btn btn-1" style="width: 110px; height: 80px;" id="btn_nozzle_temp" onClick="onClickButton(this.id)">
+                                <img src="asset/images/monitor_nozzle_temp_active.svg" width="60" style="padding-bottom: 10px;">
+                            </button><br>
+                            <label style="text-align: center; font-weight: bold; font-size: 1.2em;">46</label>
+                            <label style="text-align: center; font-weight: font-size: 1.0em;">→</label>
+                            <label style="text-align: center; font-weight: font-size: 1.1em;">75℃</label>
+                        </td>
+                        <td>
+                            <button class="custom-btn btn-1" style="width: 110px; height: 80px;" id="btn_bed_temp" onClick="onClickButton(this.id)">
+                                <img src="asset/images/monitor_bed_temp_active.svg" width="60" style="padding-bottom: 10px;">
+                            </button><br>
+                            <label style="text-align: center; font-weight: bold; font-size: 1.2em;">23</label>
+                            <label style="text-align: center; font-weight: font-size: 1.0em;">→</label>
+                            <label style="text-align: center; font-weight: font-size: 1.1em;">70℃</label>
+                        </td>
+                        <td>
+                            <button class="custom-btn btn-1" style="width: 110px; height: 80px;" id="btn_speed" onClick="onClickButton(this.id)">
+                                <img src="asset/images/monitor_speed.svg" width="60" style="padding-bottom: 10px;">
+                            </button><br>
+                            <label style="text-align: center; font-weight: bold; font-size: 1.2em;">100%</label>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+
+        <div id="ams_info">
+            <table class="container" border="0" style="padding: 5px 0px 5px 0px;">
+                <tbody>
+                    <tr id="ams" style="vertical-align: center;">
+                        <td style="width: 130px;">
+                            <button class="custom-btn btn-noclick" style="width: 85px; height: 85px;">
+                                <img src="asset/images/ic_ams.svg" width="60" style="padding-bottom: 10px;">
+                            </button><br>
+                            <label style="text-align: center; font-weight: bold; font-size: 1.2em;">AMS</label>
+                        </td>
+                        <td class="vl">
+                            <button class="custom-btn btn-circle" style="width: 50px; height: 50px; background: red;" id="btn_tray_1" onClick="onClickButton(this.id)">
+                            </button><br>
+                            <label style="text-align: center; font-weight: bold; font-size: 1.2em;">PLA</label>
+                        </td>
+                        <td>
+                            <button class="custom-btn btn-circle" style="width: 50px; height: 50px;background: blue;" id="btn_tray_2" onClick="onClickButton(this.id)">
+                            </button><br>
+                            <label style="text-align: center; font-weight: bold; font-size: 1.2em;">PLA</label>
+                        </td>
+                        <td>
+                            <button class="custom-btn btn-circle" style="width: 50px; height: 50px;background: magenta;" id="btn_tray_3" onClick="onClickButton(this.id)">
+                            </button><br>
+                            <label style="text-align: center; font-weight: bold; font-size: 1.2em;">PLA</label>
+                        </td>
+                        <td>
+                            <button class="custom-btn btn-circle" style="width: 50px; height: 50px;background: yellow;" id="btn_tray_4" onClick="onClickButton(this.id)">
+                            </button><br>
+                            <label style="text-align: center; font-weight: bold; font-size: 1.2em;">PLA</label>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <script src="script.js"></script>
+    </body>
+</html>
