@@ -6,13 +6,17 @@
 #include <FS.h>
 #include <AsyncTCP.h>
 #include <ESPAsyncWebServer.h>
+#include <PubSubClient.h>
+#include <ArduinoJson.h>
+#include <WiFiClientSecure.h>
 #include "freertos/FreeRTOS.h"
 #include "freertos/portmacro.h"
 #include "freertos/task.h"
 #include "freertos/queue.h"
 #include "camera_worker.h"
+#include "mqtt_worker.h"
 
-class WebWorker : public CameraWorker::Callback {
+class WebWorker : public CameraWorker::Callback, MQTTWorker::Callback {
 public:
     typedef enum {
         CMD_START = 1,
@@ -39,7 +43,7 @@ public:
     } mount_t;
 
     WebWorker(fs::FS *fs, char *root, uint16_t port);
-    void start(char *ip, char *acccessCode);
+    void start(char *ip, char *accessCode, char *serial);
     void stop();
     void addMount(char *web_dir, fs::FS *fs, char *fs_dir);
     void onEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType type, void *arg, uint8_t *data, size_t len);
@@ -49,11 +53,11 @@ public:
     void sendFile(char *path);
     void sendPNG();
 
-
     String getSensorReadings();
     void loop();
 
     virtual void onJpeg(uint8_t *param, int size);
+    virtual void onMQTT(char *topic, byte *payload, unsigned int length);
     friend void taskWeb(void* arg);
 
 private:
@@ -71,6 +75,9 @@ private:
     int             _pos;
     char            *_ip;
     char            *_access;
+    char            *_serial;
+
+    MQTTWorker      *_mqtt;
     CameraWorker    *_cam;
     std::vector<String> _list_sd;
     std::list<mount_t> _list_mnt;

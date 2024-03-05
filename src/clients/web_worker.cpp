@@ -1,12 +1,34 @@
 #include <FS.h>
 #include <SD.h>
-#include <ArduinoJson.h>
+#include <WiFiClientSecure.h>
 #include "debug.h"
 #include "web_worker.h"
 
-
 void taskWeb(void* arg);
 
+/*
+*****************************************************************************************
+* Callbacks
+*****************************************************************************************
+*/
+void WebWorker::onJpeg(uint8_t *param, int size) {
+    if (_ws->count() > 0) {
+        _ws->binaryAll(param, size);
+    }
+}
+
+void WebWorker::onMQTT(char *topic, byte *payload, unsigned int length) {
+    LOGI("%5d - %s %s\n", length, topic, payload);
+    if (_ws->count() > 0) {
+        _ws->textAll(payload, length);
+    }
+}
+
+/*
+*****************************************************************************************
+*
+*****************************************************************************************
+*/
 WebWorker::WebWorker(fs::FS *fs, char *root, uint16_t port) {
     _fs = fs;
     _port = port;
@@ -45,9 +67,11 @@ void WebWorker::listDirSD(char *path, std::vector<String> &info, String ext) {
     delete new_path;
 }
 
-void WebWorker::start(char *ip, char *acccessCode) {
+void WebWorker::start(char *ip, char *accessCode, char *serial) {
     _ip = ip;
-    _access = acccessCode;
+    _access = accessCode;
+    _serial = serial;
+
     cmd_q_t q = { CMD_START, NULL, 0, false };
     xQueueSend(_queue_comm, &q, portMAX_DELAY);
 }
@@ -59,12 +83,6 @@ void WebWorker::stop() {
 
 void WebWorker::addMount(char *web_dir, fs::FS *fs, char *fs_dir) {
     _list_mnt.push_back({web_dir, fs, fs_dir});
-}
-
-void WebWorker::onJpeg(uint8_t *param, int size) {
-    if (_ws->count() > 0) {
-        _ws->binaryAll(param, size);
-    }
 }
 
 void WebWorker::sendFile(char *path) {
@@ -117,6 +135,10 @@ void WebWorker::_start() {
     _cam = new CameraWorker(_ip, 6000, (char*)"bblp", _access);
     _cam->setCallback(this);
     _cam->start();
+
+    _mqtt = new MQTTWorker(_ip, _access, _serial);
+    _mqtt->setCallback(this);
+    _mqtt->start();
 }
 
 void WebWorker::_stop() {
@@ -133,26 +155,13 @@ void WebWorker::_stop() {
     }
 }
 
-String WebWorker::getSensorReadings() {
-    JsonDocument json;
-
-    json["temperature"] = String(random(30));
-    json["humidity"] = String(random(100));
-    json["pressure"] = String(random(20));
-
-    String output;
-    serializeJson(json, output);
-    return output;
-}
-
 void WebWorker::handleWebSocketMessage(void *arg, uint8_t *data, size_t len) {
     AwsFrameInfo *info = (AwsFrameInfo *)arg;
     if (info->final && info->index == 0 && info->len == len && info->opcode == WS_TEXT) {
-        if (strcmp((char*)data, "getReadings") == 0) {
-            String sensorReadings = getSensorReadings();
-            // LOGD("%s\n", sensorReadings.c_str());
-            _ws->textAll(sensorReadings);
-            sendPNG();
+        if (strcmp((char*)data, "open") == 0) {
+            if (_mqtt) {
+                _mqtt->reqPushAll();
+            }
         }
     }
 }
@@ -181,12 +190,13 @@ void WebWorker::loop() {
     long ts = millis();
     if ((ts - _last_ts) > 5000) {
         if (_ws->count() > 0) {
-            String sensorReadings = getSensorReadings();
-            _ws->textAll(sensorReadings);
-            sendPNG();
+            // String sensorReadings = getSensorReadings();
+            // _ws->textAll(sensorReadings);
+            // sendPNG();
         }
         _last_ts = ts;
     }
+    _mqtt->loop();
     _ws->cleanupClients();
 }
 

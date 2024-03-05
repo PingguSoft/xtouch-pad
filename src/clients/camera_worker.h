@@ -28,7 +28,7 @@ public:
     friend void taskCamera(void* arg);
 
 private:
-    void grabJPEG();
+    int grabJPEG();
 
     WiFiClientSecure  _client;
     Callback         *_callback;

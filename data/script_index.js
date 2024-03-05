@@ -8,12 +8,8 @@ function onload(event) {
     initWebSocket();
 }
 
-function getReadings(){
-    websocket.send("getReadings");
-}
-
 function initWebSocket() {
-    console.log('Trying to open a WebSocket connection…');
+    console.log('Trying to open a WebSocket connection...');
     websocket = new WebSocket(gateway);
     websocket.onopen = onOpen;
     websocket.onclose = onClose;
@@ -24,7 +20,7 @@ function initWebSocket() {
 // When websocket is established, call the getReadings() function
 function onOpen(event) {
     console.log('Connection opened');
-    getReadings();
+    websocket.send("open");
 }
 
 function onClose(event) {
@@ -69,53 +65,42 @@ function onMessage(event) {
 
         console.log(id);
         if (id == 0xe0ffd8ff) {         // jpeg
-            var image = document.getElementById('jpeg_image');
-            image.src = 'data:image/jpeg;base64,' + encode(bytes);
+            var image = document.getElementById('camera_view');
+            if (image)
+                image.src = 'data:image/jpeg;base64,' + encode(bytes);
         } else if (id == 0x474e5089) {  // png
-            var image = document.getElementById('png_image');
-            image.src = 'data:image/png;base64,' + encode(bytes);
+            var image = document.getElementById('model_view');
+            if (image)
+                image.src = 'data:image/png;base64,' + encode(bytes);
         }
-        // for (var i = 0; i < bytes.length; i++) {
-        //   msg += String.fromCharCode(bytes[i]);
-        // }
     } else {
-        var myObj = JSON.parse(event.data);
-        var keys = Object.keys(myObj);
+        var json = JSON.parse(event.data);
+        if (json) {
+            json = json['print'];
+            if (json) {
+                var nodes = ['nozzle_temper', 'nozzle_target_temper', 'bed_temper', 'bed_target_temper'];
 
-        for (var i = 0; i < keys.length; i++) {
-            var key = keys[i];
-            document.getElementById(key).innerHTML = myObj[key];
+                for (var i = 0; i < nodes.length; i++) {
+                    if (nodes[i] in Object.keys(json)) {
+                        var label = document.getElementById(nodes[i]);
+                        if (label) {
+                            var val = parseInt(json[nodes[i]], 10);
+                            console.log(nodes[i], val);
+                            label.innerText = val;
+                        }
+                    }
+                }
+
+                if (json['gcode_state'] == 'IDLE') {
+                    document.getElementById('printer_info').style.visibility = 'hidden';
+                } else {
+                    document.getElementById('printer_info').style.visibility = 'visible';
+                }
+            }
         }
     }
 }
-
-function drawImage(data) {
-    var imageWidth = 128, imageHeight = 128; // hardcoded width & height.
-    var byteArray = new Uint8Array(data);
-
-    var canvas = document.createElement('canvas');
-    canvas.width = imageWidth;
-    canvas.height = imageHeight;
-    var ctx = canvas.getContext('2d');
-
-    var imageData = ctx.getImageData(0, 0, imageWidth, imageHeight); // total size: imageWidth * imageHeight * 4; color format BGRA
-    var dataLen = imageData.data.length;
-    for (var i = 0; i < dataLen; i++) {
-        imageData.data[i] = byteArray[i];
-    }
-    ctx.putImageData(imageData, 0, 0);
-
-    // create a new element and add it to div
-    var image = document.createElement('img');
-    image.width = imageWidth;
-    image.height = imageHeight;
-    image.src = canvas.toDataURL();
-
-    var div = document.getElementById('img');
-    div.appendChild(image);
-}
-
 
 function onClickButton(id) {
-    alert(id);
+    console.log(id);
 }

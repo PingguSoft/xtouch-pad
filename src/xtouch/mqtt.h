@@ -621,6 +621,9 @@ void xtouch_mqtt_parseMessage(char *topic, byte *payload, unsigned int length, b
     // xtouch_debug_json(incomingJson);
     if (!deserializeError)
     {
+        // String output;
+        // serializeJson(incomingJson, output);
+        // LOGI("%s\n", output.c_str());
 
         if (incomingJson.containsKey("print") && incomingJson["print"].containsKey("command"))
         {

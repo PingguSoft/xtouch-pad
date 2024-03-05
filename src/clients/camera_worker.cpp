@@ -59,7 +59,10 @@ void CameraWorker::stop() {
     free(_pJpegBuf);
 }
 
-void CameraWorker::grabJPEG() {
+int CameraWorker::grabJPEG() {
+    if (_client.available() < kChunkSize)
+        return -1;
+
     int sz = _client.readBytes(_pChunk, kChunkSize);
 
     memcpy(_pJpegBuf + _pos, _pChunk, sz);
@@ -107,6 +110,8 @@ void CameraWorker::grabJPEG() {
         }
     }
     _pos = (_pos + sz) % kMaxJPEGSize;
+
+    return sz;
 }
 
 /*
@@ -120,7 +125,9 @@ void taskCamera(void* arg) {
     LOGD("taskCamera created !\n");
     while (true) {
         if (pWorker->_isConnected) {
-            pWorker->grabJPEG();
+            if (pWorker->grabJPEG() < 0) {
+                vTaskDelay(pdMS_TO_TICKS(20));
+            }
         } else {
             vTaskDelay(pdMS_TO_TICKS(50));
         }

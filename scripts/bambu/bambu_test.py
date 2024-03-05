@@ -46,23 +46,23 @@ async def new_main(argv):
     if success:
         print("Starting MQTT")
 
-        ftp = IoTFTPSClient(f"{host}", 990, "bblp", f"{access_code}", ssl_implicit=True)
-        filelist = ftp.list_files("", ".3mf")
-        print(filelist)
+        # ftp = IoTFTPSClient(f"{host}", 990, "bblp", f"{access_code}", ssl_implicit=True)
+        # filelist = ftp.list_files("", ".3mf")
+        # print(filelist)
 
         def event_handler(event):
             global number
 
             device_instance = bambu.get_device()
             print('event:', device_instance, event)
-            if event == 'event_printer_chamber_image_update':
-                data = device_instance.chamber_image.get_jpeg()
-                if data is not None:
-                    filename = f'cam_{number:03d}.jpg'
-                    print(f'saving {filename}..')
-                    with open(filename, 'wb') as f:
-                        f.write(data)
-                    number += 1
+            # if event == 'event_printer_chamber_image_update':
+            #     data = device_instance.chamber_image.get_jpeg()
+            #     if data is not None:
+            #         filename = f'cam_{number:03d}.jpg'
+            #         print(f'saving {filename}..')
+            #         with open(filename, 'wb') as f:
+            #             f.write(data)
+            #         number += 1
 
         bambu.connect(callback=event_handler)
         await asyncio.sleep(10)

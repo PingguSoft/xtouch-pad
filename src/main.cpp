@@ -165,6 +165,13 @@ void setup() {
     xtouch_screen_setupScreenTimer();
     xtouch_setupGlobalEvents();
 
+#if _NO_NETWORK_
+    IPAddress ip;
+    DynamicJsonDocument printerIps = xtouch_ssdp_load_printerIPs();
+    ip.fromString(printerIps[xTouchConfig.xTouchSerialNumber].as<String>());
+    strcpy(xTouchConfig.xTouchIP, ip.toString().c_str());
+#endif
+
 #if !_NO_NETWORK_
     xtouch_pair_check();
     xtouch_mqtt_setup();
@@ -185,9 +192,9 @@ void setup() {
 
     listDir(SPIFFS, "/", 2);
 
-    _web = new WebWorker(&SPIFFS, "/web", 80);
-    _web->addMount("/image", &SD, "/image/");
-    _web->start((char*)xTouchConfig.xTouchIP, (char*)xTouchConfig.xTouchAccessCode);
+    _web = new WebWorker(&SPIFFS, "/", 80);
+    // _web->addMount("/image", &SD, "/image/");
+    _web->start((char*)xTouchConfig.xTouchIP, (char*)xTouchConfig.xTouchAccessCode, (char*)xTouchConfig.xTouchSerialNumber);
 }
 
 void loop() {
