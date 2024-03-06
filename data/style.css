@@ -133,14 +133,29 @@ h1 {
 
 
 /*
+ * custom input
+ */
+.custom-input {
+    color: #000000;
+    border-radius: 5px;
+    padding: 2px;
+    background: transparent;
+    position: relative;
+    display: inline-block;
+    outline: none;
+    text-align: center;
+    font-size: 1.1em;
+    width: 50px;
+}
+
+
+/*
  * custom button
  */
 .custom-btn {
     color: #000000;
     border-radius: 20px;
     padding: 10px 10px 10px 10px;
-    font-weight: 600;
-    font-size: 1.1em;
     background: transparent;
     position: relative;
     display: inline-block;
@@ -150,6 +165,8 @@ h1 {
     outline: none;
     margin: 3px;
     text-align: center;
+    font-weight: 600;
+    font-size: 1.2em;
 }
 
 .btn-1 {
@@ -180,7 +197,7 @@ h1 {
     border: none;
 }
 
-.btn-1:hover, .btn-2:hover {
+.btn-1:hover, .btn-2:hover, .custom-input:hover {
     /* background-color: #89d8d3;
     background-image: linear-gradient(315deg, #89d8d3 0%, #03c8a8 74%); */
     box-shadow: 8px 8px 6px darkgray;
@@ -200,3 +217,4 @@ h1 {
     color: #ff0000;
     box-shadow: 2px 2px 6px rgba(0,0,0,0.3);
 }
+

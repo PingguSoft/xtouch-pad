@@ -92,9 +92,11 @@ function onMessage(event) {
                 }
 
                 if (json['gcode_state'] == 'IDLE') {
-                    document.getElementById('printer_info').style.visibility = 'hidden';
+                    document.getElementById('printing_idle').style.display = '';
+                    document.getElementById('printing_info').style.display = 'none';
                 } else {
-                    document.getElementById('printer_info').style.visibility = 'visible';
+                    document.getElementById('printing_idle').style.display = 'none';
+                    document.getElementById('printing_info').style.display = '';
                 }
             }
         }
@@ -102,5 +104,21 @@ function onMessage(event) {
 }
 
 function onClickButton(id) {
+    var buttons = ['btn_nozzle_temp', 'btn_bed_temp'];
+    var targets = ['nozzle_target_temper', 'bed_target_temper']
+
+
     console.log(id);
+    if (id == "btn_printer") {
+        var e = document.getElementById('printing_idle');
+        e.style.display = (e.style.display == 'none') ? '' : 'none';
+    }
+    else if (id == "btn_ams") {
+        var e = document.getElementById('printing_info');
+        e.style.display = (e.style.display == 'none') ? '' : 'none';
+    }
 }
+
+//
+// 2
+//

@@ -13,24 +13,59 @@
 
 <!--
     MONITORING SCREEN
+    1280x720 half = 640x360
  -->
-        <div id="monitoring" style="width:640px; height:360px">
+        <div id="monitoring" class="container" style="background-color: black;">
             <img src="images/m_camera.svg" width="640px" height="360px" id="camera_view">
         </div>
-        <div class="hl"></div>
+
+<!--
+    IDLE SCREEN
+ -->
+        <div id="printing_idle" class="container">
+            <table border="0" style="width:100%;">
+                <tbody>
+                    <tr style="vertical-align: middle">
+                        <td style="width:40%;">
+                            <img src="images/ic_printer_c12.svg" width="120px" height="120px" id="model_view">
+                        </td>
+                        <td class="vl">
+                            <table border="0" align="top">
+                                <tbody>
+                                    <tr>
+                                        <td  colspan="2" style="text-align: left; height: 60px;">
+                                            <label id="printing_model_name" style="font-weight: bold; font-size: 1.3em;">
+                                                Device Idle
+                                            </label>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td  colspan="2" style="text-align: left; height: 40px; vertical-align: top">
+                                            <label id="printing_model_aux" style="font-weight: bold; font-size: 1.1em;color:gray">
+                                                No task is being printed on the current device
+                                            </label>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
 
 <!--
     PRINTING INFO
  -->
-        <div id="printing_info">
-            <table class="container" border="0">
+        <div id="printing_info" class="container" style="display: none;">
+            <table border="0" style="width:100%;">
                 <tbody>
-                    <tr style="vertical-align: top">
-                        <td style="width:40%; height:200px;">
-                            <img src="images/ic_comment_model.svg" width="240px" height="240px" id="model_view">
+                    <tr style="vertical-align: middle">
+                        <td style="width:40%;">
+                            <img src="images/ic_comment_model.svg" width="120px" height="120px" id="model_view">
                         </td>
                         <td>
-                            <table class="container" border="0" align="top">
+                            <table border="0" align="top" style="width:100%;">
                                 <tbody>
                                     <tr>
                                         <td  colspan="2" style="text-align: left; height: 60px;">
@@ -79,26 +114,26 @@
                 </tbody>
             </table>
 
-            <table class="container" style="padding: 0px 0px 20px 0px;">
+            <table class="container" style="padding: 0px 0px 20px 0px;" border="0">
                 <tbody>
                     <tr>
                         <td>
-                            <button class="custom-btn btn-1" style="width: 80px; height: 80px;" id="btn_print" onClick="onClickButton(this.id)">
-                                <img src="images/print_ctrl_resume.svg" width="30"><br>
-                                <label>Print</label>
+                            <button class="custom-btn btn-1" style="width: 140px; height: 60px;" id="btn_print" onClick="onClickButton(this.id)">
+                                <img src="images/print_ctrl_resume.svg" width="30" style="vertical-align:middle">
+                                <label style="vertical-align:middle" id="label_print">Print</label>
                             </button>
                         </td>
                         <td class="vl">
-                            <button class="custom-btn btn-1" style="width: 80px; height: 80px;" id="btn_stop" onClick="onClickButton(this.id)">
-                                <img src="images/print_ctrl_stop.svg" width="30"><br>
-                                <label>Stop</label>
+                            <button class="custom-btn btn-1" style="width: 140px; height: 60px;" id="btn_stop" onClick="onClickButton(this.id)">
+                                <img src="images/print_ctrl_stop.svg" width="30" style="vertical-align:middle">
+                                <label style="vertical-align:middle" id="label_stop">Stop</label>
                             </button>
                         </td>
                     </tr>
                 </tbody>
             </table>
         </div>
-        <div class="hl"></div>
+        <!-- <div class="hl"></div> -->
 
 <!--
     PRINTER INFO
@@ -108,7 +143,7 @@
                 <tbody>
                     <tr style="vertical-align: center;">
                         <td style="width: 130px;">
-                            <button class="custom-btn btn-1" style="width: 85px; height: 85px;">
+                            <button class="custom-btn btn-1" style="width: 85px; height: 85px;" id="btn_printer" onClick="onClickButton(this.id)">
                                 <img src="images/ic_device.svg" width="60" style="padding-bottom: 10px;">
                             </button> <br>
                             <label style="text-align: center; font-weight: bold; font-size: 1.2em;">Printer</label>
@@ -119,7 +154,8 @@
                             </button><br>
                             <label style="text-align: center; font-weight: bold; font-size: 1.2em;" id="nozzle_temper">46</label>
                             <label style="text-align: center; font-size: 1.0em;">&rarr;</label>
-                            <label style="text-align: center; font-size: 1.1em;" id="nozzle_target_temper">75&deg;C</label>
+                            <input type="number" min="0" max="300" class="custom-input" id="nozzle_target_temper">
+                            <label style="text-align: center; font-size: 1.1em;">&deg;C</label>
                         </td>
                         <td>
                             <button class="custom-btn btn-1" style="width: 110px; height: 80px;" id="btn_bed_temp" onClick="onClickButton(this.id)">
@@ -127,7 +163,8 @@
                             </button><br>
                             <label style="text-align: center; font-weight: bold; font-size: 1.2em;" id="bed_temper">23</label>
                             <label style="text-align: center; font-size: 1.0em;">&rarr;</label>
-                            <label style="text-align: center; font-size: 1.1em;" id="bed_target_temper">70&deg;C</label>
+                            <label style="text-align: center; font-size: 1.1em;" id="bed_target_temper">70</label>
+                            <label style="text-align: center; font-size: 1.1em;">&deg;C</label>
                         </td>
                         <td>
                             <button class="custom-btn btn-1" style="width: 110px; height: 80px;" id="btn_speed" onClick="onClickButton(this.id)">
@@ -144,7 +181,7 @@
                 <tbody>
                     <tr id="ams" style="vertical-align: center;">
                         <td style="width: 130px;">
-                            <button class="custom-btn btn-1" style="width: 85px; height: 85px;">
+                            <button class="custom-btn btn-1" style="width: 85px; height: 85px;" id="btn_ams" onClick="onClickButton(this.id)">
                                 <img src="images/ic_ams.svg" width="60" style="padding-bottom: 10px;">
                             </button><br>
                             <label style="text-align: center; font-weight: bold; font-size: 1.2em;">AMS</label>
