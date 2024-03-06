@@ -83,7 +83,9 @@ void MQTTWorker::reqDeviceVersion() {
     publish(json);
 }
 
-void MQTTWorker::loop() {
+bool MQTTWorker::loop() {
+    bool ret = false;
+
     if (!_mqtt_client->connected()) {
         char key[17];
 
@@ -97,10 +99,13 @@ void MQTTWorker::loop() {
 
             reqPushAll();
             reqDeviceVersion();
+            ret = true;
         } else {
             LOGE("MQTT status : %d\n", _mqtt_client->state());
+            ret = false;
         }
     } else {
-        _mqtt_client->loop();
+        ret = _mqtt_client->loop();
     }
+    return ret;
 }

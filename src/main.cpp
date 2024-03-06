@@ -129,10 +129,9 @@ void setup() {
     LOGI("[RAM]  heap:%d, PSRAM:%d\n", ESP.getHeapSize(), ESP.getPsramSize());
     heap_caps_malloc_extmem_enable(4096);
 
-    if (!SPIFFS.begin()) {
+    if (!SPIFFS.begin(false, "/spiffs", 30)) {
         LOGE("SPIFFS Mount Failed\n");
-        while (1)
-            ;
+        while (1);
     } else {
         LOGD("SPIFFS mounted : %d\n", SPIFFS.totalBytes());
     }
@@ -179,7 +178,7 @@ void setup() {
 
     xtouch_chamber_timer_init();
     LOGD("priority : before %d\n", uxTaskPriorityGet(NULL));
-    vTaskPrioritySet(NULL, 5);
+    vTaskPrioritySet(NULL, 2);
     LOGD("priority : before %d\n", uxTaskPriorityGet(NULL));
 
 #if _NO_NETWORK_
@@ -190,11 +189,12 @@ void setup() {
     uint32_t fp = ESP.getFreePsram();
     LOGI("[FREE]  heap:%d, PSRAM:%d, Total:%d\n", fh, fp, fh + fp);
 
-    listDir(SPIFFS, "/", 2);
+    // listDir(SPIFFS, "/", 2);
 
     _web = new WebWorker(&SPIFFS, "/", 80);
     // _web->addMount("/image", &SD, "/image/");
-    _web->start((char*)xTouchConfig.xTouchIP, (char*)xTouchConfig.xTouchAccessCode, (char*)xTouchConfig.xTouchSerialNumber);
+    _web->setPrinterInfo((char*)xTouchConfig.xTouchIP, (char*)xTouchConfig.xTouchAccessCode, (char*)xTouchConfig.xTouchSerialNumber);
+    _web->start();
 }
 
 void loop() {
@@ -204,4 +204,5 @@ void loop() {
 #if !_NO_NETWORK_
     xtouch_mqtt_loop();
 #endif
+    delay(5);
 }

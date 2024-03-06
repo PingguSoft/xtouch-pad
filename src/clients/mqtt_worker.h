@@ -27,7 +27,7 @@ public:
     void start();
     void stop();
     void onMQTT(char *topic, byte *payload, unsigned int length);
-    void loop();
+    bool loop();
     void publish(JsonDocument json);
     void setCallback(Callback *cb) { _callback = cb; }
     void reqPushAll();

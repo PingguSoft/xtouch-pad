@@ -3,6 +3,7 @@
 #include <WiFiClientSecure.h>
 #include "debug.h"
 #include "web_worker.h"
+#include "SPIFFSEditor.h"
 
 void taskWeb(void* arg);
 
@@ -32,15 +33,16 @@ void WebWorker::onMQTT(char *topic, byte *payload, unsigned int length) {
 WebWorker::WebWorker(fs::FS *fs, char *root, uint16_t port) {
     _fs = fs;
     _port = port;
-    _server = NULL;
-    _ws = NULL;
     _last_ts = 0;
     _web_root = root;
     if (!_web_root.endsWith("/")) {
         _web_root += "/";
     }
-    _queue_comm  = xQueueCreate(5, sizeof(cmd_q_t));
-    xTaskCreate(&taskWeb, "taskWeb", 8192, this, 4, NULL);
+
+    _server = NULL;
+    _ws = NULL;
+    _mqtt = NULL;
+    _cam = NULL;
 }
 
 void WebWorker::listDirSD(char *path, std::vector<String> &info, String ext) {
@@ -67,18 +69,19 @@ void WebWorker::listDirSD(char *path, std::vector<String> &info, String ext) {
     delete new_path;
 }
 
-void WebWorker::start(char *ip, char *accessCode, char *serial) {
+void WebWorker::setPrinterInfo(char *ip, char *accessCode, char *serial) {
     _ip = ip;
     _access = accessCode;
     _serial = serial;
+}
 
-    cmd_q_t q = { CMD_START, NULL, 0, false };
-    xQueueSend(_queue_comm, &q, portMAX_DELAY);
+void WebWorker::start() {
+    _is_running = true;
+    xTaskCreate(&taskWeb, "taskWeb", 10*1024, this, 1, NULL);
 }
 
 void WebWorker::stop() {
-    cmd_q_t q = { CMD_STOP, NULL, 0, false };
-    xQueueSend(_queue_comm, &q, portMAX_DELAY);
+    _is_running = false;
 }
 
 void WebWorker::addMount(char *web_dir, fs::FS *fs, char *fs_dir) {
@@ -99,57 +102,76 @@ void WebWorker::sendFile(char *path) {
 }
 
 void WebWorker::sendPNG() {
-    if (_list_sd.size() > 0) {
-        String str = _list_sd[_pos];
-        str = "/image/" + str;
-        sendFile((char*)str.c_str());
-        _pos = (_pos + 1) % _list_sd.size();
-    }
+    // if (_list_sd.size() > 0) {
+    //     String str = _list_sd[_pos];
+    //     str = "/image/" + str;
+    //     sendFile((char*)str.c_str());
+    //     _pos = (_pos + 1) % _list_sd.size();
+    // }
 }
 
 void WebWorker::_start() {
-    _pos = 0;
-    listDirSD("/image", _list_sd, ".png");
+    // _pos = 0;
+    // listDirSD("/image", _list_sd, ".png");
 
     if (!_server)
         _server = new AsyncWebServer(_port);
+
+    //
+    // WebSocket
+    //
     if (!_ws)
         _ws = new AsyncWebSocket("/ws");
-
     std::function<void(AsyncWebSocket *, AsyncWebSocketClient *, AwsEventType , void *, uint8_t *, size_t)> f =
         std::bind(&WebWorker::onEvent, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5, std::placeholders::_6);
-
     _ws->onEvent(f);
     _server->addHandler(_ws);
+
+    //
+    // WebServer
+    //
     _server->on("/", HTTP_GET,
         [this](AsyncWebServerRequest *request) {
-            String buf(_web_root + "index.html");
-            request->send(*(this->_fs), buf.c_str(), "text/html");
+            String path(_web_root + "index.html");
+            request->send(*(this->_fs), path.c_str(), "text/html");
         });
     _server->serveStatic("/", *_fs, _web_root.c_str());
     for (mount_t m : _list_mnt) {
         _server->serveStatic(m.web_dir, *m.fs, m.fs_dir);
     }
+    _server->addHandler(new SPIFFSEditor(*_fs, "admin", "1234"));
     _server->begin();
 
-    _cam = new CameraWorker(_ip, 6000, (char*)"bblp", _access);
-    _cam->setCallback(this);
-    _cam->start();
+    if (_ip && _access && _serial) {
+        //
+        // Camera worker
+        //
+        _cam = new CameraWorker(_ip, 6000, (char*)"bblp", _access);
+        _cam->setCallback(this);
+        _cam->start();
 
-    _mqtt = new MQTTWorker(_ip, _access, _serial);
-    _mqtt->setCallback(this);
-    _mqtt->start();
+        //
+        // MQTT worker
+        //
+        _mqtt = new MQTTWorker(_ip, _access, _serial);
+        _mqtt->setCallback(this);
+        _mqtt->start();
+    }
 }
 
 void WebWorker::_stop() {
-    _cam->stop();
-    _server->end();
+    if (_cam)
+        _cam->stop();
+
+    if (_mqtt)
+        _mqtt->stop();
 
     if (_ws) {
         delete _ws;
         _ws = NULL;
     }
     if (_server) {
+        _server->end();
         delete _server;
         _server = NULL;
     }
@@ -157,6 +179,8 @@ void WebWorker::_stop() {
 
 void WebWorker::handleWebSocketMessage(void *arg, uint8_t *data, size_t len) {
     AwsFrameInfo *info = (AwsFrameInfo *)arg;
+    data[len] = 0;
+    LOGI("%s\n", data);
     if (info->final && info->index == 0 && info->len == len && info->opcode == WS_TEXT) {
         if (strcmp((char*)data, "open") == 0) {
             if (_mqtt) {
@@ -183,21 +207,31 @@ void WebWorker::onEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, Aw
     }
 }
 
-void WebWorker::loop() {
+void WebWorker::_loop() {
+    bool ret = false;
+
     if (!_server || !_ws)
         return;
 
     long ts = millis();
     if ((ts - _last_ts) > 5000) {
         if (_ws->count() > 0) {
-            // String sensorReadings = getSensorReadings();
-            // _ws->textAll(sensorReadings);
-            // sendPNG();
+            ret = true;
         }
         _last_ts = ts;
     }
-    _mqtt->loop();
-    _ws->cleanupClients();
+    if (_mqtt)
+        ret = _mqtt->loop();
+
+    if (_ws) {
+        _ws->cleanupClients();
+    }
+
+    if (!ret) {
+        delay(20);
+    } else {
+        delay(1);
+    }
 }
 
 
@@ -208,28 +242,14 @@ void WebWorker::loop() {
 */
 void taskWeb(void* arg) {
     WebWorker *pWorker = (WebWorker*)arg;
-    WebWorker::cmd_q_t *q = new WebWorker::cmd_q_t;
 
     LOGD("taskWeb created !\n");
-    while (true) {
-        if (xQueueReceive(pWorker->_queue_comm, q, pdMS_TO_TICKS(10)) == pdTRUE) {
-            switch (q->cmd) {
-                case WebWorker::CMD_START:
-                    pWorker->_start();
-                    LOGD("started\n");
-                    break;
+    pWorker->_start();
 
-                case WebWorker::CMD_STOP:
-                    pWorker->_stop();
-                    LOGD("stopped\n");
-                    break;
-            }
-            if (q->reqBufDel)
-                delete q->pData;
-        }
-        pWorker->loop();
+    while (pWorker->_is_running) {
+        pWorker->_loop();
     }
 
-    delete q;
+    pWorker->_stop();
     vTaskDelete(NULL);
 }
