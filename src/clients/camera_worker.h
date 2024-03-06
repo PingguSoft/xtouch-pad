@@ -9,12 +9,46 @@
 #include "freertos/task.h"
 #include "freertos/queue.h"
 
+
 class CameraWorker {
 public:
     class Callback {
         public:
             virtual ~Callback() { }
             virtual void onJpeg(uint8_t *param, int size) = 0;
+    };
+
+    class BufMan {
+    public:
+        typedef enum {
+            STATE_IDLE = 0,
+            STATE_HDR_1,
+            STATE_HDR_2,
+            STATE_HDR_3,
+            STATE_HDR_4,
+            STATE_BODY,
+            STATE_TAIL_1,
+            STATE_COMPLETED
+        } state_t;
+        BufMan() {
+            _pos = 0;
+            _len = 0;
+            _state = STATE_IDLE;
+            _pBuf = (uint8_t*)malloc(kMaxJPEGSize);
+        }
+
+        ~BufMan() {
+            free(_pBuf);
+        }
+
+        void process(uint8_t *buf, int len, Callback *cb);
+
+    private:
+        int     _pos;
+        int     _len;
+        state_t _state;
+        uint8_t *_pBuf;
+        static const uint32_t kMaxJPEGSize = (140 * 1024U);
     };
 
     CameraWorker(char* ipAddress, uint16_t port, char* user, char* accessCode);
@@ -32,6 +66,7 @@ private:
 
     WiFiClientSecure  _client;
     Callback         *_callback;
+    BufMan            _jpegBuf;
 
     char* _user;
     char* _accessCode;
@@ -41,17 +76,7 @@ private:
     bool _isConnected = false;
     bool _is_secure = true;
 
-    int _pos;
-    int _pos_scan;
-    int _pos_jpeg_beg;
-    int _pos_jpeg_end;
-
-    uint8_t *_pJpegBuf;
-    uint8_t *_pChunk;
     SemaphoreHandle_t _lock;
-
-    static const uint16_t kChunkSize = 1024;
-    static const uint32_t kMaxJPEGSize = (256 * 1024U);
 };
 
 #endif

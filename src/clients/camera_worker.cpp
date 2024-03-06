@@ -3,6 +3,77 @@
 
 void taskCamera(void* arg);
 
+void CameraWorker::BufMan::process(uint8_t *buf, int len, Callback *cb) {
+    uint8_t ch;
+
+    for (int i = 0; i < len; i++) {
+        ch = *buf++;
+
+        switch (_state) {
+            case STATE_IDLE:
+                if (ch == 0xFF) {
+                    _state = STATE_HDR_1;
+                    _pBuf[_pos++] = ch;
+                 } else {
+                    _pos = 0;
+                    _state = STATE_IDLE;
+                 }
+                break;
+
+            case STATE_HDR_1:
+                if (ch == 0xD8) {
+                    _state = STATE_HDR_2;
+                    _pBuf[_pos++] = ch;
+                } else {
+                    _pos = 0;
+                    _state = STATE_IDLE;
+                }
+                break;
+
+            case STATE_HDR_2:
+                if (ch == 0xFF) {
+                    _state = STATE_HDR_3;
+                    _pBuf[_pos++] = ch;
+                } else {
+                    _pos = 0;
+                    _state = STATE_IDLE;
+                }
+                break;
+
+            case STATE_HDR_4:
+                if (ch == 0xE0) {
+                    _state = STATE_BODY;
+                    _pBuf[_pos++] = ch;
+                } else {
+                    _pos = 0;
+                    _state = STATE_IDLE;
+                }
+                break;
+
+            case STATE_BODY:
+                _pBuf[_pos++] = ch;
+                if (ch == 0xFF) {
+                    _state = STATE_TAIL_1;
+                }
+                break;
+
+            case STATE_TAIL_1:
+                _pBuf[_pos++] = ch;
+                if (ch == 0xD9) {
+                    // completed
+                    if (cb) {
+                        cb->onJpeg(_pBuf, _pos);
+                    }
+                    _pos = 0;
+                    _state = STATE_IDLE;
+                } else {
+                    _state = STATE_BODY;
+                }
+                break;
+        }
+    }
+}
+
 CameraWorker::CameraWorker(char* ipAddress, uint16_t port, char* user, char* accessCode) {
     this->_ipAddress = ipAddress;
     this->_port = port;
@@ -25,20 +96,14 @@ typedef struct {
 void CameraWorker::start() {
     _client.setInsecure();
     LOGD("connect to : %s %s\n", _ipAddress, _accessCode);
+
     if (_client.connect(_ipAddress, _port, _timeout)) {
         LOGD("Camera connected\n");
         auth_t auth = { 0x40, 0x3000, 0, 0, 0, 0};
         strcpy((char*)auth.user, _user);
         strcpy((char*)auth.access_code, _accessCode);
         _client.write((uint8_t*)&auth, sizeof(auth));
-
         _isConnected = true;
-        _pJpegBuf = (uint8_t*)malloc(kMaxJPEGSize);
-        _pChunk = (uint8_t*)malloc(kChunkSize);
-        _pos = 0;
-        _pos_scan = 0;
-        _pos_jpeg_beg = -1;
-        _pos_jpeg_end = -1;
     } else {
         LOGE("connection failed : %s\n", _ipAddress);
     }
@@ -55,61 +120,24 @@ void CameraWorker::unlock() {
 void CameraWorker::stop() {
     _isConnected = false;
     _client.stop();
-    free(_pChunk);
-    free(_pJpegBuf);
 }
 
 int CameraWorker::grabJPEG() {
-    if (_client.available() < kChunkSize)
-        return -1;
+    uint32_t previousMillis = millis();
+    uint8_t data[128];
 
-    int sz = _client.readBytes(_pChunk, kChunkSize);
+   while (!_client.available()) {
+        yield();
 
-    memcpy(_pJpegBuf + _pos, _pChunk, sz);
+        uint32_t currentMillis = millis();
+        // if(currentMillis - previousMillis >= ((int32_t) this->socketTimeout * 1000)){
+        //     return false;
+        // }
+   }
 
-    if (_pos_jpeg_beg < 0) {
-        const uint32_t jpeg_sof = 0xe0ffd8ff;
-        for (int i = _pos_scan; i < _pos + sz - 3; i++) {
-            if (memcmp(_pJpegBuf + i, &jpeg_sof, 4) == 0) {
-                _pos_jpeg_beg = i;
-                _pos_scan = i + 4;
-                LOGD("JPEG START : %d\n", _pos_jpeg_beg);
-                break;
-            }
-        }
-        if (_pos_jpeg_beg < 0) {
-            _pos_scan = _pos + sz - 3;
-        }
-    }
-
-    if (_pos_jpeg_beg >= 0) {
-        const uint16_t jpeg_eof = 0xd9ff;
-        for (int i = _pos_scan; i < _pos + sz - 1; i++) {
-            if (memcmp(_pJpegBuf + i, &jpeg_eof, 2) == 0) {
-                _pos_jpeg_end = i + 1;
-                break;
-            }
-        }
-        if (_pos_jpeg_end < 0) {
-            _pos_scan = _pos + sz - 1;
-        } else {
-            uint32_t jpg_size = _pos_jpeg_end - _pos_jpeg_beg + 1;
-            LOGD("JPEG END : %d, size:%d\n", _pos_jpeg_end, jpg_size);
-            if (_callback) {
-                _callback->onJpeg(&_pJpegBuf[_pos_jpeg_beg], jpg_size);
-            }
-
-            // copy remained buffer to front back
-            int remain = (_pos + sz) - (_pos_jpeg_end + 1);
-            memcpy(_pJpegBuf, _pJpegBuf + _pos_jpeg_end + 1, remain);
-            _pos_jpeg_beg = -1;
-            _pos_jpeg_end = -1;
-            _pos_scan = 0;
-            _pos = 0;
-            sz = 0;
-        }
-    }
-    _pos = (_pos + sz) % kMaxJPEGSize;
+    int sz = min(_client.available(), (int)sizeof(data));
+    sz = _client.readBytes(data, sz);
+    _jpegBuf.process(data, sz, _callback);
 
     return sz;
 }
@@ -125,9 +153,7 @@ void taskCamera(void* arg) {
     LOGD("taskCamera created !\n");
     while (true) {
         if (pWorker->_isConnected) {
-            if (pWorker->grabJPEG() < 0) {
-                vTaskDelay(pdMS_TO_TICKS(20));
-            }
+            pWorker->grabJPEG();
         } else {
             vTaskDelay(pdMS_TO_TICKS(50));
         }
