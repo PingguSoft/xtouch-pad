@@ -13,8 +13,9 @@ void taskWeb(void* arg);
 *****************************************************************************************
 */
 void WebWorker::onJpeg(uint8_t *param, int size) {
+    LOGI("JPEG Completed : %d\n", size);
     if (_ws->count() > 0) {
-        _ws->binaryAll(param, size);
+        // _ws->binaryAll(param, size);
     }
 }
 
@@ -146,9 +147,9 @@ void WebWorker::_start() {
         //
         // Camera worker
         //
-        _cam = new CameraWorker(_ip, 6000, (char*)"bblp", _access);
-        _cam->setCallback(this);
-        _cam->start();
+        // _cam = new CameraWorker(_ip, 6000, (char*)"bblp", _access);
+        // _cam->setCallback(this);
+        // _cam->start();
 
         //
         // MQTT worker

@@ -1,5 +1,6 @@
 #include <Arduino.h>
 #include <ArduinoJson.h>
+#include <esp_task_wdt.h>
 #include "debug.h"
 #include "xtouch/paths.h"
 #include "xtouch/eeprom.h"
@@ -182,7 +183,7 @@ void setup() {
     LOGD("priority : before %d\n", uxTaskPriorityGet(NULL));
 
 #if _NO_NETWORK_
-    loadScreen(SCREEN_BROWSER);
+    // loadScreen(SCREEN_BROWSER);
 #endif
 
     uint32_t fh = ESP.getFreeHeap();
@@ -195,6 +196,8 @@ void setup() {
     // _web->addMount("/image", &SD, "/image/");
     _web->setPrinterInfo((char*)xTouchConfig.xTouchIP, (char*)xTouchConfig.xTouchAccessCode, (char*)xTouchConfig.xTouchSerialNumber);
     _web->start();
+
+    esp_task_wdt_init(10, false);
 }
 
 void loop() {

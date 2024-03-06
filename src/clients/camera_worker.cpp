@@ -3,11 +3,12 @@
 
 void taskCamera(void* arg);
 
-void CameraWorker::BufMan::process(uint8_t *buf, int len, Callback *cb) {
+int CameraWorker::BufMan::process(WiFiClientSecure *client, Callback *cb) {
     uint8_t ch;
+    int     sz = client->available();
 
-    for (int i = 0; i < len; i++) {
-        ch = *buf++;
+    for (int i = 0; i < sz; i++) {
+        ch = client->read();
 
         switch (_state) {
             case STATE_IDLE:
@@ -40,7 +41,7 @@ void CameraWorker::BufMan::process(uint8_t *buf, int len, Callback *cb) {
                 }
                 break;
 
-            case STATE_HDR_4:
+            case STATE_HDR_3:
                 if (ch == 0xE0) {
                     _state = STATE_BODY;
                     _pBuf[_pos++] = ch;
@@ -72,16 +73,16 @@ void CameraWorker::BufMan::process(uint8_t *buf, int len, Callback *cb) {
                 break;
         }
     }
+    return sz;
 }
 
 CameraWorker::CameraWorker(char* ipAddress, uint16_t port, char* user, char* accessCode) {
-    this->_ipAddress = ipAddress;
-    this->_port = port;
-    this->_user = user;
-    this->_accessCode = accessCode;
-
+    _ipAddress = ipAddress;
+    _port = port;
+    _user = user;
+    _accessCode = accessCode;
     _lock = xSemaphoreCreateMutex();
-    xTaskCreate(&taskCamera, "taskCamera", 8192, this, 3, NULL);
+    xTaskCreate(&taskCamera, "taskCamera", 8192, this, 1, NULL);
 }
 
 typedef struct {
@@ -123,22 +124,7 @@ void CameraWorker::stop() {
 }
 
 int CameraWorker::grabJPEG() {
-    uint32_t previousMillis = millis();
-    uint8_t data[128];
-
-   while (!_client.available()) {
-        yield();
-
-        uint32_t currentMillis = millis();
-        // if(currentMillis - previousMillis >= ((int32_t) this->socketTimeout * 1000)){
-        //     return false;
-        // }
-   }
-
-    int sz = min(_client.available(), (int)sizeof(data));
-    sz = _client.readBytes(data, sz);
-    _jpegBuf.process(data, sz, _callback);
-
+    int sz = _jpegBuf.process(&_client, _callback);
     return sz;
 }
 
@@ -153,9 +139,12 @@ void taskCamera(void* arg) {
     LOGD("taskCamera created !\n");
     while (true) {
         if (pWorker->_isConnected) {
-            pWorker->grabJPEG();
+            int sz = pWorker->grabJPEG();
+            if (sz == 0)
+                delay(10);
         } else {
-            vTaskDelay(pdMS_TO_TICKS(50));
+            delay(50);
+            // vTaskDelay(pdMS_TO_TICKS(50));
         }
     }
     vTaskDelete(NULL);

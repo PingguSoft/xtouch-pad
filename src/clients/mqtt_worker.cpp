@@ -6,6 +6,7 @@ MQTTWorker::MQTTWorker(char *ip, char *acccessCode, char *serial) {
     _ip = ip;
     _access = acccessCode;
     _serial = serial;
+    _mqtt_client = NULL;
 }
 
 uint32_t MQTTWorker::seq_id() {
@@ -48,17 +49,18 @@ void MQTTWorker::start() {
 }
 
 void MQTTWorker::stop() {
-    if (_mqtt_client->connected()) {
-        _mqtt_client->disconnect();
+    if (_mqtt_client) {
+        if (_mqtt_client->connected())
+            _mqtt_client->disconnect();
+        delete _mqtt_client;
+        delete _mqtt_client_secure;
     }
-    delete _mqtt_client;
-    delete _mqtt_client_secure;
 }
 
 void MQTTWorker::publish(JsonDocument json) {
     String result;
 
-    if (_mqtt_client->connected()) {
+    if (_mqtt_client && _mqtt_client->connected()) {
         serializeJson(json, result);
         _mqtt_client->publish(_topic_request.c_str(), result.c_str());
         _mqtt_client->flush();
@@ -86,6 +88,9 @@ void MQTTWorker::reqDeviceVersion() {
 bool MQTTWorker::loop() {
     bool ret = false;
 
+    if (!_mqtt_client)
+        return ret;
+
     if (!_mqtt_client->connected()) {
         char key[17];
 
@@ -97,8 +102,8 @@ bool MQTTWorker::loop() {
             _topic_report  = device + "/report";
             _mqtt_client->subscribe(_topic_report.c_str());
 
-            reqPushAll();
-            reqDeviceVersion();
+            // reqPushAll();
+            // reqDeviceVersion();
             ret = true;
         } else {
             LOGE("MQTT status : %d\n", _mqtt_client->state());

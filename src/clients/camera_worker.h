@@ -25,7 +25,6 @@ public:
             STATE_HDR_1,
             STATE_HDR_2,
             STATE_HDR_3,
-            STATE_HDR_4,
             STATE_BODY,
             STATE_TAIL_1,
             STATE_COMPLETED
@@ -41,7 +40,7 @@ public:
             free(_pBuf);
         }
 
-        void process(uint8_t *buf, int len, Callback *cb);
+        int process(WiFiClientSecure *client, Callback *cb);
 
     private:
         int     _pos;
