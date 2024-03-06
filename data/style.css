@@ -10,9 +10,9 @@ html {
 }
 
 body {
-    margin-left: 2%;
-    margin-right: 2%;
-    max-width: 640px;
+    margin-left: 10px;
+    margin-right: 10px;
+    /* max-width: 640px; */
 }
 
 h1 {
@@ -138,14 +138,14 @@ h1 {
 .custom-input {
     color: #000000;
     border-radius: 5px;
-    padding: 2px;
+    padding: 0px;
     background: transparent;
     position: relative;
     display: inline-block;
-    outline: none;
+    outline: auto;
     text-align: center;
-    font-size: 1.1em;
-    width: 50px;
+    font-size: 1.0em;
+    width: 40px;
 }
 
 

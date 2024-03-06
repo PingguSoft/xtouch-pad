@@ -15,8 +15,8 @@
     MONITORING SCREEN
     1280x720 half = 640x360
  -->
-        <div id="monitoring" class="container" style="background-color: black;">
-            <img src="images/m_camera.svg" width="640px" height="360px" id="camera_view">
+        <div id="monitoring" class="container" >
+            <img src="images/m_camera.svg" width="100%" height="360px" id="camera_view" style="background-color: black;">
         </div>
 
 <!--
@@ -142,35 +142,35 @@
             <table class="container" border="0" style="padding: 20px 0px 5px 0px;">
                 <tbody>
                     <tr style="vertical-align: center;">
-                        <td style="width: 130px;">
-                            <button class="custom-btn btn-1" style="width: 85px; height: 85px;" id="btn_printer" onClick="onClickButton(this.id)">
-                                <img src="images/ic_device.svg" width="60" style="padding-bottom: 10px;">
+                        <td style="width: 20%;">
+                            <button class="custom-btn btn-1" style="width: 64px; height: 64px;" id="btn_printer" onClick="onClickButton(this.id)">
+                                <img src="images/ic_device.svg" width="45px" style="padding-bottom: 10px;">
                             </button> <br>
                             <label style="text-align: center; font-weight: bold; font-size: 1.2em;">Printer</label>
                         </td>
                         <td class="vl">
-                            <button class="custom-btn btn-1" style="width: 110px; height: 80px;" id="btn_nozzle_temp" onClick="onClickButton(this.id)">
-                                <img src="images/m_noz_temp_active.svg" width="60" style="padding-bottom: 10px;">
+                            <button class="custom-btn btn-noclick" style="width: 64px; height: 64px;">
+                                <img src="images/m_noz_temp_active.svg" width="45px">
                             </button><br>
-                            <label style="text-align: center; font-weight: bold; font-size: 1.2em;" id="nozzle_temper">46</label>
+                            <label style="text-align: center; font-weight: bold; font-size: 1.1em;" id="nozzle_temper">46</label>
                             <label style="text-align: center; font-size: 1.0em;">&rarr;</label>
-                            <input type="number" min="0" max="300" class="custom-input" id="nozzle_target_temper">
-                            <label style="text-align: center; font-size: 1.1em;">&deg;C</label>
+                            <input type="number" min="0" max="300" value="0" class="custom-input" id="nozzle_target_temper">
+                            <label style="text-align: center; font-size: 1.0em;">&deg;C</label>
                         </td>
                         <td>
-                            <button class="custom-btn btn-1" style="width: 110px; height: 80px;" id="btn_bed_temp" onClick="onClickButton(this.id)">
-                                <img src="images/m_bed_temp_active.svg" width="60" style="padding-bottom: 10px;">
+                            <button class="custom-btn btn-noclick" style="width: 64px; height: 64px;">
+                                <img src="images/m_bed_temp_active.svg" width="45px">
                             </button><br>
                             <label style="text-align: center; font-weight: bold; font-size: 1.2em;" id="bed_temper">23</label>
                             <label style="text-align: center; font-size: 1.0em;">&rarr;</label>
-                            <label style="text-align: center; font-size: 1.1em;" id="bed_target_temper">70</label>
+                            <input type="number" min="0" max="100" value="0" class="custom-input" id="bed_target_temper">
                             <label style="text-align: center; font-size: 1.1em;">&deg;C</label>
                         </td>
                         <td>
-                            <button class="custom-btn btn-1" style="width: 110px; height: 80px;" id="btn_speed" onClick="onClickButton(this.id)">
-                                <img src="images/m_speed.svg" width="60" style="padding-bottom: 10px;">
+                            <button class="custom-btn btn-noclick" style="width: 64px; height: 64px;" id="btn_speed" onClick="onClickButton(this.id)">
+                                <img src="images/m_speed.svg" width="45px">
                             </button><br>
-                            <label style="text-align: center; font-weight: bold; font-size: 1.2em;">100%</label>
+                            <label style="text-align: center; font-weight: bold; font-size: 1.1em;">100%</label>
                         </td>
                     </tr>
                 </tbody>
@@ -180,31 +180,31 @@
             <table class="container" border="0" style="padding: 5px 0px 5px 0px;">
                 <tbody>
                     <tr id="ams" style="vertical-align: center;">
-                        <td style="width: 130px;">
-                            <button class="custom-btn btn-1" style="width: 85px; height: 85px;" id="btn_ams" onClick="onClickButton(this.id)">
-                                <img src="images/ic_ams.svg" width="60" style="padding-bottom: 10px;">
+                        <td style="width: 20%;">
+                            <button class="custom-btn btn-1" style="width: 64px; height: 64px;" id="btn_ams" onClick="onClickButton(this.id)">
+                                <img src="images/ic_ams.svg" width="45" style="padding-bottom: 10px;">
                             </button><br>
                             <label style="text-align: center; font-weight: bold; font-size: 1.2em;">AMS</label>
                         </td>
                         <td class="vl">
-                            <button class="custom-btn btn-circle" style="width: 50px; height: 50px; background: red;" id="btn_tray_1" onClick="onClickButton(this.id)">
+                            <button class="custom-btn btn-circle" style="width: 50px; height: 50px; background: red;" id="btn_tray0" onClick="onClickButton(this.id)">
                             </button><br>
-                            <label style="text-align: center; font-weight: bold; font-size: 1.2em;">PLA</label>
+                            <label style="text-align: center; font-weight: bold; font-size: 1.2em;" id="tray0_type">PLA</label>
                         </td>
                         <td>
-                            <button class="custom-btn btn-circle" style="width: 50px; height: 50px;background: blue;" id="btn_tray_2" onClick="onClickButton(this.id)">
+                            <button class="custom-btn btn-circle" style="width: 50px; height: 50px;background: blue;" id="btn_tray1" onClick="onClickButton(this.id)">
                             </button><br>
-                            <label style="text-align: center; font-weight: bold; font-size: 1.2em;">PLA</label>
+                            <label style="text-align: center; font-weight: bold; font-size: 1.2em;" id="tray1_type">PLA</label>
                         </td>
                         <td>
-                            <button class="custom-btn btn-circle" style="width: 50px; height: 50px;background: magenta;" id="btn_tray_3" onClick="onClickButton(this.id)">
+                            <button class="custom-btn btn-circle" style="width: 50px; height: 50px;background: magenta;" id="btn_tray2" onClick="onClickButton(this.id)">
                             </button><br>
-                            <label style="text-align: center; font-weight: bold; font-size: 1.2em;">PLA</label>
+                            <label style="text-align: center; font-weight: bold; font-size: 1.2em;" id="tray2_type">PLA</label>
                         </td>
                         <td>
-                            <button class="custom-btn btn-circle" style="width: 50px; height: 50px;background: yellow;" id="btn_tray_4" onClick="onClickButton(this.id)">
+                            <button class="custom-btn btn-circle" style="width: 50px; height: 50px;background: yellow;" id="btn_tray3" onClick="onClickButton(this.id)">
                             </button><br>
-                            <label style="text-align: center; font-weight: bold; font-size: 1.2em;">PLA</label>
+                            <label style="text-align: center; font-weight: bold; font-size: 1.2em;" id="tray3_type">PLA</label>
                         </td>
                     </tr>
                 </tbody>

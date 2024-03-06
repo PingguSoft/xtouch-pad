@@ -81,22 +81,42 @@ function onMessage(event) {
                 var nodes = ['nozzle_temper', 'nozzle_target_temper', 'bed_temper', 'bed_target_temper'];
 
                 for (var i = 0; i < nodes.length; i++) {
-                    if (nodes[i] in Object.keys(json)) {
+                    if (Object.keys(json).includes(nodes[i])) {
                         var label = document.getElementById(nodes[i]);
                         if (label) {
                             var val = parseInt(json[nodes[i]], 10);
-                            console.log(nodes[i], val);
                             label.innerText = val;
+                            console.log(nodes[i], val);
                         }
                     }
                 }
 
-                if (json['gcode_state'] == 'IDLE') {
-                    document.getElementById('printing_idle').style.display = '';
-                    document.getElementById('printing_info').style.display = 'none';
-                } else {
-                    document.getElementById('printing_idle').style.display = 'none';
-                    document.getElementById('printing_info').style.display = '';
+                if (Object.keys(json).includes('gcode_state')) {
+                    if (json['gcode_state'] == 'IDLE') {
+                        document.getElementById('printing_idle').style.display = '';
+                        document.getElementById('printing_info').style.display = 'none';
+                    } else {
+                        document.getElementById('printing_idle').style.display = 'none';
+                        document.getElementById('printing_info').style.display = '';
+                    }
+                }
+
+                if (Object.keys(json).includes('ams')) {
+                    json = json['ams']['ams']['0']['tray'];
+                    if (json) {
+                        var keys = Object.keys(json);
+
+                        for (var i = 0; i < keys.length; i++) {
+                            var idx  = String(i);
+                            var btn  = 'btn_tray' + idx;
+                            var tt   = 'tray' + idx + '_type';
+                            var tray = json[idx];
+
+                            console.log(tray);
+                            document.getElementById(btn).style.background = '#' + tray['tray_color'];
+                            document.getElementById(tt).innerText = tray['tray_type'];
+                        }
+                    }
                 }
             }
         }
