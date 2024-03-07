@@ -28,7 +28,7 @@ function onClose(event) {
     setTimeout(initWebSocket, 2000);
 }
 
-function encode (input) {
+function encode(input) {
     var keyStr = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
     var output = "";
     var chr1, chr2, chr3, enc1, enc2, enc3, enc4;
@@ -50,7 +50,7 @@ function encode (input) {
             enc4 = 64;
         }
         output += keyStr.charAt(enc1) + keyStr.charAt(enc2) +
-                  keyStr.charAt(enc3) + keyStr.charAt(enc4);
+            keyStr.charAt(enc3) + keyStr.charAt(enc4);
     }
     return output;
 }
@@ -59,7 +59,7 @@ function encode (input) {
 function onMessage(event) {
     console.log(event.data);
 
-    if(event.data instanceof ArrayBuffer) {
+    if (event.data instanceof ArrayBuffer) {
         var bytes = new Uint8Array(event.data);
         var id = new Uint32Array(bytes.buffer.slice(0, 4))[0];
 
@@ -107,9 +107,9 @@ function onMessage(event) {
                         var keys = Object.keys(json);
 
                         for (var i = 0; i < keys.length; i++) {
-                            var idx  = String(i);
-                            var btn  = 'btn_tray' + idx;
-                            var tt   = 'tray' + idx + '_type';
+                            var idx = String(i);
+                            var btn = 'btn_tray' + idx;
+                            var tt = 'tray' + idx + '_type';
                             var tray = json[idx];
 
                             console.log(tray);
@@ -139,6 +139,23 @@ function onClickButton(id) {
     }
 }
 
-//
-// 2
-//
+function openTab(evt, tab) {
+    var i, tabcontent, tablinks;
+
+    // Get all elements with class="tabcontent" and hide them
+    tabcontent = document.getElementsByClassName("tabcontent");
+    for (i = 0; i < tabcontent.length; i++) {
+        tabcontent[i].style.display = "none";
+        console.log(tabcontent[i].id);
+    }
+
+    // Get all elements with class="tablinks" and remove the class "active"
+    // tablinks = document.getElementsByClassName("tablinks");
+    // for (i = 0; i < tablinks.length; i++) {
+    //     tablinks[i].className = tablinks[i].className.replace(" active", "");
+    // }
+    // evt.currentTarget.className += " active";
+
+    // Show the current tab, and add an "active" class to the button that opened the tab
+    document.getElementById(tab).style.display = 'block';
+}
