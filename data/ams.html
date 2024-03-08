@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Temperature / Axis</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <!-- <link rel="icon" type="image/png" href="favicon.png"> -->
+        <link rel="stylesheet" type="text/css" href="style.css">
+    </head>
+    <body>
+        <div class="topnav">
+            <h1>AMS</h1>
+        </div>
+
+        <div id="temperature" class="tabcontent">
+            <!--
+                LIGHT & FAN
+            -->
+            <div id="fan">
+                <table class="container" border="0" style="table-layout:fixed;">
+                    <tbody>
+                        <tr>
+                            <td colspan="2">
+                                <button class="img-button btn-noclick" style="width: 50%; " id="btn_spool" onClick="onClickButton(this.id)">
+                                    <label class="text-centered" style="font-weight: bold; font-size: 1.1em;">Spool Holder</label>
+                                </button>
+                            </td>
+                            <td  class="vl" colspan="2">
+                                <button class="img-button btn-white" style="width: 50%; min-height: 20px" id="btn_ams_a1" onClick="onClickButton(this.id)">
+                                    <img src="images/circle_arrow.svg">
+                                    <label class="text-centered" style="font-weight: bold; font-size: 1.1em;">A1</label>
+                                </button>
+                            </td>
+                            <td colspan="2">
+                                <button class="img-button btn-white" style="width: 50%; min-height: 20px" id="btn_ams_a2" onClick="onClickButton(this.id)">
+                                    <img src="images/circle_arrow.svg">
+                                    <label class="text-centered" style="font-weight: bold; font-size: 1.1em;">A2</label>
+                                </button>
+                            </td>
+                            <td colspan="2">
+                                <button class="img-button btn-white" style="width: 50%; min-height: 20px" id="btn_ams_a3" onClick="onClickButton(this.id)">
+                                    <img src="images/circle_arrow.svg">
+                                    <label class="text-centered" style="font-weight: bold; font-size: 1.1em;">A3</label>
+                                </button>
+                            </td>
+                            <td colspan="2">
+                                <button class="img-button btn-white" style="width: 50%; min-height: 20px" id="btn_ams_a4" onClick="onClickButton(this.id)">
+                                    <img src="images/circle_arrow.svg">
+                                    <label class="text-centered" style="font-weight: bold; font-size: 1.1em;">A4</label>
+                                </button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="2">
+                                <button class="img-button btn-white" style="width: 70%; height: 140px" id="btn_light" onClick="onClickButton(this.id)">
+                                    <label style="font-weight: bold; font-size: 1.1em;">PLA</label><br>
+                                    <img src="images/edit_icon.svg" style="vertical-align: bottom; width:40%; height: 40%;">
+                                </button>
+                            </td>
+                            <td class="vl" colspan="2">
+                                <button class="img-button btn-white" style="width: 70%; height: 140px" id="btn_fan_part" onClick="onClickButton(this.id)">
+                                    <label style="font-weight: bold; font-size: 1.1em;">PLA</label><br>
+                                    <img src="images/edit_icon.svg" style="vertical-align: bottom; width:40%; height: 40%;">
+                                </button>
+                            </td>
+                            <td colspan="2">
+                                <button class="img-button btn-white" style="width: 70%; height: 140px" id="btn_fan_aux" onClick="onClickButton(this.id)">
+                                    <label style="font-weight: bold; font-size: 1.1em;">PLA</label><br>
+                                    <img src="images/edit_icon.svg" style="vertical-align: bottom; width:40%; height: 40%;">
+                                </button>
+                            </td>
+                            <td colspan="2">
+                                <button class="img-button btn-white" style="width: 70%; height: 140px" id="btn_fan_chamber" onClick="onClickButton(this.id)">
+                                    <label style="font-weight: bold; font-size: 1.1em;">PLA</label><br>
+                                    <img src="images/edit_icon.svg" style="vertical-align: bottom; width:40%; height: 40%;">
+                                </button>
+                            </td>
+                            <td colspan="2">
+                                <button class="img-button btn-white" style="width: 70%; height: 140px" id="btn_fan_chamber" onClick="onClickButton(this.id)">
+                                    <label style="font-weight: bold; font-size: 1.1em;">PLA</label><br>
+                                    <img src="images/edit_icon.svg" style="vertical-align: bottom; width:40%; height: 40%;">
+                                </button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td></td>
+                            <td class="vl"></td>
+                            <td></td>
+                            <td class="vl"></td>
+                            <td></td>
+                            <td class="vl"></td>
+                            <td></td>
+                            <td class="vl"></td>
+                            <td></td>
+                            <td class="vl"></td>
+                        </tr>
+                        <tr>
+                            <td></td>
+                            <td class="vl"></td>
+                            <td></td>
+                            <td class="vl"></td>
+                            <td></td>
+                            <td class="vl"></td>
+                            <td></td>
+                            <td class="vl"></td>
+                            <td></td>
+                            <td class="vl"></td>
+                        </tr>
+                        <tr>
+                            <td></td>
+                            <td class="hl"></td>
+                            <td class="hl"></td>
+                            <td class="hl"></td>
+                            <td class="hl"></td>
+                            <td class="hl"></td>
+                            <td class="hl"></td>
+                            <td class="hl"></td>
+                            <td class="hl"></td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td class="vl"></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <td colspan="6">
+                                <img src="images/extruder_in.svg">
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </body>
+</html>
