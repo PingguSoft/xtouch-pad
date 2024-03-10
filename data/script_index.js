@@ -56,6 +56,104 @@ function encode(input) {
 }
 
 // Function that receives the message from the ESP32 with the readings
+function updatePrintingState(json) {
+    if (Object.keys(json).includes('gcode_state')) {
+        if (json['gcode_state'] == 'IDLE') {
+            document.getElementById('printing_idle').style.display = '';
+            document.getElementById('printing_info').style.display = 'none';
+        } else {
+            document.getElementById('printing_idle').style.display = 'none';
+            document.getElementById('printing_info').style.display = '';
+        }
+    }
+}
+
+function updateTemperature(json) {
+    var nodes = ['nozzle_temper', 'nozzle_target_temper', 'bed_temper', 'bed_target_temper'];
+    for (var i = 0; i < nodes.length; i++) {
+        if (Object.keys(json).includes(nodes[i])) {
+            var labels = document.getElementsByName(nodes[i]);
+            if (labels) {
+                var val = parseInt(json[nodes[i]], 10);
+                for (var j = 0; j < labels.length; j++) {
+                    labels[j].innerText = val;
+                }
+                console.log(nodes[i], val);
+            }
+        }
+    }
+}
+
+function updateFilaments(json) {
+    if (Object.keys(json).includes('vt_tray')) {
+        tray = json['vt_tray'];
+
+        var btns = document.getElementsByName('btn_vt_tray');
+        if (btns) {
+            for (var j = 0; j < btns.length; j++) {
+                btns[j].style.background = '#' + tray['tray_color'];
+            }
+        }
+
+        var labels = document.getElementsByName('vt_tray_type');
+        if (labels) {
+            for (var j = 0; j < labels.length; j++) {
+                labels[j].innerText = tray['tray_type'];
+            }
+        }
+    }
+    if (Object.keys(json).includes('ams')) {
+        json = json['ams']['ams']['0']['tray'];
+        if (json) {
+            var keys = Object.keys(json);
+
+            for (var i = 0; i < keys.length; i++) {
+                var idx = String(i);
+                var btn = 'btn_tray' + idx;
+                var tt = 'tray' + idx + '_type';
+                var tray = json[idx];
+
+                console.log(tray);
+                var btns = document.getElementsByName(btn);
+                if (btns) {
+                    for (var j = 0; j < btns.length; j++) {
+                        btns[j].style.background = '#' + tray['tray_color'];
+                    }
+                }
+
+                var labels = document.getElementsByName(tt);
+                if (labels) {
+                    for (var j = 0; j < labels.length; j++) {
+                        labels[j].innerText = tray['tray_type'];
+                    }
+                }
+            }
+        }
+    }
+}
+
+function updateLight(json) {
+    if (Object.keys(json).includes('lights_report')) {
+        light = json['lights_report'];
+
+        for (var i = 0; i < light.length; i++) {
+            var name = 'btn_' + light[i]['node'];
+            var btn = document.getElementById(name);
+            if (btn) {
+                if (light[i]['mode'] == 'on')
+                    btn.style.background = 'yellow'
+                else
+                    btn.style.background = 'white'
+            }
+
+            name = 'label_' + light[i]['node'];
+            var label = document.getElementById(name);
+            if (label)
+                label.innerText = light[i]['mode'];
+        }
+    }
+}
+
 function onMessage(event) {
     console.log(event.data);
 
@@ -78,46 +176,10 @@ function onMessage(event) {
         if (json) {
             json = json['print'];
             if (json) {
-                var nodes = ['nozzle_temper', 'nozzle_target_temper', 'bed_temper', 'bed_target_temper'];
-
-                for (var i = 0; i < nodes.length; i++) {
-                    if (Object.keys(json).includes(nodes[i])) {
-                        var label = document.getElementById(nodes[i]);
-                        if (label) {
-                            var val = parseInt(json[nodes[i]], 10);
-                            label.innerText = val;
-                            console.log(nodes[i], val);
-                        }
-                    }
-                }
-
-                if (Object.keys(json).includes('gcode_state')) {
-                    if (json['gcode_state'] == 'IDLE') {
-                        document.getElementById('printing_idle').style.display = '';
-                        document.getElementById('printing_info').style.display = 'none';
-                    } else {
-                        document.getElementById('printing_idle').style.display = 'none';
-                        document.getElementById('printing_info').style.display = '';
-                    }
-                }
-
-                if (Object.keys(json).includes('ams')) {
-                    json = json['ams']['ams']['0']['tray'];
-                    if (json) {
-                        var keys = Object.keys(json);
-
-                        for (var i = 0; i < keys.length; i++) {
-                            var idx = String(i);
-                            var btn = 'btn_tray' + idx;
-                            var tt = 'tray' + idx + '_type';
-                            var tray = json[idx];
-
-                            console.log(tray);
-                            document.getElementById(btn).style.background = '#' + tray['tray_color'];
-                            document.getElementById(tt).innerText = tray['tray_type'];
-                        }
-                    }
-                }
+                updatePrintingState(json);
+                updateTemperature(json);
+                updateFilaments(json);
+                updateLight(json);
             }
         }
     }

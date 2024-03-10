@@ -6,9 +6,9 @@
         <link rel="icon" type="image/png" href="favicon.png">
         <link rel="stylesheet" type="text/css" href="style.css">
     </head>
-    <body>
+    <body style="max-width:540px;align-content: center; margin:0 auto;">
         <div class="topnav">
-            <h1>Printing</h1>
+            <h1>Printer - </h1>
         </div>
 
 <!--
@@ -33,7 +33,7 @@
                     <tbody>
                         <tr style="vertical-align: middle">
                             <td style="width:40%;">
-                                <img src="images/ic_printer_c12.svg" width="90%" height="auto" id="model_view">
+                                <img src="images/ic_printer_c12.svg" width="80%" height="auto" id="model_view">
                             </td>
                             <td>
                                 <table border="0" align="top" style="width:100%; height:100%;">
@@ -158,25 +158,25 @@
                                 <button class="img-button btn-noclick" style="min-width: 64px;">
                                     <img src="images/m_noz_temp_active.svg" width="100%">
                                 </button><br>
-                                <label style="font-weight: bold; font-size: 1.1em;" id="nozzle_temper">46</label>
+                                <label style="font-weight: bold; font-size: 1.1em;" name="nozzle_temper">0</label>
                                 <label>&rarr;</label>
-                                <input type="number" min="0" max="300" value="0" class="custom-input" id="nozzle_target_temper">
+                                <input type="number" min="0" max="300" value="0" class="custom-input" name="nozzle_target_temper">
                                 <label>&deg;C</label>
                             </td>
                             <td>
                                 <button class="img-button btn-noclick" style="min-width: 64px;">
                                     <img src="images/m_bed_temp_active.svg" width="100%">
                                 </button><br>
-                                <label style="font-weight: bold; font-size: 1.1em;" id="bed_temper">23</label>
+                                <label style="font-weight: bold; font-size: 1.1em;" name="bed_temper">0</label>
                                 <label>&rarr;</label>
-                                <input type="number" min="0" max="100" value="0" class="custom-input" id="bed_target_temper">
+                                <input type="number" min="0" max="100" value="0" class="custom-input" name="bed_target_temper">
                                 <label>&deg;C</label>
                             </td>
                             <td>
                                 <button class="img-button btn-noclick" style="min-width: 64px;" id="btn_speed" onClick="onClickButton(this.id)">
                                     <img src="images/m_speed.svg" width="100%">
                                 </button><br>
-                                <select class="custom-input" style="text-align: center; font-weight: bold; width: 100px;" id="speed" onselect="onSelect(this.id)">
+                                <select class="custom-input" style="text-align: center; font-weight: bold; width: 100px;" id="printing_speed" onselect="onSelect(this.id)">
                                     <option value="ludicrous">Ludicrous</option>
                                     <option value="sport">Sport</option>
                                     <option value="standard">Standard</option>
@@ -203,24 +203,24 @@
                                 <label style="font-weight: bold;">AMS</label>
                             </td>
                             <td class="vl">
-                                <button class="img-button btn-circle" style="min-width: 50px; min-height: 50px; background: red;" id="btn_tray0" onClick="onClickButton(this.id)">
+                                <button class="img-button btn-circle" style="min-width: 50px; min-height: 50px; background: red;" name="btn_tray0" onClick="onClickButton(this.id)">
                                 </button><br>
-                                <label style="font-weight: bold;" id="tray0_type">PLA</label>
+                                <label style="font-weight: bold;" name="tray0_type">PLA</label>
                             </td>
                             <td>
-                                <button class="img-button btn-circle" style="min-width: 50px; min-height: 50px;background: blue;" id="btn_tray1" onClick="onClickButton(this.id)">
+                                <button class="img-button btn-circle" style="min-width: 50px; min-height: 50px;background: blue;" name="btn_tray1" onClick="onClickButton(this.id)">
                                 </button><br>
-                                <label style="font-weight: bold;" id="tray1_type">PLA</label>
+                                <label style="font-weight: bold;" name="tray1_type">PLA</label>
                             </td>
                             <td>
-                                <button class="img-button btn-circle" style="min-width: 50px; min-height: 50px;background: magenta;" id="btn_tray2" onClick="onClickButton(this.id)">
+                                <button class="img-button btn-circle" style="min-width: 50px; min-height: 50px;background: magenta;" name="btn_tray2" onClick="onClickButton(this.id)">
                                 </button><br>
-                                <label style="font-weight: bold;" id="tray2_type">PLA</label>
+                                <label style="font-weight: bold;" name="tray2_type">PLA</label>
                             </td>
                             <td>
-                                <button class="img-button btn-circle" style="min-width: 50px; min-height: 50px;background: yellow;" id="btn_tray3" onClick="onClickButton(this.id)">
+                                <button class="img-button btn-circle" style="min-width: 50px; min-height: 50px;background: yellow;" name="btn_tray3" onClick="onClickButton(this.id)">
                                 </button><br>
-                                <label style="font-weight: bold;" id="tray3_type">PLA</label>
+                                <label style="font-weight: bold;" name="tray3_type">PLA</label>
                             </td>
                         </tr>
                     </tbody>
@@ -233,11 +233,9 @@
     PRINTER TAB
  -->
         <div id="tab_printer" class="tabcontent">
-            <div class="topnav">
-                <button class="img-button btn-white" style="min-width: 64px;" onclick="openTab(event, 'tab_main')">
-                </button>
-                <h1>Temperature / Axis</h1>
-            </div>
+            <button class="img-button btn-tab" style="width: 95%; height:36px; vertical-align: middle;" onclick="openTab(event, 'tab_main')">
+                <label style="font-weight: bold; font-size: 1.1em;color:white;">Temperature / Axis</label>
+            </button>
             <!--
                 TEMPERATURE ICONS
             -->
@@ -268,23 +266,23 @@
                         </tr>
                         <tr style="font-size: 1.2em; font-weight: 600;">
                         <td>
-                                <label style="font-weight: bold; font-size: 1.1em;" id="nozzle_temper">27</label>
-                                <label>&rarr;</label>
-                                <input type="number" min="0" max="300" value="0" class="custom-input" id="nozzle_target_temper">
+                                <label style="font-weight: bold; font-size: 1.1em;" name="nozzle_temper">0</label>
+                                <label>/</label>
+                                <input type="number" min="0" max="300" value="0" class="custom-input" name="nozzle_target_temper">
                                 <label>&deg;C</label>
                         </td>
                         <td>
-                            <label style="font-weight: bold; font-size: 1.1em;" id="bed_temper">23</label>
-                            <label>&rarr;</label>
-                            <input type="number" min="0" max="100" value="0" class="custom-input" id="bed_target_temper">
+                            <label style="font-weight: bold; font-size: 1.1em;" name="bed_temper">0</label>
+                            <label>/</label>
+                            <input type="number" min="0" max="100" value="0" class="custom-input" name="bed_target_temper">
                             <label>&deg;C</label>
                         </td>
                         <td>
-                            <label style="font-weight: bold; font-size: 1.1em;" id="chamber_temper">23</label>
+                            <label style="font-weight: bold; font-size: 1.1em;" name="chamber_temper">0</label>
                             <label>&deg;C</label>
                         </td>
                         <td>
-                            <label id="label_speed">100</label>
+                            <label name="label_speed">100</label>
                             <label>%</label>
                         </td>
                         </tr>
@@ -300,15 +298,15 @@
                 <table class="container" border="0">
                     <tbody>
                         <tr>
-                            <td style="width:20%">
+                            <td style="width:25%">
                                 <strong>Build Plate</strong>
                             </td>
-                            <td rowspan="5" style="width:60%;">
+                            <td rowspan="5" style="width:30%;">
                                 <!--
                                     HEAD CONTROL
                                 -->
                                 <div id="head_control">
-                                    <table class="container" style="width: 90%;" border="0">
+                                    <table class="container" style="width: 50%;" border="0">
                                         <tbody>
                                             <tr>
                                                 <td colspan="3">
@@ -327,7 +325,7 @@
                                                     <!--
                                                         HEAD CONTROL : +1 / -1
                                                     -->
-                                                    <table border="0" style="width:100%; text-align: center;">
+                                                    <table border="0" style="width:60%; text-align: center;">
                                                         <tbody>
                                                             <tr>
                                                                 <td style="width:20%" colspan="5">
@@ -343,7 +341,7 @@
                                                                     </button>
                                                                 </td>
                                                                 <td style="width:20%;">
-                                                                    <button class="img-button btn-white" style="min-width: 60px;" id="btn_head_home" onClick="onClickButton(this.id)">
+                                                                    <button class="img-button btn-white" style="min-width: 50px;" id="btn_head_home" onClick="onClickButton(this.id)">
                                                                         <img src="images/home_circle_outline.svg">
                                                                     </button>
                                                                 </td>
@@ -380,36 +378,36 @@
                                     </table>
                                 </div>
                             </td>
-                            <td style="width:20%">
+                            <td style="width:25%">
                                 <strong>Extruder</strong>
                             </td>
                         </tr>
                         <tr>
-                            <td style="width:20%">
+                            <td>
                                 <button class="img-button btn-white" style="width: 50%;" id="btn_bed_p10" onClick="onClickButton(this.id)">
                                     <img src="images/m_bed_up.svg">
                                     <label>+10</label>
                                 </button>
                             </td>
-                            <td style="width:20%">
+                            <td>
                                 <button class="img-button btn-white" style="width: 50%;" id="btn_extr_up" onClick="onClickButton(this.id)">
                                     <img src="images/m_extr_up.svg">
                                 </button>
                             </td>
                         </tr>
                         <tr>
-                            <td style="width:20%">
+                            <td>
                                 <button class="img-button btn-gray" style="width: 50%;" id="btn_bed_p1" onClick="onClickButton(this.id)">
                                     <img src="images/m_bed_up.svg">
                                     <label>+1</label>
                                 </button>
                             </td>
-                            <td colspan="1" rowspan="2" style="width:20%">
+                            <td colspan="1" rowspan="2">
                                 <img src="images/m_extr_empty_load.png" width="50%">
                             </td>
                         </tr>
                         <tr>
-                            <td style="width:20%">
+                            <td>
                                 <button class="img-button btn-gray" style="width: 50%;" id="btn_bed_m1" onClick="onClickButton(this.id)">
                                     <label>-1</label>
                                     <img src="images/m_bed_down.svg">
@@ -417,13 +415,13 @@
                             </td>
                         </tr>
                         <tr>
-                            <td style="width:20%">
+                            <td>
                                 <button class="img-button btn-white" style="width: 50%;" id="btn_bed_m10" onClick="onClickButton(this.id)">
                                     <label>-10</label>
                                     <img src="images/m_bed_down.svg">
                                 </button>
                             </td>
-                            <td style="width:20%">
+                            <td>
                                 <button class="img-button btn-white" style="width: 50%" id="btn_extr_down" onClick="onClickButton(this.id)">
                                     <img src="images/m_extr_down.svg">
                                 </button>
@@ -442,7 +440,7 @@
                     <tbody>
                         <tr>
                             <td>
-                                <button class="img-button btn-white" style="width: 50%;" id="btn_light" onClick="onClickButton(this.id)">
+                                <button class="img-button btn-white" style="width: 50%;" id="btn_chamber_light" onClick="onClickButton(this.id)">
                                     <img src="images/ic_light_off.svg">
                                 </button>
                             </td>
@@ -478,7 +476,7 @@
                         </tr>
                         <tr style="font-weight: bold; font-size: 1.1em;">
                             <td>
-                                <label id="label_light">Off</label>
+                                <label id="label_chamber_light">Off</label>
                             </td>
                             <td>
                                 <label id="label_fan_part">Off</label>
@@ -500,11 +498,137 @@
     AMS TAB
  -->
         <div id="tab_ams" class="tabcontent">
-            <div class="topnav">
-                <button class="img-button btn-white" style="min-width: 64px;" onclick="openTab(event, 'tab_main')">
-                </button>
-                <h1>AMS</h1>
+            <button class="img-button btn-tab" style="width: 95%; height:36px; vertical-align: middle;" onclick="openTab(event, 'tab_main')">
+                <label style="font-weight: bold; font-size: 1.1em;color:white;">AMS</label>
+            </button>
+
+            <!--
+                LIGHT & FAN
+            -->
+            <div id="fan">
+                <table class="container" border="0" style="table-layout:fixed;">
+                    <tbody>
+                        <tr>
+                            <td colspan="2">
+                                <button class="img-button btn-noclick" style="width: 50%; " id="btn_spool" onClick="onClickButton(this.id)">
+                                    <label class="text-centered" style="font-weight: bold; font-size: 1.1em;">Spool Holder</label>
+                                </button>
+                            </td>
+                            <td  class="vl" colspan="2">
+                                <button class="img-button btn-white" style="width: 50%; min-height: 20px" id="btn_ams_a1" onClick="onClickButton(this.id)">
+                                    <img src="images/circle_arrow.svg">
+                                    <label class="text-centered" style="font-weight: bold; font-size: 1.1em;">A1</label>
+                                </button>
+                            </td>
+                            <td colspan="2">
+                                <button class="img-button btn-white" style="width: 50%; min-height: 20px" id="btn_ams_a2" onClick="onClickButton(this.id)">
+                                    <img src="images/circle_arrow.svg">
+                                    <label class="text-centered" style="font-weight: bold; font-size: 1.1em;">A2</label>
+                                </button>
+                            </td>
+                            <td colspan="2">
+                                <button class="img-button btn-white" style="width: 50%; min-height: 20px" id="btn_ams_a3" onClick="onClickButton(this.id)">
+                                    <img src="images/circle_arrow.svg">
+                                    <label class="text-centered" style="font-weight: bold; font-size: 1.1em;">A3</label>
+                                </button>
+                            </td>
+                            <td colspan="2">
+                                <button class="img-button btn-white" style="width: 50%; min-height: 20px" id="btn_ams_a4" onClick="onClickButton(this.id)">
+                                    <img src="images/circle_arrow.svg">
+                                    <label class="text-centered" style="font-weight: bold; font-size: 1.1em;">A4</label>
+                                </button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="2">
+                                <button class="img-button btn-white" style="width: 70%; height: 140px" name="btn_vt_tray" onClick="onClickButton(this.id)">
+                                    <label style="font-weight: bold; font-size: 1.1em;" name="vt_tray_type">PLA</label><br>
+                                    <img src="images/edit_icon.svg" style="vertical-align: bottom; width:40%; height: 40%;">
+                                </button>
+                            </td>
+                            <td class="vl" colspan="2">
+                                <button class="img-button btn-white" style="width: 70%; height: 140px" name="btn_tray0" onClick="onClickButton(this.id)">
+                                    <label style="font-weight: bold; font-size: 1.1em;" name="tray0_type">PLA</label><br>
+                                    <img src="images/edit_icon.svg" style="vertical-align: bottom; width:40%; height: 40%;">
+                                </button>
+                            </td>
+                            <td colspan="2">
+                                <button class="img-button btn-white" style="width: 70%; height: 140px" name="btn_tray1" onClick="onClickButton(this.id)">
+                                    <label style="font-weight: bold; font-size: 1.1em;" name="tray1_type">PLA</label><br>
+                                    <img src="images/edit_icon.svg" style="vertical-align: bottom; width:40%; height: 40%;">
+                                </button>
+                            </td>
+                            <td colspan="2">
+                                <button class="img-button btn-white" style="width: 70%; height: 140px" name="btn_tray2" onClick="onClickButton(this.id)">
+                                    <label style="font-weight: bold; font-size: 1.1em;" name="tray2_type">PLA</label><br>
+                                    <img src="images/edit_icon.svg" style="vertical-align: bottom; width:40%; height: 40%;">
+                                </button>
+                            </td>
+                            <td colspan="2">
+                                <button class="img-button btn-white" style="width: 70%; height: 140px" name="btn_tray3" onClick="onClickButton(this.id)">
+                                    <label style="font-weight: bold; font-size: 1.1em;" name="tray3_type">PLA</label><br>
+                                    <img src="images/edit_icon.svg" style="vertical-align: bottom; width:40%; height: 40%;">
+                                </button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td></td>
+                            <td class="vl"></td>
+                            <td></td>
+                            <td class="vl"></td>
+                            <td></td>
+                            <td class="vl"></td>
+                            <td></td>
+                            <td class="vl"></td>
+                            <td></td>
+                            <td class="vl"></td>
+                        </tr>
+                        <tr>
+                            <td></td>
+                            <td class="vl"></td>
+                            <td></td>
+                            <td class="vl"></td>
+                            <td></td>
+                            <td class="vl"></td>
+                            <td></td>
+                            <td class="vl"></td>
+                            <td></td>
+                            <td class="vl"></td>
+                        </tr>
+                        <tr>
+                            <td></td>
+                            <td class="hl"></td>
+                            <td class="hl"></td>
+                            <td class="hl"></td>
+                            <td class="hl"></td>
+                            <td class="hl"></td>
+                            <td class="hl"></td>
+                            <td class="hl"></td>
+                            <td class="hl"></td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td class="vl"></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <td colspan="6">
+                                <img src="images/extruder_in.svg">
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
+
+
         </div>
 
 
