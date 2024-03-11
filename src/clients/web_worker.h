@@ -25,7 +25,7 @@ public:
     } mount_t;
 
     WebWorker(fs::FS *fs, char *root, uint16_t port);
-    void setPrinterInfo(char *ip, char *accessCode, char *serial);
+    void setPrinterInfo(char *ip, char *accessCode, char *serial, char *name=NULL);
     void addMount(char *web_dir, fs::FS *fs, char *fs_dir);
     void sendFile(char *path);
     void start();
@@ -36,8 +36,8 @@ public:
     friend  void taskWeb(void* arg);
 
 private:
-    void onEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType type, void *arg, uint8_t *data, size_t len);
-    void handleWebSocketMessage(void *arg, uint8_t *data, size_t len);
+    void onWebSocket(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType type, void *arg, uint8_t *data, size_t len);
+    void onWebSocketData(AsyncWebSocketClient *client, void *arg, uint8_t *data, size_t len);
     void sendPNG();
     void listDirSD(char *path, std::vector<String> &info, String ext);
     void _start();
@@ -54,6 +54,7 @@ private:
     char            *_ip;
     char            *_access;
     char            *_serial;
+    char            *_name;
     bool            _is_running;
 
     MQTTWorker      *_mqtt;

@@ -5,6 +5,10 @@
 #include "web_worker.h"
 #include "SPIFFSEditor.h"
 
+//
+// increase _async_queue size to 32 in _init_async_event_queue of AsyncTCP.cpp for avoiding WDT
+//
+
 void taskWeb(void* arg);
 
 /*
@@ -23,6 +27,23 @@ void WebWorker::onMQTT(char *topic, byte *payload, unsigned int length) {
     LOGI("%5d - %s %s\n", length, topic, payload);
     if (_ws->count() > 0) {
         _ws->textAll(payload, length);
+    }
+}
+
+void WebWorker::onWebSocket(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType type, void *arg, uint8_t *data, size_t len) {
+    switch (type) {
+        case WS_EVT_CONNECT:
+            LOGD("WebSocket client #%u connected from %s\n", client->id(), client->remoteIP().toString().c_str());
+            break;
+        case WS_EVT_DISCONNECT:
+            LOGD("WebSocket client #%u disconnected\n", client->id());
+            break;
+        case WS_EVT_DATA:
+            onWebSocketData(client, arg, data, len);
+            break;
+        case WS_EVT_PONG:
+        case WS_EVT_ERROR:
+            break;
     }
 }
 
@@ -70,10 +91,11 @@ void WebWorker::listDirSD(char *path, std::vector<String> &info, String ext) {
     delete new_path;
 }
 
-void WebWorker::setPrinterInfo(char *ip, char *accessCode, char *serial) {
+void WebWorker::setPrinterInfo(char *ip, char *accessCode, char *serial, char *name) {
     _ip = ip;
     _access = accessCode;
     _serial = serial;
+    _name = name;
 }
 
 void WebWorker::start() {
@@ -124,7 +146,7 @@ void WebWorker::_start() {
     if (!_ws)
         _ws = new AsyncWebSocket("/ws");
     std::function<void(AsyncWebSocket *, AsyncWebSocketClient *, AwsEventType , void *, uint8_t *, size_t)> f =
-        std::bind(&WebWorker::onEvent, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5, std::placeholders::_6);
+        std::bind(&WebWorker::onWebSocket, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5, std::placeholders::_6);
     _ws->onEvent(f);
     _server->addHandler(_ws);
 
@@ -178,33 +200,28 @@ void WebWorker::_stop() {
     }
 }
 
-void WebWorker::handleWebSocketMessage(void *arg, uint8_t *data, size_t len) {
+void WebWorker::onWebSocketData(AsyncWebSocketClient *client, void *arg, uint8_t *data, size_t len) {
     AwsFrameInfo *info = (AwsFrameInfo *)arg;
     data[len] = 0;
     LOGI("%s\n", data);
+
     if (info->final && info->index == 0 && info->len == len && info->opcode == WS_TEXT) {
         if (strcmp((char*)data, "open") == 0) {
+            JsonDocument json;
+            String result;
+
+            if (_name) {
+                json["printer_name"] = _name;
+            } else {
+                json["printer_name"] = "None";
+            }
+            serializeJson(json, result);
+            _ws->text(client->id(), result);
+
             if (_mqtt) {
                 _mqtt->reqPushAll();
             }
         }
-    }
-}
-
-void WebWorker::onEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType type, void *arg, uint8_t *data, size_t len) {
-    switch (type) {
-    case WS_EVT_CONNECT:
-        LOGD("WebSocket client #%u connected from %s\n", client->id(), client->remoteIP().toString().c_str());
-        break;
-    case WS_EVT_DISCONNECT:
-        LOGD("WebSocket client #%u disconnected\n", client->id());
-        break;
-    case WS_EVT_DATA:
-        handleWebSocketMessage(arg, data, len);
-        break;
-    case WS_EVT_PONG:
-    case WS_EVT_ERROR:
-        break;
     }
 }
 

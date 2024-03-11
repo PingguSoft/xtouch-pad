@@ -194,7 +194,8 @@ void setup() {
 
     _web = new WebWorker(&SPIFFS, "/", 80);
     // _web->addMount("/image", &SD, "/image/");
-    _web->setPrinterInfo((char*)xTouchConfig.xTouchIP, (char*)xTouchConfig.xTouchAccessCode, (char*)xTouchConfig.xTouchSerialNumber);
+    _web->setPrinterInfo((char*)xTouchConfig.xTouchIP, (char*)xTouchConfig.xTouchAccessCode,
+        (char*)xTouchConfig.xTouchSerialNumber, (char*)xTouchConfig.xTouchPrinterName);
     _web->start();
 
     esp_task_wdt_init(10, false);

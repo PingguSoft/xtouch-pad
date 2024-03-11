@@ -69,15 +69,17 @@ function updatePrintingState(json) {
 }
 
 function updateTemperature(json) {
-    var nodes = ['nozzle_temper', 'nozzle_target_temper', 'bed_temper', 'bed_target_temper'];
+    var nodes = ['nozzle_temper', 'nozzle_target_temper', 'bed_temper', 'bed_target_temper', 'chamber_temper'];
     for (var i = 0; i < nodes.length; i++) {
         if (Object.keys(json).includes(nodes[i])) {
             var labels = document.getElementsByName(nodes[i]);
             if (labels) {
-                // var val = parseInt(json[nodes[i]], 10);
                 var val = Math.round(json[nodes[i]]);
                 for (var j = 0; j < labels.length; j++) {
-                    labels[j].innerText = val;
+                    if (labels[j].nodeName.toLowerCase() == 'input')
+                        labels[j].value = val;
+                    else
+                        labels[j].innerText = val;
                 }
                 console.log(nodes[i], val);
             }
@@ -105,7 +107,7 @@ function updateFilaments(json) {
     }
 
     if (Object.keys(json).includes('ams')) {
-        var exist = json['ams']['ams']['ams_exist_bits'];
+        var exist = json['ams']['ams_exist_bits'];
         if (exist) {
             json = json['ams']['ams']['0']['tray'];
             if (json) {
@@ -162,15 +164,17 @@ function updateLight(json) {
 }
 
 function updateFans(json) {
-    var nodes = ['heatbreak_fan_speed', 'cooling_fan_speed', 'big_fan1_speed', 'big_fan2_speed'];
+    var nodes = ['cooling_fan_speed', 'big_fan1_speed', 'big_fan2_speed', 'heatbreak_fan_speed'];
     var speeds =[-1, -1, -1, -1];
 
     if (Object.keys(json).includes('fan_gear')) {
         // max : 255
         var gear = json['fan_gear'];
+        console.log("fan_gear : " + gear.toString(16));
         speeds[0] = Math.round(((gear >>  0) & 0xFF) / 2.55);
         speeds[1] = Math.round(((gear >>  8) & 0xFF) / 2.55);
         speeds[2] = Math.round(((gear >> 16) & 0xFF) / 2.55);
+        console.log(speeds);
     } else {
         for (var i = 0; i < nodes.length; i++) {
             if (Object.keys(json).includes(nodes[i])) {
@@ -182,14 +186,16 @@ function updateFans(json) {
 
     // update icon and percentage only for updated ones
     for (var i = 0; i < nodes.length; i++) {
+        if (0 < speeds[i] && speeds[i] <= 10)
+            speeds[i] = 10;
         if (speeds[i] >= 0) {
-            var name = 'img_' + nodes[i]['node'];
+            var name = 'img_' + nodes[i];
             var img = document.getElementById(name);
             if (img) {
                 img.src = (speeds[i] > 0) ? 'images/ic_fan_on.svg' : 'images/ic_fan_off.svg';
             }
 
-            name = 'label_' + nodes[i]['node'];
+            name = 'label_' + nodes[i];
             var label = document.getElementById(name);
             if (label) {
                 label.innerText = (speeds[i] > 0) ? String(speeds[i]) + '%' : 'Off';
@@ -200,10 +206,12 @@ function updateFans(json) {
 
 function updateSpeed(json) {
     if (Object.keys(json).includes('spd_lvl')) {
+        console.log("spd_lvl : " + String(json['spd_lvl']));
         var combos = document.getElementsByName('spd_lvl');
         if (combos) {
+            var idx = json['spd_lvl'] - 1;
             for (var i = 0; i < combos.length; i++) {
-                combos[i].value = json['spd_lvl'] - 1;
+                combos[i].options[idx].selected = true;
             }
         }
     }
@@ -219,13 +227,13 @@ var func_updates = [
 ];
 
 function onMessage(event) {
-    console.log(event.data);
+    // console.log(event.data);
 
     if (event.data instanceof ArrayBuffer) {
         var bytes = new Uint8Array(event.data);
         var id = new Uint32Array(bytes.buffer.slice(0, 4))[0];
 
-        console.log(id);
+        // console.log(id);
         if (id == 0xe0ffd8ff) {         // jpeg
             var image = document.getElementById('camera_view');
             if (image)
@@ -237,11 +245,17 @@ function onMessage(event) {
         }
     } else {
         var json = JSON.parse(event.data);
+        console.log(event.data);
         if (json) {
-            json = json['print'];
-            if (json) {
-                for (var i = 0; i < func_updates.length; i++) {
-                    func_updates[i](json);
+            if (Object.keys(json).includes('printer_name')) {
+                var title = document.getElementById('printer_name');
+                title.innerText = json['printer_name'];
+            } else {
+                json = json['print'];
+                if (json) {
+                    for (var i = 0; i < func_updates.length; i++) {
+                        func_updates[i](json);
+                    }
                 }
             }
         }
