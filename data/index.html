@@ -176,11 +176,11 @@
                                 <button class="img-button btn-noclick" style="min-width: 64px;" id="btn_speed" onClick="onClickButton(this.id)">
                                     <img src="images/m_speed.svg" width="100%">
                                 </button><br>
-                                <select class="custom-input" style="text-align: center; font-weight: bold; width: 100px;" id="printing_speed" onselect="onSelect(this.id)">
-                                    <option value="ludicrous">Ludicrous</option>
-                                    <option value="sport">Sport</option>
-                                    <option value="standard">Standard</option>
+                                <select class="custom-input" style="text-align: center; font-weight: bold; width: 100px;" name="spd_lvl" id="spd_lvl1" onselect="onSelect(this.id)">
                                     <option value="silent">Silent</option>
+                                    <option value="standard">Standard</option>
+                                    <option value="sport">Sport</option>
+                                    <option value="ludicrous">Ludicrous</option>
                                 </select>
                                 <!-- <label style="text-align: center; font-weight: bold; font-size: 1.1em;">100%</label> -->
                             </td>
@@ -198,11 +198,16 @@
                         <tr id="ams" style="vertical-align: center;">
                             <td style="width: 20%;">
                                 <button class="img-button btn-white" style="min-width: 64px;" onclick="openTab(event, 'tab_ams')">
-                                    <img src="images/ic_ams.svg" width="100%">
+                                    <img src="images/ic_ams.svg" width="100%" id="img_ams">
                                 </button><br>
-                                <label style="font-weight: bold;">AMS</label>
+                                <label style="font-weight: bold;" id="label_ams">AMS</label>
                             </td>
                             <td class="vl">
+                                <button class="img-button btn-circle" style="min-width: 50px; min-height: 50px; background: red;" name="btn_vt_tray" onClick="onClickButton(this.id)">
+                                </button><br>
+                                <label style="font-weight: bold;" name="vt_tray_type">PLA</label>
+                            </td>
+                            <td>
                                 <button class="img-button btn-circle" style="min-width: 50px; min-height: 50px; background: red;" name="btn_tray0" onClick="onClickButton(this.id)">
                                 </button><br>
                                 <label style="font-weight: bold;" name="tray0_type">PLA</label>
@@ -282,8 +287,12 @@
                                 <label>&deg;C</label>
                             </td>
                             <td>
-                                <label style="font-weight: bold;" name="label_speed">100</label>
-                                <label>%</label>
+                                <select class="custom-input" style="text-align: center; font-weight: bold; width: 100px;" name="spd_lvl" id="spd_lvl2" onselect="onSelect(this.id)">
+                                    <option value="silent">Silent</option>
+                                    <option value="standard">Standard</option>
+                                    <option value="sport">Sport</option>
+                                    <option value="ludicrous">Ludicrous</option>
+                                </select>
                             </td>
                         </tr>
                     </tbody>
