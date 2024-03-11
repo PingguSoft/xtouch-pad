@@ -137,13 +137,13 @@ function updateLight(json) {
         light = json['lights_report'];
 
         for (var i = 0; i < light.length; i++) {
-            var name = 'btn_' + light[i]['node'];
-            var btn = document.getElementById(name);
-            if (btn) {
+            var name = 'img_' + light[i]['node'];
+            var img = document.getElementById(name);
+            if (img) {
                 if (light[i]['mode'] == 'on')
-                    btn.style.background = 'yellow'
+                    img.src = 'images/ic_light_on.svg'
                 else
-                    btn.style.background = 'white'
+                    img.src = 'images/ic_light_off.svg'
             }
 
             name = 'label_' + light[i]['node'];
@@ -153,6 +153,45 @@ function updateLight(json) {
         }
     }
 }
+
+function updateFans(json) {
+    var nodes = ['heatbreak_fan_speed', 'cooling_fan_speed', 'big_fan1_speed', 'big_fan2_speed'];
+    var speeds =[-1, -1, -1, -1];
+
+    if (Object.keys(json).includes('fan_gear')) {
+        // max : 255
+        var gear = json['fan_gear'];
+        speeds[0] = Math.round(((gear >>  0) & 0xFF) / 2.55);
+        speeds[1] = Math.round(((gear >>  8) & 0xFF) / 2.55);
+        speeds[2] = Math.round(((gear >> 16) & 0xFF) / 2.55);
+    } else {
+        for (var i = 0; i < nodes.length; i++) {
+            if (Object.keys(json).includes(nodes[i])) {
+                // max : 15
+                speeds[i] = Math.round(json[nodes[i]] / 0.15);
+            }
+        }
+    }
+
+    // update icon and percentage only for updated ones
+    for (var i = 0; i < nodes.length; i++) {
+        if (speeds[i] >= 0) {
+            var name = 'img_' + nodes[i]['node'];
+            var img = document.getElementById(name);
+            if (img) {
+                img.src = (speeds[i] > 0) ? 'images/ic_fan_on.svg' : 'images/ic_fan_off.svg';
+            }
+
+            name = 'label_' + nodes[i]['node'];
+            var label = document.getElementById(name);
+            if (label) {
+                label.innerText = (speeds[i] > 0) ? String(speeds[i]) + '%' : 'Off';
+            }
+        }
+    }
+}
+
+var func_updates = { updatePrintingState, updateTemperature, updateFilaments, updateLight, updateFans };
 
 function onMessage(event) {
     console.log(event.data);
@@ -176,10 +215,9 @@ function onMessage(event) {
         if (json) {
             json = json['print'];
             if (json) {
-                updatePrintingState(json);
-                updateTemperature(json);
-                updateFilaments(json);
-                updateLight(json);
+                for (var i = 0; i < func_updates.length; i++) {
+                    func_updates[i](json);
+                }
             }
         }
     }
