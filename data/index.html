@@ -154,25 +154,25 @@
                                 </button> <br>
                                 <label style="font-weight: bold;">Printer</label>
                             </td>
-                            <td class="vl">
+                            <td class="vl" style="width: 27%;">
                                 <button class="img-button btn-noclick" style="min-width: 64px;">
                                     <img src="images/m_noz_temp_active.svg" width="100%">
                                 </button><br>
                                 <label style="font-weight: bold; font-size: 1.1em;" name="nozzle_temper">0</label>
-                                <label>&rarr;</label>
+                                <label>/</label>
                                 <input type="number" min="0" max="300" value="0" class="custom-input" name="nozzle_target_temper">
                                 <label>&deg;C</label>
                             </td>
-                            <td>
+                            <td style="width: 27%;">
                                 <button class="img-button btn-noclick" style="min-width: 64px;">
                                     <img src="images/m_bed_temp_active.svg" width="100%">
                                 </button><br>
                                 <label style="font-weight: bold; font-size: 1.1em;" name="bed_temper">0</label>
-                                <label>&rarr;</label>
+                                <label>/</label>
                                 <input type="number" min="0" max="100" value="0" class="custom-input" name="bed_target_temper">
                                 <label>&deg;C</label>
                             </td>
-                            <td>
+                            <td style="width: 26%;">
                                 <button class="img-button btn-noclick" style="min-width: 64px;" id="btn_speed" onClick="onClickButton(this.id)">
                                     <img src="images/m_speed.svg" width="100%">
                                 </button><br>
@@ -264,27 +264,27 @@
                                 </button>
                             </th>
                         </tr>
-                        <tr style="font-size: 1.2em; font-weight: 600;">
-                        <td>
-                                <label style="font-weight: bold; font-size: 1.1em;" name="nozzle_temper">0</label>
+                        <tr>
+                            <td>
+                                    <label style="font-weight: bold;" name="nozzle_temper">0</label>
+                                    <label>/</label>
+                                    <input type="number" min="0" max="300" value="0" class="custom-input" name="nozzle_target_temper">
+                                    <label>&deg;C</label>
+                            </td>
+                            <td>
+                                <label style="font-weight: bold;" name="bed_temper">0</label>
                                 <label>/</label>
-                                <input type="number" min="0" max="300" value="0" class="custom-input" name="nozzle_target_temper">
+                                <input type="number" min="0" max="100" value="0" class="custom-input" name="bed_target_temper">
                                 <label>&deg;C</label>
-                        </td>
-                        <td>
-                            <label style="font-weight: bold; font-size: 1.1em;" name="bed_temper">0</label>
-                            <label>/</label>
-                            <input type="number" min="0" max="100" value="0" class="custom-input" name="bed_target_temper">
-                            <label>&deg;C</label>
-                        </td>
-                        <td>
-                            <label style="font-weight: bold; font-size: 1.1em;" name="chamber_temper">0</label>
-                            <label>&deg;C</label>
-                        </td>
-                        <td>
-                            <label name="label_speed">100</label>
-                            <label>%</label>
-                        </td>
+                            </td>
+                            <td>
+                                <label style="font-weight: bold;" name="chamber_temper">0</label>
+                                <label>&deg;C</label>
+                            </td>
+                            <td>
+                                <label style="font-weight: bold;" name="label_speed">100</label>
+                                <label>%</label>
+                            </td>
                         </tr>
                     </tbody>
                 </table>
@@ -298,26 +298,27 @@
                 <table class="container" border="0">
                     <tbody>
                         <tr>
-                            <td style="width:25%">
-                                <strong>Build Plate</strong>
+                            <td style="width:20%">
+                                <strong>Build</strong><br>
+                                <strong>Plate</strong>
                             </td>
                             <td rowspan="5" style="width:30%;">
                                 <!--
                                     HEAD CONTROL
                                 -->
                                 <div id="head_control">
-                                    <table class="container" style="width: 50%;" border="0">
+                                    <table class="container" style="width: 60%;" border="0">
                                         <tbody>
                                             <tr>
                                                 <td colspan="3">
-                                                    <button class="img-button btn-white" style="min-width: 130px; height: 50px;" id="btn_head_y_p10" onClick="onClickButton(this.id)">
+                                                    <button class="img-button btn-white" style="min-width: 130px; height: 40px;" id="btn_head_y_p10" onClick="onClickButton(this.id)">
                                                         <img src="images/m_extr_up.svg">
                                                     </button>
                                                 </td>
                                             </tr>
                                             <tr>
                                                 <td>
-                                                    <button class="img-button btn-white" style="min-height: 130px; min-width: 50px;" id="btn_head_x_m10" onClick="onClickButton(this.id)">
+                                                    <button class="img-button btn-white" style="min-height: 130px; min-width: 40px;" id="btn_head_x_m10" onClick="onClickButton(this.id)">
                                                         <img src="images/m_extr_up.svg" style="transform:rotate(-90deg);"">
                                                     </button>
                                                 </td>
@@ -325,35 +326,35 @@
                                                     <!--
                                                         HEAD CONTROL : +1 / -1
                                                     -->
-                                                    <table border="0" style="width:60%; text-align: center;">
+                                                    <table border="0" style="width:100%; text-align: center;">
                                                         <tbody>
                                                             <tr>
                                                                 <td style="width:20%" colspan="5">
-                                                                    <button class="img-button btn-gray" style="min-width: 50px;" id="btn_head_y_p1" onClick="onClickButton(this.id)">
+                                                                    <button class="img-button btn-gray" style="min-width: 40px;" id="btn_head_y_p1" onClick="onClickButton(this.id)">
                                                                         <img src="images/m_extr_up.svg">
                                                                     </button>
                                                                 </td>
                                                             </tr>
                                                             <tr>
                                                                 <td style="width:20%">
-                                                                    <button class="img-button btn-gray" style="min-width: 50px;" id="btn_head_x_m1" onClick="onClickButton(this.id)">
+                                                                    <button class="img-button btn-gray" style="min-width: 40px;" id="btn_head_x_m1" onClick="onClickButton(this.id)">
                                                                         <img src="images/m_extr_up.svg" style="transform:rotate(-90deg);"">
                                                                     </button>
                                                                 </td>
                                                                 <td style="width:20%;">
-                                                                    <button class="img-button btn-white" style="min-width: 50px;" id="btn_head_home" onClick="onClickButton(this.id)">
+                                                                    <button class="img-button btn-white" style="min-width: 40px;" id="btn_head_home" onClick="onClickButton(this.id)">
                                                                         <img src="images/home_circle_outline.svg">
                                                                     </button>
                                                                 </td>
                                                                 <td style="width:20%">
-                                                                    <button class="img-button btn-gray" style="min-width: 50px;" id="btn_head_x_p1" onClick="onClickButton(this.id)">
+                                                                    <button class="img-button btn-gray" style="min-width: 40px;" id="btn_head_x_p1" onClick="onClickButton(this.id)">
                                                                         <img src="images/m_extr_up.svg" style="transform:rotate(90deg);"">
                                                                     </button>
                                                                 </td>
                                                             </tr>
                                                             <tr>
                                                                 <td style="width:20%"  colspan="5">
-                                                                    <button class="img-button btn-gray" style="min-width: 50px;" id="btn_head_y_m1" onClick="onClickButton(this.id)">
+                                                                    <button class="img-button btn-gray" style="min-width: 40px;" id="btn_head_y_m1" onClick="onClickButton(this.id)">
                                                                         <img src="images/m_extr_down.svg">
                                                                     </button>
                                                                 </td>
@@ -362,14 +363,14 @@
                                                     </table>
                                                 </td>
                                                 <td>
-                                                    <button class="img-button btn-white" style="min-width: 50px; min-height: 130px;" id="btn_head_x_p10">
+                                                    <button class="img-button btn-white" style="min-width: 40px; min-height: 130px;" id="btn_head_x_p10">
                                                         <img src="images/m_extr_down.svg" style="transform:rotate(270deg);" onClick="onClickButton(this.id)">
                                                     </button>
                                                 </td>
                                             </tr>
                                             <tr>
                                                 <td colspan="3">
-                                                    <button class="img-button btn-white" style="min-width: 130px; height:50px" id="btn_head_y_m10" onClick="onClickButton(this.id)">
+                                                    <button class="img-button btn-white" style="min-width: 130px; height:40px" id="btn_head_y_m10" onClick="onClickButton(this.id)">
                                                         <img src="images/m_extr_down.svg">
                                                     </button>
                                                 </td>
@@ -378,37 +379,37 @@
                                     </table>
                                 </div>
                             </td>
-                            <td style="width:25%">
+                            <td style="width:20%">
                                 <strong>Extruder</strong>
                             </td>
                         </tr>
                         <tr>
                             <td>
-                                <button class="img-button btn-white" style="width: 50%;" id="btn_bed_p10" onClick="onClickButton(this.id)">
+                                <button class="img-button btn-white" style="width: 40%;" id="btn_bed_p10" onClick="onClickButton(this.id)">
                                     <img src="images/m_bed_up.svg">
                                     <label>+10</label>
                                 </button>
                             </td>
                             <td>
-                                <button class="img-button btn-white" style="width: 50%;" id="btn_extr_up" onClick="onClickButton(this.id)">
+                                <button class="img-button btn-white" style="width: 40%;" id="btn_extr_up" onClick="onClickButton(this.id)">
                                     <img src="images/m_extr_up.svg">
                                 </button>
                             </td>
                         </tr>
                         <tr>
                             <td>
-                                <button class="img-button btn-gray" style="width: 50%;" id="btn_bed_p1" onClick="onClickButton(this.id)">
+                                <button class="img-button btn-gray" style="width: 40%;" id="btn_bed_p1" onClick="onClickButton(this.id)">
                                     <img src="images/m_bed_up.svg">
                                     <label>+1</label>
                                 </button>
                             </td>
                             <td colspan="1" rowspan="2">
-                                <img src="images/m_extr_empty_load.png" width="50%">
+                                <img src="images/m_extr_empty_load.png" width="40%">
                             </td>
                         </tr>
                         <tr>
                             <td>
-                                <button class="img-button btn-gray" style="width: 50%;" id="btn_bed_m1" onClick="onClickButton(this.id)">
+                                <button class="img-button btn-gray" style="width: 40%;" id="btn_bed_m1" onClick="onClickButton(this.id)">
                                     <label>-1</label>
                                     <img src="images/m_bed_down.svg">
                                 </button>
@@ -416,13 +417,13 @@
                         </tr>
                         <tr>
                             <td>
-                                <button class="img-button btn-white" style="width: 50%;" id="btn_bed_m10" onClick="onClickButton(this.id)">
+                                <button class="img-button btn-white" style="width: 40%;" id="btn_bed_m10" onClick="onClickButton(this.id)">
                                     <label>-10</label>
                                     <img src="images/m_bed_down.svg">
                                 </button>
                             </td>
                             <td>
-                                <button class="img-button btn-white" style="width: 50%" id="btn_extr_down" onClick="onClickButton(this.id)">
+                                <button class="img-button btn-white" style="width: 40%" id="btn_extr_down" onClick="onClickButton(this.id)">
                                     <img src="images/m_extr_down.svg">
                                 </button>
                             </td>
@@ -440,23 +441,23 @@
                     <tbody>
                         <tr>
                             <td>
-                                <button class="img-button btn-white" style="width: 50%;" id="btn_chamber_light" onClick="onClickButton(this.id)">
-                                    <img src="images/ic_light_off.svg">
+                                <button class="img-button btn-white" style="width: 40%;" id="btn_chamber_light" onClick="onClickButton(this.id)">
+                                    <img src="images/ic_light_off.svg" id="img_chamber_light">
                                 </button>
                             </td>
                             <td class="vl">
-                                <button class="img-button btn-white" style="width: 50%;" id="btn_fan_part" onClick="onClickButton(this.id)">
-                                    <img src="images/ic_fan_off.svg">
+                                <button class="img-button btn-white" style="width: 40%;" id="btn_cooling_fan_speed" onClick="onClickButton(this.id)">
+                                    <img src="images/ic_fan_off.svg" id="img_cooling_fan_speed">
                                 </button>
                             </td>
                             <td>
-                                <button class="img-button btn-white" style="width: 50%;" id="btn_fan_aux" onClick="onClickButton(this.id)">
-                                    <img src="images/ic_fan_off.svg">
+                                <button class="img-button btn-white" style="width: 40%;" id="btn_big_fan1_speed" onClick="onClickButton(this.id)">
+                                    <img src="images/ic_fan_off.svg" id="img_big_fan1_speed">
                                 </button>
                             </td>
                             <td>
-                                <button class="img-button btn-white" style="width: 50%;" id="btn_fan_chamber" onClick="onClickButton(this.id)">
-                                    <img src="images/ic_fan_off.svg">
+                                <button class="img-button btn-white" style="width: 40%;" id="btn_big_fan2_speed" onClick="onClickButton(this.id)">
+                                    <img src="images/ic_fan_off.svg" id="img_big_fan2_speed">
                                 </button>
                             </td>
                         </tr>
@@ -479,13 +480,13 @@
                                 <label id="label_chamber_light">Off</label>
                             </td>
                             <td>
-                                <label id="label_fan_part">Off</label>
+                                <label id="label_cooling_fan_speed">Off</label>
                             </td>
                             <td>
-                                <label id="label_fan_aux">Off</label>
+                                <label id="label_big_fan1_speed">Off</label>
                             </td>
                             <td>
-                                <label id="label_fan_chamber">30%</label>
+                                <label id="label_big_fan2_speed">0%</label>
                             </td>
                         </tr>
                     </tbody>
@@ -633,6 +634,6 @@
 
 
         <script src="script_index.js"></script>
-        <script>openTab('None', 'tab_main');</script>
+        <!-- <script>openTab('None', 'tab_main');</script> -->
     </body>
 </html>
