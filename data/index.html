@@ -190,12 +190,35 @@
             </div>
 
             <!--
-                AMS
+                SPOOL & AMS
             -->
+            <div id="spool_info" style="padding: 5px 0px 5px 0px;">
+                <table class="container" border="0" style="table-layout:fixed;">
+                    <tbody>
+                        <tr style="vertical-align: center;">
+                            <td style="width: 20%;">
+                                <button class="img-button btn-white" style="min-width: 64px;" onclick="openTab(event, 'tab_ams')">
+                                    <img src="images/ic_spool_holder_desc.svg" style="width: 70%">
+                                </button><br>
+                                <label style="font-weight: bold;" id="label_ams">Spool</label>
+                            </td>
+                            <td class="vl" style="width: 20%;">
+                                <button class="img-button btn-circle" style="min-width: 50px; min-height: 50px; background: black;" name="btn_vt_tray" onClick="onClickButton(this.id)">
+                                </button><br>
+                                <label style="font-weight: bold;" name="vt_tray_type">PLA</label>
+                            </td>
+                            <td style="width: 20%;"></td>
+                            <td style="width: 20%;"></td>
+                            <td style="width: 20%;"></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
             <div id="ams_info" style="padding: 5px 0px 5px 0px;">
                 <table class="container" border="0">
                     <tbody>
-                        <tr id="ams" style="vertical-align: center;">
+                        <tr style="vertical-align: center;">
                             <td style="width: 20%;">
                                 <button class="img-button btn-white" style="min-width: 64px;" onclick="openTab(event, 'tab_ams')">
                                     <img src="images/ic_ams.svg" width="100%" id="img_ams">
@@ -203,7 +226,7 @@
                                 <label style="font-weight: bold;" id="label_ams">AMS</label>
                             </td>
                             <td class="vl">
-                                <button class="img-button btn-circle" style="min-width: 50px; min-height: 50px; background: red;" name="btn_vt_tray" onClick="onClickButton(this.id)">
+                                <button class="img-button btn-circle" style="min-width: 50px; min-height: 50px; background: black;" name="btn_vt_tray" onClick="onClickButton(this.id)">
                                 </button><br>
                                 <label style="font-weight: bold;" name="vt_tray_type">PLA</label>
                             </td>
