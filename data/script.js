@@ -88,6 +88,8 @@ function updateTemperature(json) {
 }
 
 function updateFilaments(json) {
+    var is_ams = false;
+
     if (Object.keys(json).includes('vt_tray')) {
         tray = json['vt_tray'];
 
@@ -107,8 +109,8 @@ function updateFilaments(json) {
     }
 
     if (Object.keys(json).includes('ams')) {
-        var exist = json['ams']['ams_exist_bits'];
-        if (exist) {
+        is_ams = json['ams']['ams_exist_bits'];
+        if (is_ams) {
             json = json['ams']['ams']['0']['tray'];
             if (json) {
                 var keys = Object.keys(json);
@@ -135,10 +137,10 @@ function updateFilaments(json) {
                     }
                 }
             }
-        } else {
-
         }
     }
+    document.getElementById('ams_info').style.display = is_ams ? 'block' : 'none';
+    document.getElementById('spool_info').style.display = is_ams ? 'none' : 'block';
 }
 
 function updateLight(json) {
@@ -266,6 +268,32 @@ function onClickButton(id) {
     console.log(id);
 }
 
+function onChangeSpeed(id, name) {
+    var elt = document.getElementById(id);
+    if (elt) {
+        console.log("onChange : " + id + " " + elt.value + " " + name);
+        var labels = document.getElementsByName(name);
+        if (labels) {
+            for (var j = 0; j < labels.length; j++) {
+                labels[j].value = elt.value;
+            }
+        }
+    }
+}
+
+function onChangeTemp(id, name) {
+    var elt = document.getElementById(id);
+    if (elt) {
+        console.log("onChange : " + id + " " + elt.value + " " + name);
+        var labels = document.getElementsByName(name);
+        if (labels) {
+            for (var j = 0; j < labels.length; j++) {
+                labels[j].value = elt.value;
+            }
+        }
+    }
+}
+
 function openTab(evt, tab) {
     var i, tabcontent, tablinks;
 
@@ -273,7 +301,6 @@ function openTab(evt, tab) {
     tabcontent = document.getElementsByClassName("tabcontent");
     for (i = 0; i < tabcontent.length; i++) {
         tabcontent[i].style.display = "none";
-        console.log(tabcontent[i].id);
     }
 
     // Get all elements with class="tablinks" and remove the class "active"
