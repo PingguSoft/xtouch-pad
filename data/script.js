@@ -173,34 +173,34 @@ function updateFans(json) {
         // max : 255
         var gear = json['fan_gear'];
         console.log("fan_gear : " + gear.toString(16));
-        speeds[0] = Math.round(((gear >>  0) & 0xFF) / 2.55);
-        speeds[1] = Math.round(((gear >>  8) & 0xFF) / 2.55);
-        speeds[2] = Math.round(((gear >> 16) & 0xFF) / 2.55);
-        console.log(speeds);
+        speeds[0] = (gear >>  0) & 0xFF;
+        speeds[1] = (gear >>  8) & 0xFF;
+        speeds[2] = (gear >> 16) & 0xFF;
+        console.log("1 : " + speeds);
     } else {
         for (var i = 0; i < nodes.length; i++) {
             if (Object.keys(json).includes(nodes[i])) {
                 // max : 15
-                speeds[i] = Math.round(json[nodes[i]] / 0.15);
+                speeds[i] = Math.round(Math.floor(json[nodes[i]] / 1.5) * 25.5);
             }
         }
+        console.log("2 : " + speeds);
     }
 
     // update icon and percentage only for updated ones
     for (var i = 0; i < nodes.length; i++) {
-        if (0 < speeds[i] && speeds[i] <= 10)
-            speeds[i] = 10;
         if (speeds[i] >= 0) {
+            var speed = (speeds[i] == 0) ? 0 : Math.max(10, Math.round(speeds[i] * 100 / 255.0));
             var name = 'img_' + nodes[i];
             var img = document.getElementById(name);
             if (img) {
-                img.src = (speeds[i] > 0) ? 'images/ic_fan_on.svg' : 'images/ic_fan_off.svg';
+                img.src = (speed > 0) ? 'images/ic_fan_on.svg' : 'images/ic_fan_off.svg';
             }
 
             name = 'label_' + nodes[i];
             var label = document.getElementById(name);
             if (label) {
-                label.innerText = (speeds[i] > 0) ? String(speeds[i]) + '%' : 'Off';
+                label.innerText = (speed > 0) ? String(speed) + '%' : 'off';
             }
         }
     }
