@@ -6,6 +6,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <link rel="icon" type="image/png" href="favicon.png">
         <link rel="stylesheet" type="text/css" href="style.css">
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
     </head>
 
 
@@ -518,13 +519,34 @@
                                 <label id="label_chamber_light">off</label>
                             </td>
                             <td>
-                                <label id="label_cooling_fan_speed">off</label>
+                                <div class="num-spinner">
+                                    <span class="minus disabled"></span>
+                                    <input type="number" min="0" max="100" value="0" step="10" id="label_cooling_fan_speed">
+                                    <span class="plus"></span>
+                                </div>
+                                <!-- <input type="number" min="0" max="100" value="0" step="10" class="custom-input" name="cooling_fan_speed" id="cooling_fan" onchange="onChangeFan(this.id, this.name)">
+                                <label>%</label> -->
+                                <!-- <label id="label_cooling_fan_speed">off</label> -->
                             </td>
                             <td>
-                                <label id="label_big_fan1_speed">off</label>
+                                <div class="num-spinner">
+                                    <span class="minus disabled"></span>
+                                    <input type="number" min="0" max="100" value="0" step="10" id="label_big_fan1_speed">
+                                    <span class="plus"></span>
+                              </div>
+                                <!-- <input type="number" min="0" max="100" value="0" step="10" class="custom-input" name="big_fan1_speed" id="big_fan1" onchange="onChangeFan(this.id, this.name)">
+                                <label>%</label> -->
+                                <!-- <label id="label_big_fan1_speed">off</label> -->
                             </td>
                             <td>
-                                <label id="label_big_fan2_speed">off</label>
+                                <!-- <input type="number" min="0" max="100" value="0" step="10" class="custom-input" name="big_fan2_speed" id="big_fan2" onchange="onChangeFan(this.id, this.name)">
+                                <label>%</label> -->
+                                <!-- <label id="label_big_fan2_speed">off</label> -->
+                                <div class="num-spinner">
+                                      <span class="minus disabled"></span>
+                                      <input type="number" min="0" max="100" value="0" step="10" id="label_big_fan2_speed">
+                                      <span class="plus"></span>
+                                </div>
                             </td>
                         </tr>
                     </tbody>
@@ -670,6 +692,8 @@
 
 
         <script src="script.js"></script>
+        <script src="script-num.js"></script>
+
         <!-- <script>openTab('None', 'tab_main');</script> -->
     </body>
 </html>

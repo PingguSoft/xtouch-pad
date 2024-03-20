@@ -35,39 +35,11 @@ h1 {
     width: 100%;
 }
 
-
-/*
- * card
- */
-/* .card-grid {
-    max-width: 800px;
-    margin: 0 auto;
-    display: grid;
-    grid-gap: 2rem;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-}
-
-.card {
-    background-color: white;
-    box-shadow: 2px 2px 12px 1px rgba(140, 140, 140, .5);
-}
-
-.card-title {
-    font-size: 1.2rem;
-    font-weight: bold;
-    color: #034078
-}
-
-.reading {
-    font-size: 1.2rem;
-    color: #1282A2;
-} */
-
 .text-centered {
     position: absolute;
-    top:50%;
-    left:50%;
-    transform:translate(-50%, -50%);
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
 }
 
 /*
@@ -175,24 +147,31 @@ h1 {
     cursor: pointer;
     transition: all 0.3s ease;
     border: black;
-    outline:none;
+    outline: none;
     border-radius: 50%;
 }
 
 .btn-noclick {
-    box-shadow:none;
+    box-shadow: none;
     border: none;
 }
 
-.btn-white:hover, .btn-gray:hover, .btn-tab:hover, .custom-input:hover, .btn-circle:hover {
+.btn-white:hover,
+.btn-gray:hover,
+.btn-tab:hover,
+.custom-input:hover,
+.btn-circle:hover {
     /* background-color: #89d8d3; */
     /* background-image: linear-gradient(315deg, #89d8d3 0%, #03c8a8 74%); */
     box-shadow: 8px 8px 6px darkgray;
 }
 
-.btn-white:active, .btn-gray:active, .btn-tab:active, .btn-circle:active {
+.btn-white:active,
+.btn-gray:active,
+.btn-tab:active,
+.btn-circle:active {
     color: #ff0000;
-    box-shadow: 2px 2px 6px rgba(0,0,0,0.3);
+    box-shadow: 2px 2px 6px rgba(0, 0, 0, 0.3);
 }
 
 
@@ -202,10 +181,10 @@ h1 {
     overflow: hidden;
     border: 1px solid #ccc;
     background-color: #f1f1f1;
-  }
+}
 
-  /* Style the buttons that are used to open the tab content */
-  .tab button {
+/* Style the buttons that are used to open the tab content */
+.tab button {
     background-color: inherit;
     float: left;
     border: none;
@@ -213,14 +192,80 @@ h1 {
     cursor: pointer;
     padding: 14px 16px;
     transition: 0.3s;
-  }
+}
 
-  /* Change background color of buttons on hover */
-  .tab button:hover {
+/* Change background color of buttons on hover */
+.tab button:hover {
     background-color: #ddd;
-  }
+}
 
-  /* Create an active/current tablink class */
-  .tab button.active {
+/* Create an active/current tablink class */
+.tab button.active {
     background-color: #ccc;
-  }
+}
+
+.num-spinner {
+    display: inline-block;
+    vertical-align: middle;
+    padding-left: 10%;
+}
+
+.num-spinner span {
+    float: left;
+    width: 25px;
+    height: 32px;
+    line-height: 32px;
+    text-align: center;
+    position: relative;
+    cursor: pointer;
+}
+
+.num-spinner span.disabled:before,
+.num-spinner span.disabled:after {
+    background-color: #ccc !important;
+}
+
+.num-spinner input {
+    float: left;
+    width: 30%;
+    height: 32px;
+    border: 1px solid #6E6F7A;
+    border-radius: 5px;
+    color: #000;
+    text-align: center;
+    padding: 0;
+}
+
+.num-spinner input::-webkit-inner-spin-button,
+.num-spinner input::-webkit-outer-spin-button {
+    -webkit-appearance: none !important;
+    opacity: 1 !important;
+}
+
+.num-spinner span.minus:before {
+    content: '';
+    position: absolute;
+    width: 15px;
+    height: 2px;
+    background-color: #00A94F;
+    top: 50%;
+    left: 0;
+}
+
+.num-spinner span.plus:before,
+.num-spinner span.plus:after {
+    content: '';
+    position: absolute;
+    right: 0px;
+    width: 15px;
+    height: 2px;
+    background-color: #00A94F;
+    top: 50%;
+}
+
+.num-spinner span.plus:after {
+    -webkit-transform: rotate(90deg);
+    -ms-transform: rotate(90deg);
+    -o-transform: rotate(90deg);
+    transform: rotate(90deg);
+}
