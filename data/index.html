@@ -516,35 +516,31 @@
                         </tr>
                         <tr style="font-weight: bold; font-size: 1.1em;">
                             <td>
-                                <label id="label_chamber_light">off</label>
+                                <!-- <label id="label_chamber_light">off</label> -->
+                                <!-- Rounded switch -->
+                                <label class="switch">
+                                    <input type="checkbox" id="label_chamber_light" onchange="onChangeSwitch(this.id)">
+                                    <span class="slider round"></span>
+                                </label>
                             </td>
                             <td>
                                 <div class="num-spinner">
                                     <span class="minus disabled"></span>
-                                    <input type="number" min="0" max="100" value="0" step="10" id="label_cooling_fan_speed">
+                                    <input type="number" min="0" max="100" value="0" step="10" id="label_cooling_fan_speed" onchange="onChangeFan(this.id)">
                                     <span class="plus"></span>
                                 </div>
-                                <!-- <input type="number" min="0" max="100" value="0" step="10" class="custom-input" name="cooling_fan_speed" id="cooling_fan" onchange="onChangeFan(this.id, this.name)">
-                                <label>%</label> -->
-                                <!-- <label id="label_cooling_fan_speed">off</label> -->
                             </td>
                             <td>
                                 <div class="num-spinner">
                                     <span class="minus disabled"></span>
-                                    <input type="number" min="0" max="100" value="0" step="10" id="label_big_fan1_speed">
+                                    <input type="number" min="0" max="100" value="0" step="10" id="label_big_fan1_speed" onchange="onChangeFan(this.id)">
                                     <span class="plus"></span>
                               </div>
-                                <!-- <input type="number" min="0" max="100" value="0" step="10" class="custom-input" name="big_fan1_speed" id="big_fan1" onchange="onChangeFan(this.id, this.name)">
-                                <label>%</label> -->
-                                <!-- <label id="label_big_fan1_speed">off</label> -->
                             </td>
                             <td>
-                                <!-- <input type="number" min="0" max="100" value="0" step="10" class="custom-input" name="big_fan2_speed" id="big_fan2" onchange="onChangeFan(this.id, this.name)">
-                                <label>%</label> -->
-                                <!-- <label id="label_big_fan2_speed">off</label> -->
                                 <div class="num-spinner">
                                       <span class="minus disabled"></span>
-                                      <input type="number" min="0" max="100" value="0" step="10" id="label_big_fan2_speed">
+                                      <input type="number" min="0" max="100" value="0" step="10" id="label_big_fan2_speed" onchange="onChangeFan(this.id)">
                                       <span class="plus"></span>
                                 </div>
                             </td>

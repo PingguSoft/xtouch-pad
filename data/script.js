@@ -265,7 +265,18 @@ function onMessage(event) {
 }
 
 function onClickButton(id) {
-    console.log(id);
+    var elt = document.getElementById(id);
+    if (elt) {
+        console.log("onChange : " + id + " " + elt.value);
+    }
+}
+
+function onChangeSwitch(id) {
+    var elt = document.getElementById(id);
+    console.log(elt);
+    if (elt) {
+        console.log("onChange : " + id + " " + elt.value);
+    }
 }
 
 function onChangeSpeed(id, name) {
@@ -282,6 +293,19 @@ function onChangeSpeed(id, name) {
 }
 
 function onChangeTemp(id, name) {
+    var elt = document.getElementById(id);
+    if (elt) {
+        console.log("onChange : " + id + " " + elt.value + " " + name);
+        var labels = document.getElementsByName(name);
+        if (labels) {
+            for (var j = 0; j < labels.length; j++) {
+                labels[j].value = elt.value;
+            }
+        }
+    }
+}
+
+function onChangeFan(id, name) {
     var elt = document.getElementById(id);
     if (elt) {
         console.log("onChange : " + id + " " + elt.value + " " + name);
