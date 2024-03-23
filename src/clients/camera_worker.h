@@ -30,7 +30,7 @@ public:
             STATE_COMPLETED
         } state_t;
         BufMan() {
-            _pos = 0;
+            _pos = 1;   // for relaying buffer with a command
             _len = 0;
             _state = STATE_IDLE;
             _pBuf = (uint8_t*)malloc(kMaxJPEGSize);

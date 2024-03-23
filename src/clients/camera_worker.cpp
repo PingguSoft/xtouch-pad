@@ -16,7 +16,7 @@ int CameraWorker::BufMan::process(WiFiClientSecure *client, Callback *cb) {
                     _state = STATE_HDR_1;
                     _pBuf[_pos++] = ch;
                  } else {
-                    _pos = 0;
+                    _pos = 1;
                     _state = STATE_IDLE;
                  }
                 break;
@@ -26,7 +26,7 @@ int CameraWorker::BufMan::process(WiFiClientSecure *client, Callback *cb) {
                     _state = STATE_HDR_2;
                     _pBuf[_pos++] = ch;
                 } else {
-                    _pos = 0;
+                    _pos = 1;
                     _state = STATE_IDLE;
                 }
                 break;
@@ -36,7 +36,7 @@ int CameraWorker::BufMan::process(WiFiClientSecure *client, Callback *cb) {
                     _state = STATE_HDR_3;
                     _pBuf[_pos++] = ch;
                 } else {
-                    _pos = 0;
+                    _pos = 1;
                     _state = STATE_IDLE;
                 }
                 break;
@@ -46,7 +46,7 @@ int CameraWorker::BufMan::process(WiFiClientSecure *client, Callback *cb) {
                     _state = STATE_BODY;
                     _pBuf[_pos++] = ch;
                 } else {
-                    _pos = 0;
+                    _pos = 1;
                     _state = STATE_IDLE;
                 }
                 break;
@@ -65,7 +65,7 @@ int CameraWorker::BufMan::process(WiFiClientSecure *client, Callback *cb) {
                     if (cb) {
                         cb->onJpeg(_pBuf, _pos);
                     }
-                    _pos = 0;
+                    _pos = 1;
                     _state = STATE_IDLE;
                 } else {
                     _state = STATE_BODY;

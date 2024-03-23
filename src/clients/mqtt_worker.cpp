@@ -57,10 +57,19 @@ void MQTTWorker::stop() {
     }
 }
 
-void MQTTWorker::publish(JsonDocument json) {
+void MQTTWorker::publish(JsonDocument json, char *user) {
+    const String commands[] = { "system", "print", "pushing" };
     String result;
 
     if (_mqtt_client && _mqtt_client->connected()) {
+        for (int i = 0; i < ARRAY_SIZE(commands); i++) {
+            if (json.containsKey(commands[i])) {
+                json[commands[i]]["sequence_id"] = seq_id_str();
+            }
+        }
+        if (user) {
+            json["user_id"] = String(user);
+        }
         serializeJson(json, result);
         _mqtt_client->publish(_topic_request.c_str(), result.c_str());
         _mqtt_client->flush();
@@ -73,8 +82,6 @@ void MQTTWorker::reqPushAll() {
     json["pushing"]["command"] = "pushall";
     json["pushing"]["version"] = 1;
     json["pushing"]["push_target"] = 1;
-    json["pushing"]["sequence_id"] = seq_id_str();
-    json["user_id"] = "123456789";
     publish(json);
 }
 
@@ -82,7 +89,7 @@ void MQTTWorker::reqDeviceVersion() {
     JsonDocument json;
 
     json["info"]["command"] = "get_version";
-    publish(json);
+    publish(json, NULL);
 }
 
 bool MQTTWorker::loop() {

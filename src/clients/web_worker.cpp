@@ -19,6 +19,7 @@ void taskWeb(void* arg);
 void WebWorker::onJpeg(uint8_t *param, int size) {
     LOGI("JPEG Completed : %d\n", size);
     if (_ws->count() > 0) {
+        param[0] = 0x01;
         _ws->binaryAll(param, size);
     }
 }
@@ -206,20 +207,34 @@ void WebWorker::onWebSocketData(AsyncWebSocketClient *client, void *arg, uint8_t
     LOGI("%s\n", data);
 
     if (info->final && info->index == 0 && info->len == len && info->opcode == WS_TEXT) {
-        if (strcmp((char*)data, "open") == 0) {
-            JsonDocument json;
-            String result;
+        JsonDocument json_in;
+        JsonDocument json_out;
+        String json_str;
 
-            if (_name) {
-                json["printer_name"] = _name;
-            } else {
-                json["printer_name"] = "None";
-            }
-            serializeJson(json, result);
-            _ws->text(client->id(), result);
+        auto err = deserializeJson(json_in, data, len);
+        if (!err) {
+            if (json_in.containsKey("command")) {
+                String command = json_in["command"].as<String>();
 
-            if (_mqtt) {
-                _mqtt->reqPushAll();
+                if (command == "open") {
+                    if (_name) {
+                        json_out["printer_name"] = _name;
+                    } else {
+                        json_out["printer_name"] = "None";
+                    }
+                    serializeJson(json_out, json_str);
+                    if (_ws) {
+                        _ws->text(client->id(), json_str);
+                    }
+                    if (_mqtt) {
+                        _mqtt->reqPushAll();
+                    }
+                } else if (command == "pub" && json_in.containsKey("data")) {
+                    if (_mqtt) {
+                        json_out = json_in["data"];
+                        _mqtt->publish(json_out);
+                    }
+                }
             }
         }
     }

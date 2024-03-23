@@ -47,14 +47,14 @@
                                     <tbody>
                                         <tr>
                                             <td  colspan="2" style="text-align: left; min-height: 60px;">
-                                                <label id="printing_model_name" style="font-weight: bold; font-size: 1.3em;">
+                                                <label style="font-weight: bold; font-size: 1.3em;">
                                                     Device Idle
                                                 </label>
                                             </td>
                                         </tr>
                                         <tr>
                                             <td  colspan="2" style="text-align: left; min-height: 40px;">
-                                                <label id="printing_model_aux" style="font-weight: bold; font-size: 1.1em;color:gray">
+                                                <label style="font-weight: bold; font-size: 1.1em;color:gray">
                                                     No task is being printed on the current device
                                                 </label>
                                             </td>
@@ -108,7 +108,8 @@
                                         </tr>
                                         <tr>
                                             <td style="text-align: left; font-weight: bold; font-size: 1.2em; color:green">
-                                                <label id="printing_cur_prog_percentage">0 %</label>
+                                                <label id="printing_cur_prog_percentage">0 </label>
+                                                <label>%</label>
                                             </td>
                                             <td style="text-align: right; font-weight: bold; font-size: 1.2em; color:gray">
                                                 <label id="printing_remaining_time">-4h 11m</label>
@@ -279,22 +280,22 @@
                     <tbody>
                         <tr>
                             <th scope="col">
-                                <button class="img-button btn-white" style="width: 60%;" id="btn_temp_hotend" onClick="onClickButton(this.id)">
+                                <button class="img-button btn-noclick" style="width: 60%;" id="btn_temp_hotend" onClick="onClickButton(this.id)">
                                     <img src="images/ic_hotend.svg" width="100%">
                                 </button>
                             </th>
                             <th scope="col">
-                                <button class="img-button btn-white" style="width: 60%;" id="btn_temp_hotbed" onClick="onClickButton(this.id)">
+                                <button class="img-button btn-noclick" style="width: 60%;" id="btn_temp_hotbed" onClick="onClickButton(this.id)">
                                     <img src="images/ic_hotbed.svg" width="100%">
                                 </button>
                             </th>
                             <th scope="col">
-                                <button class="img-button btn-white" style="width: 60%;" id="btn_temp_chamber" onClick="onClickButton(this.id)">
+                                <button class="img-button btn-noclick" style="width: 60%;" id="btn_temp_chamber" onClick="onClickButton(this.id)">
                                     <img src="images/ic_chamber.svg" width="100%">
                                 </button>
                             </th>
                             <th scope="col">
-                                <button class="img-button btn-white" style="width: 60%;" id="btn_speed" onClick="onClickButton(this.id)">
+                                <button class="img-button btn-noclick" style="width: 60%;" id="btn_speed" onClick="onClickButton(this.id)">
                                     <img src="images/ic_sport.svg" width="100%">
                                 </button>
                             </th>
@@ -480,22 +481,22 @@
                     <tbody>
                         <tr>
                             <td>
-                                <button class="img-button btn-white" style="width: 40%;" id="btn_chamber_light" onClick="onClickButton(this.id)">
+                                <button class="img-button btn-white" style="width: 40%;" id="btn_chamber_light" onClick="onClickButton(this.id, 1)">
                                     <img src="images/ic_light_off.svg" id="img_chamber_light">
                                 </button>
                             </td>
                             <td class="vl">
-                                <button class="img-button btn-white" style="width: 40%;" id="btn_cooling_fan_speed" onClick="onClickButton(this.id)">
+                                <button class="img-button btn-white" style="width: 40%;" id="btn_cooling_fan_speed" onClick="onClickButton(this.id, 2)">
                                     <img src="images/ic_fan_off.svg" id="img_cooling_fan_speed">
                                 </button>
                             </td>
                             <td>
-                                <button class="img-button btn-white" style="width: 40%;" id="btn_big_fan1_speed" onClick="onClickButton(this.id)">
+                                <button class="img-button btn-white" style="width: 40%;" id="btn_big_fan1_speed" onClick="onClickButton(this.id, 2)">
                                     <img src="images/ic_fan_off.svg" id="img_big_fan1_speed">
                                 </button>
                             </td>
                             <td>
-                                <button class="img-button btn-white" style="width: 40%;" id="btn_big_fan2_speed" onClick="onClickButton(this.id)">
+                                <button class="img-button btn-white" style="width: 40%;" id="btn_big_fan2_speed" onClick="onClickButton(this.id, 2)">
                                     <img src="images/ic_fan_off.svg" id="img_big_fan2_speed">
                                 </button>
                             </td>
@@ -516,31 +517,31 @@
                         </tr>
                         <tr style="font-weight: bold; font-size: 1.1em;">
                             <td>
-                                <!-- <label id="label_chamber_light">off</label> -->
+                                <label id="label_chamber_light">off</label>
                                 <!-- Rounded switch -->
-                                <label class="switch">
-                                    <input type="checkbox" id="label_chamber_light" onchange="onChangeSwitch(this.id)">
+                                <!-- <label class="switch">
+                                    <input type="checkbox" id="chamber_light" onchange="onChangeSwitch(this.id)">
                                     <span class="slider round"></span>
-                                </label>
+                                </label> -->
                             </td>
                             <td>
                                 <div class="num-spinner">
                                     <span class="minus disabled"></span>
-                                    <input type="number" min="0" max="100" value="0" step="10" id="label_cooling_fan_speed" onchange="onChangeFan(this.id)">
+                                    <input type="number" min="0" max="100" value="0" step="10" id="label_cooling_fan_speed" onchange="onChangeFan(this.id, 0)">
                                     <span class="plus"></span>
                                 </div>
                             </td>
                             <td>
                                 <div class="num-spinner">
                                     <span class="minus disabled"></span>
-                                    <input type="number" min="0" max="100" value="0" step="10" id="label_big_fan1_speed" onchange="onChangeFan(this.id)">
+                                    <input type="number" min="0" max="100" value="0" step="10" id="label_big_fan1_speed" onchange="onChangeFan(this.id, 0)">
                                     <span class="plus"></span>
                               </div>
                             </td>
                             <td>
                                 <div class="num-spinner">
                                       <span class="minus disabled"></span>
-                                      <input type="number" min="0" max="100" value="0" step="10" id="label_big_fan2_speed" onchange="onChangeFan(this.id)">
+                                      <input type="number" min="0" max="100" value="0" step="10" id="label_big_fan2_speed" onchange="onChangeFan(this.id, 0)">
                                       <span class="plus"></span>
                                 </div>
                             </td>

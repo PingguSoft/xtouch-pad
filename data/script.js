@@ -17,10 +17,15 @@ function initWebSocket() {
     websocket.binaryType = "arraybuffer";
 }
 
-// When websocket is established, call the getReadings() function
 function onOpen(event) {
     console.log('Connection opened');
-    websocket.send("open");
+
+    var json = {
+        command: 'open'
+    };
+    var str = JSON.stringify(json);
+    console.log(str);
+    websocket.send(str);
 }
 
 function onClose(event) {
@@ -55,7 +60,15 @@ function encode(input) {
     return output;
 }
 
-// Function that receives the message from the ESP32 with the readings
+
+//
+// update UI with MQTT
+//
+function pad(n, width) {
+    n = n + '';
+    return n.length >= width ? n : new Array(width - n.length + 1).join('0') + n;
+}
+
 function updatePrintingState(json) {
     if (Object.keys(json).includes('gcode_state')) {
         if (json['gcode_state'] == 'IDLE') {
@@ -64,6 +77,46 @@ function updatePrintingState(json) {
         } else {
             document.getElementById('printing_idle').style.display = 'none';
             document.getElementById('printing_info').style.display = '';
+
+            const printing_maps = [
+                ['subtask_name', 'printing_model_name', 1],
+                ['gcode_file', 'printing_model_aux', 1],
+                ['total_layer_num', 'printing_max_layer', 1],
+                ['layer_num', 'printing_cur_layer', 1],
+                ['mc_percent', 'printing_cur_prog_percentage', 1],
+                ['mc_percent', 'printing_cur_prog_bar', 2],
+                ['mc_remaining_time', 'printing_remaining_time', 3],
+            ];
+
+            for (const x of printing_maps) {
+                console.log(x[0] + ", " + x[1] + ", : " + json[x[0]]);
+                if (Object.keys(json).includes(x[0])) {
+                    var elt = document.getElementById(x[1]);
+                    if (elt) {
+                        if (x[2] == 1) {
+                            elt.innerText = json[x[0]];
+                        } else if (x[2] == 2) {
+                            elt.value = json[x[0]];
+                        } else if (x[2] == 3) {
+                            var min = json[x[0]];
+                            var days = min / (60 * 24);
+                            min %= (60 * 24);
+                            var hours = min / 60;
+                            min %= 60;
+
+                            var str = "";
+                            if (days > 0)
+                                str = str + pad(days, 2) + "d ";
+                            if (hours > 0)
+                                str = str + pad(hours, 2) + "h ";
+                            str = str + pad(min, 2) + "m";
+                            elt.innerText = str;
+                        }
+                    } else {
+                        console.log("no : " + x[1]);
+                    }
+                }
+            }
         }
     }
 }
@@ -110,6 +163,7 @@ function updateFilaments(json) {
 
     if (Object.keys(json).includes('ams')) {
         is_ams = json['ams']['ams_exist_bits'];
+        console.log("ams : " + is_ams);
         if (is_ams) {
             json = json['ams']['ams']['0']['tray'];
             if (json) {
@@ -138,9 +192,9 @@ function updateFilaments(json) {
                 }
             }
         }
+        document.getElementById('ams_info').style.display = is_ams ? 'block' : 'none';
+        document.getElementById('spool_info').style.display = is_ams ? 'none' : 'block';
     }
-    document.getElementById('ams_info').style.display = is_ams ? 'block' : 'none';
-    document.getElementById('spool_info').style.display = is_ams ? 'none' : 'block';
 }
 
 function updateLight(json) {
@@ -161,20 +215,21 @@ function updateLight(json) {
             var label = document.getElementById(name);
             if (label)
                 label.innerText = light[i]['mode'];
+                // label.checked = (light[i]['mode'] == 'on');
         }
     }
 }
 
 function updateFans(json) {
-    var nodes = ['cooling_fan_speed', 'big_fan1_speed', 'big_fan2_speed', 'heatbreak_fan_speed'];
-    var speeds =[-1, -1, -1, -1];
+    const nodes = ['cooling_fan_speed', 'big_fan1_speed', 'big_fan2_speed', 'heatbreak_fan_speed'];
+    var speeds = [-1, -1, -1, -1];
 
     if (Object.keys(json).includes('fan_gear')) {
         // max : 255
         var gear = json['fan_gear'];
         console.log("fan_gear : " + gear.toString(16));
-        speeds[0] = (gear >>  0) & 0xFF;
-        speeds[1] = (gear >>  8) & 0xFF;
+        speeds[0] = (gear >> 0) & 0xFF;
+        speeds[1] = (gear >> 8) & 0xFF;
         speeds[2] = (gear >> 16) & 0xFF;
         console.log("1 : " + speeds);
     } else {
@@ -199,9 +254,10 @@ function updateFans(json) {
 
             name = 'label_' + nodes[i];
             var label = document.getElementById(name);
-            if (label) {
+            if (label.nodeName.toLowerCase() == 'input')
+                label.value = speed;
+            else
                 label.innerText = (speed > 0) ? String(speed) + '%' : 'off';
-            }
         }
     }
 }
@@ -219,7 +275,7 @@ function updateSpeed(json) {
     }
 }
 
-var func_updates = [
+const func_updates = [
     updatePrintingState,
     updateTemperature,
     updateFilaments,
@@ -229,21 +285,19 @@ var func_updates = [
 ];
 
 function onMessage(event) {
-    // console.log(event.data);
-
     if (event.data instanceof ArrayBuffer) {
         var bytes = new Uint8Array(event.data);
-        var id = new Uint32Array(bytes.buffer.slice(0, 4))[0];
+        var cmd = bytes[0];
+        var payload = bytes.subarray(1, event.data.length);
 
-        // console.log(id);
-        if (id == 0xe0ffd8ff) {         // jpeg
+        if (cmd == 0x01) {          // jpeg
             var image = document.getElementById('camera_view');
             if (image)
-                image.src = 'data:image/jpeg;base64,' + encode(bytes);
-        } else if (id == 0x474e5089) {  // png
+                image.src = 'data:image/jpeg;base64,' + encode(payload);
+        } else if (cmd == 0x02) {   // png
             var image = document.getElementById('model_view');
             if (image)
-                image.src = 'data:image/png;base64,' + encode(bytes);
+                image.src = 'data:image/png;base64,' + encode(data);
         }
     } else {
         var json = JSON.parse(event.data);
@@ -255,8 +309,8 @@ function onMessage(event) {
             } else {
                 json = json['print'];
                 if (json) {
-                    for (var i = 0; i < func_updates.length; i++) {
-                        func_updates[i](json);
+                    for (const f of func_updates) {
+                        f(json);
                     }
                 }
             }
@@ -264,19 +318,45 @@ function onMessage(event) {
     }
 }
 
-function onClickButton(id) {
-    var elt = document.getElementById(id);
-    if (elt) {
-        console.log("onChange : " + id + " " + elt.value);
-    }
+
+//
+// send Event with MQTT
+//
+function ctrlLED(name, mode) {
+    const json = {
+        command: 'pub',
+        data: {
+            system: {
+                command: "ledctrl",
+                led_node: name,
+                sequence_id: 0,
+                led_mode: mode,
+                led_on_time: 500,
+                led_off_time: 500,
+                loop_times: 0,
+                interval_time: 0,
+            },
+        }
+    };
+    var str = JSON.stringify(json);
+    console.log(str);
+    websocket.send(str);
 }
 
-function onChangeSwitch(id) {
-    var elt = document.getElementById(id);
-    console.log(elt);
-    if (elt) {
-        console.log("onChange : " + id + " " + elt.value);
-    }
+function sendGcode(code) {
+    var json = {
+        command: 'pub',
+        data: {
+            print: {
+                command: "gcode_line",
+                sequence_id: 0,
+                param: code,
+            },
+        }
+    };
+    var str = JSON.stringify(json);
+    console.log(str);
+    websocket.send(str);
 }
 
 function onChangeSpeed(id, name) {
@@ -305,14 +385,55 @@ function onChangeTemp(id, name) {
     }
 }
 
-function onChangeFan(id, name) {
+function onChangeFan(id, toggle) {
+    const fan_maps = [
+        ['label_cooling_fan_speed'],
+        ['label_big_fan1_speed'],
+        ['label_big_fan2_speed']
+    ];
+
     var elt = document.getElementById(id);
     if (elt) {
-        console.log("onChange : " + id + " " + elt.value + " " + name);
-        var labels = document.getElementsByName(name);
-        if (labels) {
-            for (var j = 0; j < labels.length; j++) {
-                labels[j].value = elt.value;
+        console.log("onChange : " + id + " " + elt.value + " button:" + toggle);
+        var idx = 1;
+        for (const fan of fan_maps) {
+            if (id == fan[0]) {
+                var speed;
+
+                if (toggle) {
+                    speed = (elt.value == 0) ? 255 : 0;
+                } else {
+                    speed = elt.value * 2.55;
+                }
+                sendGcode("M106 P" + idx + " S" + speed + " \n");
+                break;
+            }
+            idx++;
+        }
+    }
+}
+
+function onClickButton(id, type) {
+    var elt = document.getElementById(id);
+    if (elt) {
+        var label_id = id.replace("btn_", "label_");
+
+        const elt_label = document.getElementById(label_id);
+        if (elt_label) {
+            var val = 0;
+            if (elt_label.nodeName.toLowerCase() == 'input')
+                val = elt_label.value;
+            else
+                val = (elt_label.innerText == "off") ? 0 : 100;
+
+            var new_val = (val == 0) ? 100 : 0;
+            console.log("onClickButton : " + id + " " + val + " => " + new_val);
+
+            if (type == 1) {
+                label_id = id.replace("btn_", "");
+                ctrlLED(label_id, (new_val == 0) ? "off" : "on");
+            } else if (type == 2) {
+                onChangeFan(label_id, 1);
             }
         }
     }
