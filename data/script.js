@@ -1,20 +1,40 @@
+const Status = {
+    UNKNOWN : 0,
+    IDLE : 1,
+    RUNNING : 2,
+    PAUSED : 3,
+    FINISHED : 4,
+    PREPARE : 5,
+    FAILED : 6
+};
 
-var gateway = `ws://${window.location.hostname}/ws`;
-var websocket;
-// Init web socket when the page loads
+var _selected_tray = -1;
+var _gateway = `ws://${window.location.hostname}/ws`;
+var _websocket;
+var _printer = {
+    name : "",
+    is_ams: false,
+    status: Status.UNKNOWN,
+};
+
+
 window.addEventListener('load', onload);
 
+//
+// Web Socket
+//
 function onload(event) {
     initWebSocket();
+    updateUI(Status.RUNNING);
 }
 
 function initWebSocket() {
     console.log('Trying to open a WebSocket connection...');
-    websocket = new WebSocket(gateway);
-    websocket.onopen = onOpen;
-    websocket.onclose = onClose;
-    websocket.onmessage = onMessage;
-    websocket.binaryType = "arraybuffer";
+    _websocket = new WebSocket(_gateway);
+    _websocket.onopen = onOpen;
+    _websocket.onclose = onClose;
+    _websocket.onmessage = onMessage;
+    _websocket.binaryType = "arraybuffer";
 }
 
 function onOpen(event) {
@@ -25,7 +45,7 @@ function onOpen(event) {
     };
     var str = JSON.stringify(json);
     console.log(str);
-    websocket.send(str);
+    _websocket.send(str);
 }
 
 function onClose(event) {
@@ -62,22 +82,75 @@ function encode(input) {
 
 
 //
-// update UI with MQTT
+// update UI with MQTT messages
 //
 function pad(n, width) {
     n = n + '';
     return n.length >= width ? n : new Array(width - n.length + 1).join('0') + n;
 }
 
-function updatePrintingState(json) {
-    if (Object.keys(json).includes('gcode_state')) {
-        if (json['gcode_state'] == 'IDLE') {
-            document.getElementById('printing_idle').style.display = '';
-            document.getElementById('printing_info').style.display = 'none';
-        } else {
-            document.getElementById('printing_idle').style.display = 'none';
-            document.getElementById('printing_info').style.display = '';
+function updateUI(status) {
+    if (status == Status.IDLE) {
+        document.getElementById('printing_idle').style.display = '';
+        document.getElementById('printing_info').style.display = 'none';
+    } else {
+        document.getElementById('printing_idle').style.display = 'none';
+        document.getElementById('printing_info').style.display = '';
+    }
 
+    switch (status) {
+        case Status.RUNNING: {
+                document.getElementById('btn_print_icon').setAttribute('src', 'images/print_ctrl_pause.svg');
+                const disabled = document.getElementsByClassName("disabled-printing");
+                for (const elt of disabled) {
+                    elt.disabled = true;
+                    elt.className = elt.className.replace("btn-normal", "btn-normal-disabled");
+                }
+            }
+            break;
+
+        case Status.PAUSED:
+            document.getElementById('btn_print_icon').setAttribute('src', 'images/print_ctrl_resume.svg');
+            break;
+
+        default: {
+            const disabled = document.getElementsByClassName("disabled-printing");
+            for (const elt of disabled) {
+                elt.disabled = false;
+                elt.className = elt.className.replace("btn-normal-disabled", "btn-normal");
+            }
+        }
+        break;
+    }
+}
+
+function updatePrintingState(json) {
+    const status_maps = [
+        ['IDLE', Status.IDLE],
+        ['RUNNING', Status.RUNNING],
+        ['PAUSE', Status.PAUSED],
+        ['FINISH', Status.FINISHED],
+        ['PREPARE', Status.PREPARE],
+        ['FAILED', Status.FAILED]
+    ];
+
+    var status = Status.UNKNOWN;
+    if (Object.keys(json).includes('gcode_state')) {
+        for (const s of status_maps) {
+            if (json['gcode_state'] == s[0]) {
+                status = s[1];
+                break;
+            }
+        }
+
+        if (status == Status.UNKNOWN)
+            return;
+
+        if (_printer.status != status) {
+            updateUI(status);
+            _printer.status = status;
+        }
+        if (_printer.status != Status.IDLE) {
             const printing_maps = [
                 ['subtask_name', 'printing_model_name', 1],
                 ['gcode_file', 'printing_model_aux', 1],
@@ -162,10 +235,12 @@ function updateFilaments(json) {
     }
 
     if (Object.keys(json).includes('ams')) {
-        is_ams = json['ams']['ams_exist_bits'];
-        console.log("ams : " + is_ams);
+        json = json['ams'];
+        _printer.is_ams = (json['ams_exist_bits'] != null);
+        console.log("ams : " + _printer.is_ams);
+
         if (is_ams) {
-            json = json['ams']['ams']['0']['tray'];
+            json = json['ams']['0']['tray'];
             if (json) {
                 var keys = Object.keys(json);
 
@@ -192,8 +267,8 @@ function updateFilaments(json) {
                 }
             }
         }
-        document.getElementById('ams_info').style.display = is_ams ? 'block' : 'none';
-        document.getElementById('spool_info').style.display = is_ams ? 'none' : 'block';
+        document.getElementById('spool_info').style.display = _printer.is_ams ? 'none' : 'block';
+        document.getElementById('ams_info').style.display = _printer.is_ams ? 'block' : 'none';
     }
 }
 
@@ -289,15 +364,22 @@ function onMessage(event) {
         var bytes = new Uint8Array(event.data);
         var cmd = bytes[0];
         var payload = bytes.subarray(1, event.data.length);
+        var image;
 
-        if (cmd == 0x01) {          // jpeg
-            var image = document.getElementById('camera_view');
-            if (image)
-                image.src = 'data:image/jpeg;base64,' + encode(payload);
-        } else if (cmd == 0x02) {   // png
-            var image = document.getElementById('model_view');
-            if (image)
-                image.src = 'data:image/png;base64,' + encode(data);
+        switch (cmd) {
+            case 0x01: {        // jpeg
+                image = document.getElementById('camera_view');
+                if (image)
+                    image.src = 'data:image/jpeg;base64,' + encode(payload);
+            }
+            break;
+
+            case 0x02: {        // png
+                image = document.getElementById('model_view');
+                if (image)
+                    image.src = 'data:image/png;base64,' + encode(data);
+            }
+            break;
         }
     } else {
         var json = JSON.parse(event.data);
@@ -320,8 +402,24 @@ function onMessage(event) {
 
 
 //
-// send Event with MQTT
+// send MQTT message with UI events
 //
+function sendGcode(code) {
+    var json = {
+        command: 'pub',
+        data: {
+            print: {
+                command: "gcode_line",
+                sequence_id: 0,
+                param: code,
+            },
+        }
+    };
+    var str = JSON.stringify(json);
+    console.log(str);
+    _websocket.send(str);
+}
+
 function ctrlLED(name, mode) {
     const json = {
         command: 'pub',
@@ -340,49 +438,7 @@ function ctrlLED(name, mode) {
     };
     var str = JSON.stringify(json);
     console.log(str);
-    websocket.send(str);
-}
-
-function sendGcode(code) {
-    var json = {
-        command: 'pub',
-        data: {
-            print: {
-                command: "gcode_line",
-                sequence_id: 0,
-                param: code,
-            },
-        }
-    };
-    var str = JSON.stringify(json);
-    console.log(str);
-    websocket.send(str);
-}
-
-function onChangeSpeed(id, name) {
-    var elt = document.getElementById(id);
-    if (elt) {
-        console.log("onChange : " + id + " " + elt.value + " " + name);
-        var labels = document.getElementsByName(name);
-        if (labels) {
-            for (var j = 0; j < labels.length; j++) {
-                labels[j].value = elt.value;
-            }
-        }
-    }
-}
-
-function onChangeTemp(id, name) {
-    var elt = document.getElementById(id);
-    if (elt) {
-        console.log("onChange : " + id + " " + elt.value + " " + name);
-        var labels = document.getElementsByName(name);
-        if (labels) {
-            for (var j = 0; j < labels.length; j++) {
-                labels[j].value = elt.value;
-            }
-        }
-    }
+    _websocket.send(str);
 }
 
 function onChangeFan(id, toggle) {
@@ -413,32 +469,187 @@ function onChangeFan(id, toggle) {
     }
 }
 
-function onClickButton(id, type) {
+function onClickLightFan(id, type) {
+    var label_id = id.replace("btn_", "label_");
+    const elt_label = document.getElementById(label_id);
+
+    if (elt_label) {
+        var val = 0;
+        if (elt_label.nodeName.toLowerCase() == 'input')
+            val = elt_label.value;
+        else
+            val = (elt_label.innerText == "off") ? 0 : 100;
+
+        var new_val = (val == 0) ? 100 : 0;
+        console.log("onClickLightFan : " + id + " " + val + " => " + new_val);
+
+        if (type == 1) {
+            label_id = id.replace("btn_", "");
+            ctrlLED(label_id, (new_val == 0) ? "off" : "on");
+        } else if (type == 2) {
+            onChangeFan(label_id, 1);
+        }
+    }
+}
+
+function onChangeTemp(id, name) {
     var elt = document.getElementById(id);
     if (elt) {
-        var label_id = id.replace("btn_", "label_");
-
-        const elt_label = document.getElementById(label_id);
-        if (elt_label) {
-            var val = 0;
-            if (elt_label.nodeName.toLowerCase() == 'input')
-                val = elt_label.value;
-            else
-                val = (elt_label.innerText == "off") ? 0 : 100;
-
-            var new_val = (val == 0) ? 100 : 0;
-            console.log("onClickButton : " + id + " " + val + " => " + new_val);
-
-            if (type == 1) {
-                label_id = id.replace("btn_", "");
-                ctrlLED(label_id, (new_val == 0) ? "off" : "on");
-            } else if (type == 2) {
-                onChangeFan(label_id, 1);
+        console.log("onChange : " + id + " " + elt.value + " " + name);
+        var labels = document.getElementsByName(name);
+        if (labels) {
+            for (var j = 0; j < labels.length; j++) {
+                labels[j].value = elt.value;
             }
         }
     }
 }
 
+function onChangeSpeed(id, name) {
+    var elt = document.getElementById(id);
+    if (elt) {
+        console.log("onChange : " + id + " " + elt.value + " " + name);
+        var labels = document.getElementsByName(name);
+        if (labels) {
+            for (var j = 0; j < labels.length; j++) {
+                labels[j].value = elt.value;
+            }
+        }
+    }
+}
+
+//
+// AXIS control
+//
+function onClickAxisButton(id) {
+    console.log("onClickAxisButton : " + id);
+
+    if (_printer.status == Status.RUNNING || _printer.status == Status.PAUSED)
+        return;
+
+    const axis_maps = [
+        ['btn_head_y_p10', 'Y', 10],
+        ['btn_head_y_m10', 'Y', -10],
+        ['btn_head_y_p1', 'Y', 1],
+        ['btn_head_y_m1', 'Y', -1],
+        ['btn_head_x_p10', 'X', 10],
+        ['btn_head_x_m10', 'X', -10],
+        ['btn_head_x_p1', 'X', 1],
+        ['btn_head_x_m1', 'X', -1],
+
+        ['btn_bed_p10', 'Z', 10],
+        ['btn_bed_p1', 'Z', 1],
+        ['btn_bed_m10', 'Z', -10],
+        ['btn_bed_m1', 'Z', -1],
+    ];
+
+    const speed_xy = 3000;
+    const speed_z  = 1500;
+
+    for (const axis of axis_maps) {
+        if (id == axis[0]) {
+            const speed = (axis[1] == 'Z') ? speed_z : speed_xy;
+            const gcode = "M211 S\nM211 X1 Y1 Z1\nM1002 push_ref_mode\nG91\nG1 " + axis[1] + axis[2] + " F" + speed + "\nM1002 pop_ref_mode\nM211 R\n";
+            sendGcode(gcode);
+            break;
+        }
+    }
+}
+
+function onClickExtruderButton(id) {
+    console.log("onClickExtruderButton : " + id);
+
+    if (_printer.status == Status.RUNNING || _printer.status == Status.PAUSED)
+        return;
+
+    if (id == "btn_extr_up") {
+        sendGcode("M83\nG0 E-10.0 F900\n");
+    } else if (id == "btn_extr_down") {
+        sendGcode("M83\nG0 E10.0 F900\n");
+    }
+}
+
+function onClickHomeButton(id) {
+    console.log("onClickHomeButton : " + id);
+    if (_printer.status == Status.RUNNING || _printer.status == Status.PAUSED)
+        return;
+    sendGcode("G28\n");
+}
+
+
+//
+// Filament / AMS control
+//
+function onClickLoadVTButton(id) {
+    console.log("onClickLoadVTButton : " + id);
+
+    if (_printer.status == Status.RUNNING || _printer.status == Status.PAUSED)
+        return;
+
+    const gcode = "M620 S254\nM106 S255\nM104 S250\nM17 S\nM17 X0.5 Y0.5\nG91\nG1 Y-5 F1200\nG1 Z3\nG90\nG28 X\n" +
+                  "M17 R\nG1 X70 F21000\nG1 Y245\nG1 Y265 F3000\nG4\nM106 S0\nM109 S250\nG1 X90\nG1 Y255\nG1 X120\nG1 X20 Y50 F21000\nG1 Y-3\n" +
+                  "T254\nG1 X54\nG1 Y265\nG92 E0\nG1 E40 F180\nG4\nM104 S0\nG1 X70 F15000\nG1 X76\nG1 X65\nG1 X76\nG1 X65\nG1 X90 F3000\nG1 Y255\n" +
+                  "G1 X100\nG1 Y265\nG1 X70 F10000\nG1 X100 F5000\nG1 X70 F10000\nG1 X100 F5000\nG1 X165 F12000\nG1 Y245\nG1 X70\nG1 Y265 F3000\nG91\n" +
+                  "G1 Z-3 F1200\nG90\nM621 S254\n\n";
+    sendGcode(gcode);
+}
+
+function onClickUnloadVTButton(id) {
+    if (_printer.status == Status.RUNNING || _printer.status == Status.PAUSED)
+        return;
+
+    const gcode = "M620 S255\nM106 P1 S255\nM104 S250\nM17 S\nM17 X0.5 Y0.5\nG91\nG1 Y-5 F3000\nG1 Z3 F1200\nG90\nG28 X\n"+
+                  "M17 R\nG1 X70 F21000\nG1 Y245\nG1 Y265 F3000\nG4\nM106 P1 S0\nM109 S250\nG1 X90 F3000\nG1 Y255 F4000\n" +
+                  "G1 X100 F5000\nG1 X120 F21000\nG1 X20 Y50\nG1 Y-3\nT255\nG4\nM104 S0\nG1 X70 F3000\n\nG91\nG1 Z-3 F1200\nG90\nM621 S255\n\n";
+    sendGcode(gcode);
+}
+
+function onClickLoadAMSButton(id) {
+    if (_printer.status == Status.RUNNING || _printer.status == Status.PAUSED)
+        return;
+}
+
+function onClickUnloadAMSButton(id) {
+    if (_printer.status == Status.RUNNING || _printer.status == Status.PAUSED)
+        return;
+}
+
+function onClickAMSTrayRefresh(evt) {
+    if (_printer.status == Status.RUNNING || _printer.status == Status.PAUSED)
+        return;
+
+    const ams_ref = document.getElementsByClassName("ams-tray-ref");
+    for (i = 0; i < ams_ref.length; i++) {
+        if (ams_ref[i] == evt.currentTarget) {
+            var idx = i;
+            // refresh ams tray info for ith
+            break;
+        }
+    }
+}
+
+function onClickAMSTray(evt) {
+    if (_printer.status == Status.RUNNING || _printer.status == Status.PAUSED)
+        return;
+
+    const ams_trays = document.getElementsByClassName("ams-tray");
+    for (i = 0; i < ams_trays.length; i++) {
+        if (ams_trays[i] == evt.currentTarget) {
+            _selected_tray = i;
+            evt.currentTarget.className += " btn-selected";
+        } else {
+            ams_trays[i].className = ams_trays[i].className.replace(" btn-selected", "");
+        }
+    }
+}
+
+function onClickButton(id) {
+}
+
+
+//
+// UI control
+//
 function openTab(evt, tab) {
     var i, tabcontent, tablinks;
 

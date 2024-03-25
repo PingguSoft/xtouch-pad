@@ -136,17 +136,38 @@ h1 {
     align-items: center;
 }
 
-.btn-white {
+.btn-normal {
     cursor: pointer;
     transition: all 0.3s ease;
     background: rgb(255, 255, 255);
     border: none;
 }
 
-.btn-gray {
+.btn-normal-noclick {
+    cursor: default;
+    transition: all 0.3s ease;
+    background: rgb(255, 255, 255);
+    border: none;
+}
+
+.btn-normal-disabled {
+    cursor: default;
+    transition: all 0.3s ease;
+    background: lightgray;
+    border: none;
+}
+
+.btn-outer {
     cursor: pointer;
     transition: all 0.3s ease;
-    background: rgb(224, 224, 224);
+    background: rgb(253, 251, 221);
+    border: none;
+}
+
+.btn-outer-noclick {
+    cursor: default;
+    transition: all 0.3s ease;
+    background: rgb(253, 251, 221);
     border: none;
 }
 
@@ -165,12 +186,21 @@ h1 {
     border-radius: 50%;
 }
 
-.btn-noclick {
+.btn-circle-noclick {
     cursor: default;
-    border: none;
+    transition: all 0.3s ease;
+    border: black;
+    outline: none;
+    border-radius: 50%;
 }
 
-.btn-white:hover,
+.btn-noshape {
+    cursor: default;
+    border: none;
+    box-shadow: none;
+}
+
+.btn-normal:hover,
 .btn-gray:hover,
 .btn-tab:hover,
 .btn-circle:hover,
@@ -178,7 +208,8 @@ h1 {
     box-shadow: 8px 8px 6px darkgray;
 }
 
-.btn-white:active,
+.btn-selected,
+.btn-normal:active,
 .btn-gray:active,
 .btn-tab:active,
 .btn-circle:active {
