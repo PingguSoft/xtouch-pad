@@ -8,13 +8,16 @@ const Status = {
     FAILED : 6
 };
 
+const Fans = ['cooling_fan_speed', 'big_fan1_speed', 'big_fan2_speed', 'heatbreak_fan_speed'];
+
 var _selected_tray = -1;
 var _gateway = `ws://${window.location.hostname}/ws`;
 var _websocket;
 var _printer = {
     name : "",
-    is_ams: false,
     status: Status.UNKNOWN,
+    is_ams: false,
+    is_light_on: false,
 };
 
 
@@ -25,7 +28,7 @@ window.addEventListener('load', onload);
 //
 function onload(event) {
     initWebSocket();
-    updateUI(Status.RUNNING);
+    updateUI(Status.IDLE);
 }
 
 function initWebSocket() {
@@ -40,12 +43,13 @@ function initWebSocket() {
 function onOpen(event) {
     console.log('Connection opened');
 
-    var json = {
+    const json = {
         command: 'open'
     };
-    var str = JSON.stringify(json);
+    const str = JSON.stringify(json);
     console.log(str);
-    _websocket.send(str);
+    if (_websocket.readyState == WebSocket.OPEN)
+        _websocket.send(str);
 }
 
 function onClose(event) {
@@ -54,7 +58,7 @@ function onClose(event) {
 }
 
 function encode(input) {
-    var keyStr = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
+    const keyStr = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
     var output = "";
     var chr1, chr2, chr3, enc1, enc2, enc3, enc4;
     var i = 0;
@@ -164,7 +168,7 @@ function updatePrintingState(json) {
             for (const x of printing_maps) {
                 console.log(x[0] + ", " + x[1] + ", : " + json[x[0]]);
                 if (Object.keys(json).includes(x[0])) {
-                    var elt = document.getElementById(x[1]);
+                    const elt = document.getElementById(x[1]);
                     if (elt) {
                         if (x[2] == 1) {
                             elt.innerText = json[x[0]];
@@ -195,12 +199,12 @@ function updatePrintingState(json) {
 }
 
 function updateTemperature(json) {
-    var nodes = ['nozzle_temper', 'nozzle_target_temper', 'bed_temper', 'bed_target_temper', 'chamber_temper'];
+    const nodes = ['nozzle_temper', 'nozzle_target_temper', 'bed_temper', 'bed_target_temper', 'chamber_temper'];
     for (var i = 0; i < nodes.length; i++) {
         if (Object.keys(json).includes(nodes[i])) {
-            var labels = document.getElementsByName(nodes[i]);
+            const labels = document.getElementsByName(nodes[i]);
             if (labels) {
-                var val = Math.round(json[nodes[i]]);
+                const val = Math.round(json[nodes[i]]);
                 for (var j = 0; j < labels.length; j++) {
                     if (labels[j].nodeName.toLowerCase() == 'input')
                         labels[j].value = val;
@@ -242,13 +246,13 @@ function updateFilaments(json) {
         if (is_ams) {
             json = json['ams']['0']['tray'];
             if (json) {
-                var keys = Object.keys(json);
+                const keys = Object.keys(json);
 
                 for (var i = 0; i < keys.length; i++) {
-                    var idx = String(i);
-                    var btn = 'btn_tray' + idx;
-                    var tt = 'tray' + idx + '_type';
-                    var tray = json[idx];
+                    const idx = String(i);
+                    const btn = 'btn_tray' + idx;
+                    const tt = 'tray' + idx + '_type';
+                    const tray = json[idx];
 
                     console.log(tray);
                     var btns = document.getElementsByName(btn);
@@ -280,59 +284,59 @@ function updateLight(json) {
             var name = 'img_' + light[i]['node'];
             var img = document.getElementById(name);
             if (img) {
-                if (light[i]['mode'] == 'on')
-                    img.src = 'images/ic_light_on.svg'
-                else
-                    img.src = 'images/ic_light_off.svg'
+                _printer.is_light_on = (light[i]['mode'] == 'on');
+                img.setAttribute('src',  _printer.is_light_on ? 'images/ic_light_on.svg' : 'images/ic_light_off.svg');
             }
 
             name = 'label_' + light[i]['node'];
             var label = document.getElementById(name);
-            if (label)
-                label.innerText = light[i]['mode'];
-                // label.checked = (light[i]['mode'] == 'on');
+            if (label) {
+                label.innerText = _printer.is_light_on ? 'on' : 'off';
+            }
         }
     }
 }
 
 function updateFans(json) {
-    const nodes = ['cooling_fan_speed', 'big_fan1_speed', 'big_fan2_speed', 'heatbreak_fan_speed'];
     var speeds = [-1, -1, -1, -1];
 
     if (Object.keys(json).includes('fan_gear')) {
         // max : 255
-        var gear = json['fan_gear'];
-        console.log("fan_gear : " + gear.toString(16));
+        const gear = json['fan_gear'];
         speeds[0] = (gear >> 0) & 0xFF;
         speeds[1] = (gear >> 8) & 0xFF;
         speeds[2] = (gear >> 16) & 0xFF;
-        console.log("1 : " + speeds);
+        speeds[4] = (gear >> 24) & 0xFF;
+        console.log("fan_gear : " + gear.toString(16) + " " + speeds);
     } else {
-        for (var i = 0; i < nodes.length; i++) {
-            if (Object.keys(json).includes(nodes[i])) {
+        for (var i = 0; i < Fans.length; i++) {
+            if (Object.keys(json).includes(Fans[i])) {
                 // max : 15
-                speeds[i] = Math.round(Math.floor(json[nodes[i]] / 1.5) * 25.5);
+                speeds[i] = Math.round(Math.floor(json[Fans[i]] / 1.5) * 25.5);
             }
         }
-        console.log("2 : " + speeds);
+        console.log("fan_speed : " + speeds);
     }
 
     // update icon and percentage only for updated ones
-    for (var i = 0; i < nodes.length; i++) {
+    for (var i = 0; i < Fans.length; i++) {
         if (speeds[i] >= 0) {
-            var speed = (speeds[i] == 0) ? 0 : Math.max(10, Math.round(speeds[i] * 100 / 255.0));
-            var name = 'img_' + nodes[i];
+            const speed = (speeds[i] == 0) ? 0 : Math.max(10, Math.round(speeds[i] * 100 / 255.0));
+            const name = 'img_' + Fans[i];
+
             var img = document.getElementById(name);
             if (img) {
-                img.src = (speed > 0) ? 'images/ic_fan_on.svg' : 'images/ic_fan_off.svg';
+                img.setAttribute('src', (speed > 0) ? 'images/ic_fan_on.svg' : 'images/ic_fan_off.svg');
             }
 
-            name = 'label_' + nodes[i];
+            name = 'label_' + Fans[i];
             var label = document.getElementById(name);
-            if (label.nodeName.toLowerCase() == 'input')
-                label.value = speed;
-            else
-                label.innerText = (speed > 0) ? String(speed) + '%' : 'off';
+            if (label) {
+                if (label.nodeName.toLowerCase() == 'input')
+                    label.value = speed;
+                else
+                    label.innerText = (speed > 0) ? String(speed) + '%' : 'off';
+            }
         }
     }
 }
@@ -350,7 +354,7 @@ function updateSpeed(json) {
     }
 }
 
-const func_updates = [
+const _update_funcs = [
     updatePrintingState,
     updateTemperature,
     updateFilaments,
@@ -361,9 +365,9 @@ const func_updates = [
 
 function onMessage(event) {
     if (event.data instanceof ArrayBuffer) {
-        var bytes = new Uint8Array(event.data);
-        var cmd = bytes[0];
-        var payload = bytes.subarray(1, event.data.length);
+        const bytes = new Uint8Array(event.data);
+        const cmd = bytes[0];
+        const payload = bytes.subarray(1, event.data.length);
         var image;
 
         switch (cmd) {
@@ -391,7 +395,7 @@ function onMessage(event) {
             } else {
                 json = json['print'];
                 if (json) {
-                    for (const f of func_updates) {
+                    for (const f of _update_funcs) {
                         f(json);
                     }
                 }
@@ -405,7 +409,7 @@ function onMessage(event) {
 // send MQTT message with UI events
 //
 function sendGcode(code) {
-    var json = {
+    const json = {
         command: 'pub',
         data: {
             print: {
@@ -415,9 +419,10 @@ function sendGcode(code) {
             },
         }
     };
-    var str = JSON.stringify(json);
+    const str = JSON.stringify(json);
     console.log(str);
-    _websocket.send(str);
+    if (_websocket.readyState == WebSocket.OPEN)
+        _websocket.send(str);
 }
 
 function ctrlLED(name, mode) {
@@ -436,30 +441,25 @@ function ctrlLED(name, mode) {
             },
         }
     };
-    var str = JSON.stringify(json);
+    const str = JSON.stringify(json);
     console.log(str);
-    _websocket.send(str);
+    if (_websocket.readyState == WebSocket.OPEN)
+        _websocket.send(str);
 }
 
 function onChangeFan(id, toggle) {
-    const fan_maps = [
-        ['label_cooling_fan_speed'],
-        ['label_big_fan1_speed'],
-        ['label_big_fan2_speed']
-    ];
-
-    var elt = document.getElementById(id);
+    const elt = document.getElementById(id);
     if (elt) {
         console.log("onChange : " + id + " " + elt.value + " button:" + toggle);
         var idx = 1;
-        for (const fan of fan_maps) {
-            if (id == fan[0]) {
+        for (const fan of Fans) {
+            if (id.endsWith(fan)) {
                 var speed;
 
                 if (toggle) {
                     speed = (elt.value == 0) ? 255 : 0;
                 } else {
-                    speed = elt.value * 2.55;
+                    speed = Math.round(elt.value * 2.55);
                 }
                 sendGcode("M106 P" + idx + " S" + speed + " \n");
                 break;
@@ -469,47 +469,72 @@ function onChangeFan(id, toggle) {
     }
 }
 
-function onClickLightFan(id, type) {
-    var label_id = id.replace("btn_", "label_");
-    const elt_label = document.getElementById(label_id);
+function onClickLightFan(id) {
+    var   id_label = id.replace("btn_", "label_");
+    const elt = document.getElementById(id_label);
 
-    if (elt_label) {
+    if (elt) {
         var val = 0;
-        if (elt_label.nodeName.toLowerCase() == 'input')
-            val = elt_label.value;
+        if (elt.nodeName.toLowerCase() == 'input')
+            val = elt.value;
         else
-            val = (elt_label.innerText == "off") ? 0 : 100;
+            val = (elt.innerText == "off") ? 0 : 100;
 
         var new_val = (val == 0) ? 100 : 0;
         console.log("onClickLightFan : " + id + " " + val + " => " + new_val);
 
-        if (type == 1) {
-            label_id = id.replace("btn_", "");
-            ctrlLED(label_id, (new_val == 0) ? "off" : "on");
-        } else if (type == 2) {
-            onChangeFan(label_id, 1);
+        if (id.endsWith('_light')) {
+            id_label = id.replace("btn_", "");
+            ctrlLED(id_label, (new_val == 0) ? "off" : "on");
+        } else {
+            onChangeFan(id_label, 1);
         }
     }
 }
 
 function onChangeTemp(id, name) {
-    var elt = document.getElementById(id);
+    const elt = document.getElementById(id);
+
     if (elt) {
         console.log("onChange : " + id + " " + elt.value + " " + name);
+
         var labels = document.getElementsByName(name);
         if (labels) {
             for (var j = 0; j < labels.length; j++) {
                 labels[j].value = elt.value;
             }
         }
+
+        var gcode;
+        if (name == "nozzle_target_temper") {
+            gcode = "M104 S" + String(elt.value) + "\n";
+        } else if (name == "bed_target_temper") {
+            gcode = "M140 S" + String(elt.value) + "\n";
+        }
+        sendGcode(gcode);
     }
 }
 
 function onChangeSpeed(id, name) {
-    var elt = document.getElementById(id);
+    const elt = document.getElementById(id);
     if (elt) {
-        console.log("onChange : " + id + " " + elt.value + " " + name);
-        var labels = document.getElementsByName(name);
+        console.log("onChange : " + id + " " + elt.value + " " + elt.selectedIndex);
+        const json = {
+            command: 'pub',
+            data: {
+                print: {
+                    command: "print_speed",
+                    sequence_id: 0,
+                    param: String(elt.selectedIndex + 1),
+                },
+            }
+        };
+        const str = JSON.stringify(json);
+        console.log(str);
+        if (_websocket.readyState == WebSocket.OPEN)
+            _websocket.send(str);
+
+        const labels = document.getElementsByName(name);
         if (labels) {
             for (var j = 0; j < labels.length; j++) {
                 labels[j].value = elt.value;
