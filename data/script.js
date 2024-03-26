@@ -95,11 +95,13 @@ function pad(n, width) {
 
 function updateUI(status) {
     if (status == Status.IDLE) {
-        document.getElementById('printing_idle').style.display = '';
+        document.getElementById('printing_idle').style.display = 'block';
         document.getElementById('printing_info').style.display = 'none';
+        document.getElementById('axis_control').style.display = 'block';
     } else {
         document.getElementById('printing_idle').style.display = 'none';
-        document.getElementById('printing_info').style.display = '';
+        document.getElementById('printing_info').style.display = 'block';
+        document.getElementById('axis_control').style.display = 'none';
     }
 
     switch (status) {
@@ -176,9 +178,9 @@ function updatePrintingState(json) {
                             elt.value = json[x[0]];
                         } else if (x[2] == 3) {
                             var min = json[x[0]];
-                            var days = min / (60 * 24);
+                            var days = Math.floor(min / (60 * 24));
                             min %= (60 * 24);
-                            var hours = min / 60;
+                            var hours = Math.floor(min / 60);
                             min %= 60;
 
                             var str = "";
@@ -243,8 +245,9 @@ function updateFilaments(json) {
         _printer.is_ams = (json['ams_exist_bits'] != null);
         console.log("ams : " + _printer.is_ams);
 
-        if (is_ams) {
+        if (_printer.is_ams) {
             json = json['ams']['0']['tray'];
+
             if (json) {
                 const keys = Object.keys(json);
 
@@ -306,7 +309,7 @@ function updateFans(json) {
         speeds[0] = (gear >> 0) & 0xFF;
         speeds[1] = (gear >> 8) & 0xFF;
         speeds[2] = (gear >> 16) & 0xFF;
-        speeds[4] = (gear >> 24) & 0xFF;
+        speeds[3] = (gear >> 24) & 0xFF;
         console.log("fan_gear : " + gear.toString(16) + " " + speeds);
     } else {
         for (var i = 0; i < Fans.length; i++) {
@@ -321,8 +324,8 @@ function updateFans(json) {
     // update icon and percentage only for updated ones
     for (var i = 0; i < Fans.length; i++) {
         if (speeds[i] >= 0) {
-            const speed = (speeds[i] == 0) ? 0 : Math.max(10, Math.round(speeds[i] * 100 / 255.0));
-            const name = 'img_' + Fans[i];
+            var speed = (speeds[i] == 0) ? 0 : Math.max(10, Math.round(speeds[i] * 100 / 255.0));
+            var name = 'img_' + Fans[i];
 
             var img = document.getElementById(name);
             if (img) {

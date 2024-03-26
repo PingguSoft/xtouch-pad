@@ -162,7 +162,7 @@
                                 </button> <br>
                                 <label style="font-weight: bold;">Printer</label>
                             </td>
-                            <td class="vl" style="width: 27%;">
+                            <td class="vl" style="width: 28%;">
                                 <button class="img-button btn-normal-noclick" style="min-width: 64px;">
                                     <img src="images/m_noz_temp_active.svg" width="100%">
                                 </button><br>
@@ -171,7 +171,7 @@
                                 <input type="number" min="0" max="300" value="0" class="custom-input" name="nozzle_target_temper" id="nozzle1" onchange="onChangeTemp(this.id, this.name)">
                                 <label>&deg;C</label>
                             </td>
-                            <td style="width: 27%;">
+                            <td style="width: 28%;">
                                 <button class="img-button btn-normal-noclick" style="min-width: 64px;">
                                     <img src="images/m_bed_temp_active.svg" width="100%">
                                 </button><br>
@@ -180,11 +180,11 @@
                                 <input type="number" min="0" max="100" value="0" class="custom-input" name="bed_target_temper" id="bed1" onchange="onChangeTemp(this.id, this.name)">
                                 <label>&deg;C</label>
                             </td>
-                            <td style="width: 26%;">
+                            <td style="width: 24%;">
                                 <button class="img-button btn-normal-noclick" style="min-width: 64px;" id="btn_speed" onClick="onClickButton(this.id)">
                                     <img src="images/m_speed.svg" width="100%">
                                 </button><br>
-                                <select class="custom-input" style="text-align: center; font-weight: bold; width: 100px;" name="spd_lvl" id="spd_lvl1" onchange="onChangeSpeed(this.id, this.name)">
+                                <select class="custom-input" style="text-align: center; font-weight: bold; width: 100%;" name="spd_lvl" id="spd_lvl1" onchange="onChangeSpeed(this.id, this.name)">
                                     <option value="silent">Silent</option>
                                     <option value="standard">Standard</option>
                                     <option value="sport">Sport</option>
@@ -235,7 +235,7 @@
             <!--
                 AMS
             -->
-            <div id="ams_info" style="padding: 5px 0px 5px 0px; display:block">
+            <div id="ams_info" style="padding: 5px 0px 5px 0px; display:none">
                 <table class="container" border="0">
                     <tbody>
                         <tr style="vertical-align: center;">
@@ -345,13 +345,13 @@
                         </tr>
                     </tbody>
                 </table>
+                <div class="hl"></div>
             </div>
-            <div class="hl"></div>
 
             <!--
                 AXIS
             -->
-            <div id="axis">
+            <div id="axis_control">
                 <table class="container" border="0">
                     <tbody>
                         <tr>
@@ -487,8 +487,8 @@
                         </tr>
                     </tbody>
                 </table>
+                <div class="hl"></div>
             </div>
-            <div class="hl"></div>
 
             <!--
                 LIGHT & FAN
@@ -673,7 +673,6 @@
 
         <script src="script.js"></script>
         <script src="script-num.js"></script>
-
-        <!-- <script>openTab('None', 'tab_main');</script> -->
+        <script>openTab('None', 'tab_main');</script>
     </body>
 </html>
