@@ -94,15 +94,32 @@ function pad(n, width) {
 }
 
 function updateUI(status) {
-    if (status == Status.IDLE) {
-        document.getElementById('printing_idle').style.display = 'block';
-        document.getElementById('printing_info').style.display = 'none';
-        document.getElementById('axis_control').style.display = 'block';
-    } else {
-        document.getElementById('printing_idle').style.display = 'none';
-        document.getElementById('printing_info').style.display = 'block';
-        document.getElementById('axis_control').style.display = 'none';
+    var printing_idle_disp;
+    var printing_info_disp;
+    var axis_control_disp;
+
+    switch (status) {
+        case Status.IDLE:
+            printing_idle_disp = 'block';
+            printing_info_disp = 'none';
+            axis_control_disp = 'block';
+            break;
+
+        case Status.FINISHED:
+            printing_idle_disp = 'none';
+            printing_info_disp = 'block';
+            axis_control_disp = 'block';
+            break;
+
+        default:
+            printing_idle_disp = 'none';
+            printing_info_disp = 'block';
+            axis_control_disp = 'none';
+            break;
     }
+    document.getElementById('printing_idle').style.display = printing_idle_disp;
+    document.getElementById('printing_info').style.display = printing_info_disp;
+    document.getElementById('axis_control').style.display  = axis_control_disp;
 
     switch (status) {
         case Status.RUNNING: {
@@ -128,6 +145,7 @@ function updateUI(status) {
         }
         break;
     }
+    // document.getElementById('menu_ams').style.display = _printer.is_ams ? 'block' : 'none';
 }
 
 function updatePrintingState(json) {
@@ -204,15 +222,14 @@ function updateTemperature(json) {
     const nodes = ['nozzle_temper', 'nozzle_target_temper', 'bed_temper', 'bed_target_temper', 'chamber_temper'];
     for (var i = 0; i < nodes.length; i++) {
         if (Object.keys(json).includes(nodes[i])) {
-            const labels = document.getElementsByName(nodes[i]);
-            if (labels) {
+            const label = document.getElementById(nodes[i]);
+            if (label) {
                 const val = Math.round(json[nodes[i]]);
-                for (var j = 0; j < labels.length; j++) {
-                    if (labels[j].nodeName.toLowerCase() == 'input')
-                        labels[j].value = val;
-                    else
-                        labels[j].innerText = val;
-                }
+                if (label.nodeName.toLowerCase() == 'input')
+                    label.value = val;
+                else
+                    label.innerText = val;
+
                 console.log(nodes[i], val);
             }
         }
@@ -220,23 +237,17 @@ function updateTemperature(json) {
 }
 
 function updateFilaments(json) {
-    var is_ams = false;
-
     if (Object.keys(json).includes('vt_tray')) {
         tray = json['vt_tray'];
 
-        var btns = document.getElementsByName('btn_vt_tray');
-        if (btns) {
-            for (var j = 0; j < btns.length; j++) {
-                btns[j].style.background = '#' + tray['tray_color'];
-            }
+        var btn = document.getElementById('btn_vt_tray');
+        if (btn) {
+            btn.style.background = '#' + tray['tray_color'];
         }
 
-        var labels = document.getElementsByName('vt_tray_type');
-        if (labels) {
-            for (var j = 0; j < labels.length; j++) {
-                labels[j].innerText = tray['tray_type'];
-            }
+        var label = document.getElementsById('vt_tray_type');
+        if (label) {
+            label.innerText = tray['tray_type'];
         }
     }
 
@@ -258,24 +269,19 @@ function updateFilaments(json) {
                     const tray = json[idx];
 
                     console.log(tray);
-                    var btns = document.getElementsByName(btn);
-                    if (btns) {
-                        for (var j = 0; j < btns.length; j++) {
-                            btns[j].style.background = '#' + tray['tray_color'];
-                        }
+                    var elt = document.getElementById(btn);
+                    if (elt) {
+                        elt.style.background = '#' + tray['tray_color'];
                     }
 
-                    var labels = document.getElementsByName(tt);
-                    if (labels) {
-                        for (var j = 0; j < labels.length; j++) {
-                            labels[j].innerText = tray['tray_type'];
-                        }
+                    var label = document.getElementById(tt);
+                    if (label) {
+                        label.innerText = tray['tray_type'];
                     }
                 }
             }
         }
-        document.getElementById('spool_info').style.display = _printer.is_ams ? 'none' : 'block';
-        document.getElementById('ams_info').style.display = _printer.is_ams ? 'block' : 'none';
+        document.getElementById('menu_ams').style.display = _printer.is_ams ? 'block' : 'none';
     }
 }
 
@@ -347,12 +353,10 @@ function updateFans(json) {
 function updateSpeed(json) {
     if (Object.keys(json).includes('spd_lvl')) {
         console.log("spd_lvl : " + String(json['spd_lvl']));
-        var combos = document.getElementsByName('spd_lvl');
-        if (combos) {
+        var combo = document.getElementById('spd_lvl');
+        if (combo) {
             var idx = json['spd_lvl'] - 1;
-            for (var i = 0; i < combos.length; i++) {
-                combos[i].options[idx].selected = true;
-            }
+            combo.options[idx].selected = true;
         }
     }
 }
@@ -495,30 +499,23 @@ function onClickLightFan(id) {
     }
 }
 
-function onChangeTemp(id, name) {
+function onChangeTemp(id) {
     const elt = document.getElementById(id);
 
     if (elt) {
-        console.log("onChange : " + id + " " + elt.value + " " + name);
-
-        var labels = document.getElementsByName(name);
-        if (labels) {
-            for (var j = 0; j < labels.length; j++) {
-                labels[j].value = elt.value;
-            }
-        }
+        console.log("onChange : " + id + " " + elt.value);
 
         var gcode;
-        if (name == "nozzle_target_temper") {
+        if (id == "nozzle_target_temper") {
             gcode = "M104 S" + String(elt.value) + "\n";
-        } else if (name == "bed_target_temper") {
+        } else if (id == "bed_target_temper") {
             gcode = "M140 S" + String(elt.value) + "\n";
         }
         sendGcode(gcode);
     }
 }
 
-function onChangeSpeed(id, name) {
+function onChangeSpeed(id) {
     const elt = document.getElementById(id);
     if (elt) {
         console.log("onChange : " + id + " " + elt.value + " " + elt.selectedIndex);
@@ -536,13 +533,6 @@ function onChangeSpeed(id, name) {
         console.log(str);
         if (_websocket.readyState == WebSocket.OPEN)
             _websocket.send(str);
-
-        const labels = document.getElementsByName(name);
-        if (labels) {
-            for (var j = 0; j < labels.length; j++) {
-                labels[j].value = elt.value;
-            }
-        }
     }
 }
 
@@ -661,39 +651,42 @@ function onClickAMSTray(evt) {
         return;
 
     const ams_trays = document.getElementsByClassName("ams-tray");
+    for (var ams of ams_trays) {
+        ams.className = ams.className.replace(" btn-selected", "");
+    }
+
     for (i = 0; i < ams_trays.length; i++) {
         if (ams_trays[i] == evt.currentTarget) {
             _selected_tray = i;
             evt.currentTarget.className += " btn-selected";
-        } else {
-            ams_trays[i].className = ams_trays[i].className.replace(" btn-selected", "");
         }
     }
 }
 
-function onClickButton(id) {
+function onClickPauseResume(id) {
 }
 
+function onClickStop(id) {
+}
 
 //
 // UI control
 //
 function openTab(evt, tab) {
-    var i, tabcontent, tablinks;
-
     // Get all elements with class="tabcontent" and hide them
-    tabcontent = document.getElementsByClassName("tabcontent");
-    for (i = 0; i < tabcontent.length; i++) {
-        tabcontent[i].style.display = "none";
+    const tabs = document.getElementsByClassName("tabcontent");
+    for (var t of tabs) {
+        t.style.display = "none";
     }
+    var elt = document.getElementById(tab);
+    if (elt)
+        elt.style.display = 'block';
 
-    // Get all elements with class="tablinks" and remove the class "active"
-    // tablinks = document.getElementsByClassName("tablinks");
-    // for (i = 0; i < tablinks.length; i++) {
-    //     tablinks[i].className = tablinks[i].className.replace(" active", "");
-    // }
-    // evt.currentTarget.className += " active";
-
-    // Show the current tab, and add an "active" class to the button that opened the tab
-    document.getElementById(tab).style.display = 'block';
+    const links = document.getElementsByClassName("tablink");
+    for (var l of links) {
+        l.className = l.className.replace(" btn-selected", "");
+    }
+    if (evt) {
+        evt.currentTarget.className += " btn-selected";
+    }
 }

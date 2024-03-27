@@ -8,6 +8,17 @@ html {
     overflow: hidden;
     background-color: #0A1128;
     border-radius: 10px;
+ }
+
+.topmenu {
+    background-color: #d2d7e8;
+    border-radius: 30px;
+}
+
+.tabcontent {
+    outline: 1;
+    border-radius: 30px;
+    background-color: #f5f5f587;
 }
 
 body {
@@ -160,7 +171,7 @@ h1 {
 .btn-outer {
     cursor: pointer;
     transition: all 0.3s ease;
-    background: rgb(253, 251, 221);
+    background: rgb(240, 240, 240);
     border: none;
 }
 
@@ -171,47 +182,33 @@ h1 {
     border: none;
 }
 
-.btn-tab {
-    cursor: pointer;
-    transition: all 0.3s ease;
-    background-color: #0A1128;
-    border: none;
-}
-
 .btn-circle {
     cursor: pointer;
     transition: all 0.3s ease;
-    border: black;
-    outline: none;
     border-radius: 50%;
 }
 
 .btn-circle-noclick {
     cursor: default;
     transition: all 0.3s ease;
-    border: black;
-    outline: none;
     border-radius: 50%;
 }
 
-.btn-noshape {
-    cursor: default;
-    border: none;
-    box-shadow: none;
-}
-
 .btn-normal:hover,
-.btn-gray:hover,
-.btn-tab:hover,
+.btn-outer:hover,
 .btn-circle:hover,
 .custom-input:hover {
     box-shadow: 8px 8px 6px darkgray;
 }
 
-.btn-selected,
+.btn-selected {
+    color: #ff0000;
+    outline: red dotted 3px;
+    box-shadow: 2px 2px 6px rgba(0, 0, 0, 0.3);
+}
+
 .btn-normal:active,
-.btn-gray:active,
-.btn-tab:active,
+.btn-outer:active,
 .btn-circle:active {
     color: #ff0000;
     box-shadow: 2px 2px 6px rgba(0, 0, 0, 0.3);
