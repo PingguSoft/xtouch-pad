@@ -16,6 +16,7 @@ var _websocket;
 var _printer = {
     name : "",
     status: Status.UNKNOWN,
+    sel_menu: "menu_status",
     is_ams: false,
     is_light_on: false,
 };
@@ -245,7 +246,7 @@ function updateFilaments(json) {
             btn.style.background = '#' + tray['tray_color'];
         }
 
-        var label = document.getElementsById('vt_tray_type');
+        var label = document.getElementById('vt_tray_type');
         if (label) {
             label.innerText = tray['tray_type'];
         }
@@ -281,7 +282,7 @@ function updateFilaments(json) {
                 }
             }
         }
-        document.getElementById('menu_ams').style.display = _printer.is_ams ? 'block' : 'none';
+        document.getElementById('ams_cell').style.display = _printer.is_ams ? 'block' : 'none';
     }
 }
 
@@ -555,10 +556,10 @@ function onClickAxisButton(id) {
         ['btn_head_x_p1', 'X', 1],
         ['btn_head_x_m1', 'X', -1],
 
-        ['btn_bed_p10', 'Z', 10],
-        ['btn_bed_p1', 'Z', 1],
-        ['btn_bed_m10', 'Z', -10],
-        ['btn_bed_m1', 'Z', -1],
+        ['btn_bed_p10', 'Z', -10],
+        ['btn_bed_p1', 'Z', -1],
+        ['btn_bed_m10', 'Z', 10],
+        ['btn_bed_m1', 'Z', 1],
     ];
 
     const speed_xy = 3000;
@@ -672,21 +673,24 @@ function onClickStop(id) {
 //
 // UI control
 //
-function openTab(evt, tab) {
+function openTab(id) {
     // Get all elements with class="tabcontent" and hide them
     const tabs = document.getElementsByClassName("tabcontent");
     for (var t of tabs) {
         t.style.display = "none";
     }
+    const tab=id.replace("menu_", "tab_");
     var elt = document.getElementById(tab);
     if (elt)
         elt.style.display = 'block';
 
+    // mark selected menu
     const links = document.getElementsByClassName("tablink");
     for (var l of links) {
         l.className = l.className.replace(" btn-selected", "");
     }
-    if (evt) {
-        evt.currentTarget.className += " btn-selected";
+    elt = document.getElementById(id);
+    if (elt) {
+        elt.className += " btn-selected";
     }
 }
