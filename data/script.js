@@ -11,23 +11,26 @@ const Status = {
 const Fans = ['cooling_fan_speed', 'big_fan1_speed', 'big_fan2_speed', 'heatbreak_fan_speed'];
 
 var _selected_tray = -1;
+var _selected_model_id = '';
+var _selected_menu_id = '';
 var _gateway = `ws://${window.location.hostname}/ws`;
 var _websocket;
 var _printer = {
     name : "",
     status: Status.UNKNOWN,
-    sel_menu: "menu_status",
+    is_vt_tray: false,
     is_ams: false,
     is_light_on: false,
 };
 
 
-window.addEventListener('load', onload);
+window.addEventListener('load', onLoad);
+window.addEventListener('resize', onResize);
 
 //
 // Web Socket
 //
-function onload(event) {
+function onLoad(event) {
     initWebSocket();
     updateUI(Status.IDLE);
 }
@@ -86,9 +89,9 @@ function encode(input) {
 }
 
 
-//
-// update UI with MQTT messages
-//
+//-------------------------------------------------------------------------------------------------
+// incoming MQTT message handlers
+//-------------------------------------------------------------------------------------------------
 function pad(n, width) {
     n = n + '';
     return n.length >= width ? n : new Array(width - n.length + 1).join('0') + n;
@@ -146,7 +149,6 @@ function updateUI(status) {
         }
         break;
     }
-    // document.getElementById('menu_ams').style.display = _printer.is_ams ? 'block' : 'none';
 }
 
 function updatePrintingState(json) {
@@ -239,6 +241,7 @@ function updateTemperature(json) {
 
 function updateFilaments(json) {
     if (Object.keys(json).includes('vt_tray')) {
+        _printer.is_vt_tray = true;
         tray = json['vt_tray'];
 
         var btn = document.getElementById('btn_vt_tray');
@@ -413,9 +416,9 @@ function onMessage(event) {
 }
 
 
-//
-// send MQTT message with UI events
-//
+//-------------------------------------------------------------------------------------------------
+// outgoing MQTT messages from UI events
+//-------------------------------------------------------------------------------------------------
 function sendGcode(code) {
     const json = {
         command: 'pub',
@@ -453,22 +456,18 @@ function ctrlLED(name, mode) {
     console.log(str);
     if (_websocket.readyState == WebSocket.OPEN)
         _websocket.send(str);
+
+
 }
 
-function onChangeFan(id, toggle) {
+function onChangeFan(id) {
     const elt = document.getElementById(id);
     if (elt) {
-        console.log("onChange : " + id + " " + elt.value + " button:" + toggle);
+        console.log("onChange : " + id + " " + elt.value);
         var idx = 1;
         for (const fan of Fans) {
             if (id.endsWith(fan)) {
-                var speed;
-
-                if (toggle) {
-                    speed = (elt.value == 0) ? 255 : 0;
-                } else {
-                    speed = Math.round(elt.value * 2.55);
-                }
+                const speed = Math.round(elt.value * 2.55);
                 sendGcode("M106 P" + idx + " S" + speed + " \n");
                 break;
             }
@@ -477,26 +476,39 @@ function onChangeFan(id, toggle) {
     }
 }
 
-function onClickLightFan(id) {
-    var   id_label = id.replace("btn_", "label_");
-    const elt = document.getElementById(id_label);
+function onClickFan(id) {
+    const id_label = id.replace("btn_", "label_");
+    var   elt_label = document.getElementById(id_label);
 
-    if (elt) {
-        var val = 0;
-        if (elt.nodeName.toLowerCase() == 'input')
-            val = elt.value;
-        else
-            val = (elt.innerText == "off") ? 0 : 100;
-
-        var new_val = (val == 0) ? 100 : 0;
-        console.log("onClickLightFan : " + id + " " + val + " => " + new_val);
-
-        if (id.endsWith('_light')) {
-            id_label = id.replace("btn_", "");
-            ctrlLED(id_label, (new_val == 0) ? "off" : "on");
-        } else {
-            onChangeFan(id_label, 1);
+    if (elt_label && elt_label.nodeName.toLowerCase() == 'input') {
+        const new_val = (elt_label.value == 0) ? 100 : 0;
+        const id_img = id.replace("btn_", "img_");
+        var elt_img = document.getElementById(id_img);
+        if (elt_img) {
+            elt_img.setAttribute("src", (new_val == 0) ? "images/ic_fan_off.svg" : "images/ic_fan_on.svg")
         }
+        elt_label.value = new_val;
+        console.log("onClickFan : ", new_val);
+        onChangeFan(id_label);
+    }
+}
+
+function onClickLight(id) {
+    var id_label = id.replace("btn_", "label_");
+    var elt_label = document.getElementById(id_label);
+
+    if (elt_label) {
+        const new_val = (elt_label.innerText == "off") ? 100 : 0;
+        const id_img = id.replace("btn_", "img_");
+        var elt_img = document.getElementById(id_img);
+        if (elt_img) {
+            elt_img.setAttribute("src", (new_val == 0) ? "images/ic_light_off.svg" : "images/ic_light_on.svg")
+        }
+        elt_label.innerText = (new_val == 0) ? "off" : "on";
+        console.log("onClickLight : ", new_val);
+
+        id_label = id.replace("btn_", "");
+        ctrlLED(id_label, elt_label.innerText);
     }
 }
 
@@ -602,7 +614,7 @@ function onClickHomeButton(id) {
 function onClickLoadVTButton(id) {
     console.log("onClickLoadVTButton : " + id);
 
-    if (_printer.status == Status.RUNNING || _printer.status == Status.PAUSED)
+    if (!_printer.is_vt_tray || _printer.status == Status.RUNNING || _printer.status == Status.PAUSED)
         return;
 
     const gcode = "M620 S254\nM106 S255\nM104 S250\nM17 S\nM17 X0.5 Y0.5\nG91\nG1 Y-5 F1200\nG1 Z3\nG90\nG28 X\n" +
@@ -614,7 +626,9 @@ function onClickLoadVTButton(id) {
 }
 
 function onClickUnloadVTButton(id) {
-    if (_printer.status == Status.RUNNING || _printer.status == Status.PAUSED)
+    console.log("onClickUnloadVTButton : " + id);
+
+    if (!_printer.is_vt_tray || _printer.status == Status.RUNNING || _printer.status == Status.PAUSED)
         return;
 
     const gcode = "M620 S255\nM106 P1 S255\nM104 S250\nM17 S\nM17 X0.5 Y0.5\nG91\nG1 Y-5 F3000\nG1 Z3 F1200\nG90\nG28 X\n"+
@@ -664,25 +678,178 @@ function onClickAMSTray(evt) {
     }
 }
 
+//
+// Print / Stop
+//
+function doPrintAction(action) {
+    const json = {
+        command: 'pub',
+        data: {
+            print: {
+                command: action,
+                sequence_id: 0,
+                param: "",
+            },
+        }
+    };
+    const str = JSON.stringify(json);
+    console.log(str);
+    if (_websocket.readyState == WebSocket.OPEN)
+        _websocket.send(str);
+}
+
 function onClickPauseResume(id) {
+    switch (_printer.status) {
+        case Status.RUNNING:
+            doPrintAction("pause");
+            break;
+
+        case Status.PAUSED:
+            doPrintAction("resume");
+            break;
+    }
 }
 
 function onClickStop(id) {
+    doPrintAction("stop");
 }
 
-//
-// UI control
-//
+//-------------------------------------------------------------------------------------------------
+// SD Card Browser
+//-------------------------------------------------------------------------------------------------
+var _listModels = [
+    "10363259711.png", "1270915251.png", "12718038631.png",
+    "15137327011.png", "15642952511.png", "17540064941.png",
+    "17930814601.png", "19799488481.png", "2064281.png",
+    "22181592811.png", "2528318491.png", "2613376571.png",
+    "26698210481.png", "29877475381.png", "3553883803.png",
+    "35901261651.png", "38297837321.png", "39585176581.png",
+    "42885271611.png", "4380517671.png", "4678907721.png",
+    "7143709141.png", "9240571371.png"
+];
+
+function drawViews(id) {
+    const elts = document.getElementsByName("full_height_view");
+    for (var v of elts) {
+        const rect = v.getBoundingClientRect();
+        v.style.height = String(window.innerHeight - Math.round(rect.top)) + "px";
+    }
+
+    if (id == "menu_sdcard") {
+        drawModels(_listModels, _listModels);
+    }
+}
+
+function onClickModel(event, id) {
+    console.log("onClickModel:", id, ' ', event.x, ' ', event.y);
+
+    if (_selected_model_id) {
+        var elt = document.getElementById(_selected_model_id);
+        if (elt) {
+            elt.className = elt.className.replace(" model-selected", "");
+        }
+    }
+
+    var elt = document.getElementById(id);
+    if (elt) {
+        elt.className += " model-selected";
+    }
+    _selected_model_id = id;
+
+    var popup = document.getElementById("popup-menu");
+    if (popup) {
+        popup.style.display = "block";
+        const tab = document.getElementById("tab_sdcard");
+        if (tab) {
+            const rect = tab.getBoundingClientRect();
+            popup.style.marginLeft = String(event.x - rect.left) + "px";
+            popup.style.marginTop = String(event.y - rect.top) + "px";
+        }
+    }
+}
+
+function onClickPopupCancel() {
+    var popup = document.getElementById("popup-menu");
+    if (popup) {
+        popup.style.display = "none";
+    }
+
+    if (_selected_model_id) {
+        var elt = document.getElementById(_selected_model_id);
+        if (elt) {
+            elt.className = elt.className.replace(" model-selected", "");
+        }
+        _selected_model_id = "";
+    }
+}
+
+function onClickModelPrint() {
+    if (_selected_model_id) {
+        var pos = _selected_model_id.replace("model_id_", "");
+        var p = parseInt(pos, 10);
+        console.log("onClickModelPrint:" + p);
+    }
+    onClickPopupCancel();
+}
+
+function onClickModelDelete() {
+    if (_selected_model_id) {
+        var pos = _selected_model_id.replace("model_id_", "");
+        var p = parseInt(pos, 10);
+        console.log("onClickModelDelete:" + p);
+
+        _listModels.splice(p, 1);
+        drawModels(_listModels, _listModels);
+    }
+    onClickPopupCancel();
+}
+
+function drawModels(images, names) {
+    var row = '';
+    var col;
+
+    _selected_model_id = '';
+    for (var i = 0; i < images.length; i++) {
+        if ((i % 3) == 0) {
+            if (i != 0)
+                row += '</tr>\n';
+            row += '<tr>\n';
+        }
+        col = '<td>\n' +
+              '<img src="sdcard/image/' + images[i] + '"' + 'height="128px" id="model_id_' + String(i) +
+              '" onClick="onClickModel(event, this.id)" class="none">\n' +
+              '<label>' + names[i] + '</label>\n' +
+              '</td>\n';
+        row += col;
+    }
+
+    var remain = 3 - (_listModels.length % 3);
+    if (remain != 3) {
+        for (var i = 0; i < remain; i++) {
+            row += '<td>\n</td>\n';
+        }
+    }
+    row += '</tr>\n';
+
+    var table = document.getElementById("model_table");
+    if (table)
+        table.innerHTML = row;
+}
+
+//-------------------------------------------------------------------------------------------------
+// UI Controls
+//-------------------------------------------------------------------------------------------------
 function openTab(id) {
     // Get all elements with class="tabcontent" and hide them
     const tabs = document.getElementsByClassName("tabcontent");
     for (var t of tabs) {
         t.style.display = "none";
     }
-    const tab=id.replace("menu_", "tab_");
-    var elt = document.getElementById(tab);
-    if (elt)
+    const tab_id = id.replace("menu_", "tab_");
+    var elt = document.getElementById(tab_id);
+    if (elt) {
         elt.style.display = 'block';
+    }
 
     // mark selected menu
     const links = document.getElementsByClassName("tablink");
@@ -693,4 +860,10 @@ function openTab(id) {
     if (elt) {
         elt.className += " btn-selected";
     }
+    drawViews(id);
+    _selected_menu_id = id;
+}
+
+function onResize(event) {
+    drawViews(_selected_menu_id);
 }

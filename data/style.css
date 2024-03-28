@@ -12,12 +12,12 @@ html {
 
 .topmenu {
     background-color: #d2d7e8;
-    border-radius: 30px;
+    border-radius: 10px;
 }
 
 .tabcontent {
     outline: 1;
-    border-radius: 30px;
+    border-radius: 10px;
     background-color: #f5f5f587;
 }
 
@@ -82,29 +82,80 @@ h1 {
     word-wrap: break-word;
 }
 
-.gallery {
+/*
+-----------------------------------------------------------------------------------------
+- model
+-----------------------------------------------------------------------------------------
+*/
+.model {
     text-align: center;
     overflow: hidden;
     width: 100%;
     margin: 0 auto;
     display: table;
     padding: 3px 0px 3px 0px;
-    border-spacing: 5px;
+    border-spacing: 10px;
 }
 
-.gallery td,
-.gallery th {
+.model td,
+.model th {
     position: relative;
     padding: 2px;
     word-wrap: break-word;
     vertical-align: top;
 }
 
-.gallery td:hover {
+.model img:hover {
     cursor: pointer;
     border: 1px solid #6E6F7A;
     border-radius: 20px;
-    box-shadow: 8px 8px 6px darkgray;
+    box-shadow: 2px 2px 1px darkgray;
+}
+
+.model-selected,
+.model img:active {
+    color: #ff0000;
+    border-radius: 20px;
+    box-shadow: 2px 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+/*
+-----------------------------------------------------------------------------------------
+- popup
+-----------------------------------------------------------------------------------------
+*/
+.popup {
+    position:absolute;
+    width: 150px;
+    height: 150px;
+    z-index: 10;
+}
+
+.popup>ul.list {
+    display:inline-block;
+    left:30px;
+    top:-30px;
+	margin:0px;
+    padding:10px;
+    list-style:none;
+	background:#fff;
+    color:#333;
+	-moz-border-radius:5px; -webkit-border-radius:5px; border-radius:5px;
+	-moz-box-shadow:0 0 5px #999; -webkit-box-shadow:0 0 5px #999; box-shadow:0 0 5px #999
+}
+
+.popup>ul.list li {
+	padding:10px;
+	border-bottom: solid 1px #ccc;
+}
+
+.popup>ul.list li:hover {
+	background:#EC6603;
+    color:#fff;
+}
+
+.popup>ul.list li:last-child {
+    border:none
 }
 
 /* Background-color of the odd rows */

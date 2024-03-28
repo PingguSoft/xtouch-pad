@@ -47,13 +47,13 @@
                             </button> <br>
                             <label style="font-weight: bold;">Control</label>
                         </td>
-                        <td>
+                        <td id="spool_cell">
                             <button class="img-button btn-normal tablink" style="min-width: 50px; width:50px; height:50px;" id="menu_spool" onclick="openTab(this.id)">
                                 <img src="images/cost_weight.svg"  width="100%">
                             </button><br>
                             <label style="font-weight: bold;">Spool</label>
                         </td>
-                        <td id="ams_cell">
+                        <td id="ams_cell" style="display: none;">
                             <button class="img-button btn-normal tablink" style="min-width: 50px; width:50px; height:50px;" id="menu_ams" onclick="openTab(this.id)">
                                 <img src="images/ic_ams.svg" width="100%">
                             </button><br>
@@ -84,7 +84,7 @@
                     <tbody>
                         <tr style="vertical-align: middle">
                             <td style="width:40%;">
-                                <img src="images/ic_printer_c12.svg" width="80%" height="auto" id="model_view">
+                                <img src="images/ic_printer_c12.svg" width="80%" height="auto">
                             </td>
                             <td>
                                 <table border="0" align="top" style="width:100%; height:100%;">
@@ -119,7 +119,7 @@
                     <tbody>
                         <tr style="vertical-align: middle">
                             <td style="width:40%;">
-                                <img src="images/ic_comment_model.svg" width="90%" height="auto" id="model_view">
+                                <img src="images/ic_comment_model.svg" width="90%" height="auto">
                             </td>
                             <td>
                                 <table border="0" align="top" style="width:100%; height:100%;">
@@ -199,6 +199,7 @@
     CONTROL TAB
 --------------------------------------------------------------------------------------------------->
         <div id="tab_control" class="tabcontent" style="display: none;">
+            <div style="overflow-y: auto; height:550px;" name="full_height_view">
             <!--
                 TEMPERATURE ICONS
             -->
@@ -408,22 +409,22 @@
                     <tbody>
                         <tr>
                             <td>
-                                <button class="img-button btn-normal" style="width: 35%;" id="btn_chamber_light" onClick="onClickLightFan(this.id)">
+                                <button class="img-button btn-normal" style="width: 35%;" id="btn_chamber_light" onClick="onClickLight(this.id)">
                                     <img src="images/ic_light_off.svg" id="img_chamber_light">
                                 </button>
                             </td>
                             <td>
-                                <button class="img-button btn-normal" style="width: 35%;" id="btn_cooling_fan_speed" onClick="onClickLightFan(this.id)">
+                                <button class="img-button btn-normal" style="width: 35%;" id="btn_cooling_fan_speed" onClick="onClickFan(this.id)">
                                     <img src="images/ic_fan_off.svg" id="img_cooling_fan_speed">
                                 </button>
                             </td>
                             <td>
-                                <button class="img-button btn-normal" style="width: 35%;" id="btn_big_fan1_speed" onClick="onClickLightFan(this.id)">
+                                <button class="img-button btn-normal" style="width: 35%;" id="btn_big_fan1_speed" onClick="onClickFan(this.id)">
                                     <img src="images/ic_fan_off.svg" id="img_big_fan1_speed">
                                 </button>
                             </td>
                             <td>
-                                <button class="img-button btn-normal" style="width: 35%;" id="btn_big_fan2_speed" onClick="onClickLightFan(this.id)">
+                                <button class="img-button btn-normal" style="width: 35%;" id="btn_big_fan2_speed" onClick="onClickFan(this.id)">
                                     <img src="images/ic_fan_off.svg" id="img_big_fan2_speed">
                                 </button>
                             </td>
@@ -470,6 +471,7 @@
                         </tr>
                     </tbody>
                 </table>
+            </div>
             </div>
         </div>
 
@@ -594,41 +596,22 @@
 <!-------------------------------------------------------------------------------------------------
     SDCARD TAB
 --------------------------------------------------------------------------------------------------->
-    <div id="tab_sdcard" class="tabcontent" style="overflow-y: scroll; height:500px;" style="display: none;">
-        <table class="gallery" border="0" style="table-layout:fixed; width:98%;">
-            <tbody>
-                <tr>
-                    <td>
-                        <img src="images/ic_fan_off.svg" height="128px">
-                        <label>fd444444444444hjfdjhhfdjhfddfd</label>
-                    </td>
-                    <td>
-                        <img src="images/ic_fan_on.svg" height="128px">
-                        <label>fd444jfdjhhfdjhfddfd</label>
-                    </td>
-                    <td>
-                        <img src="images/ic_hotend.svg" height="128px">
-                        <label>fd44444444dfd</label>
-                    </td>
-                </tr>
+        <div id="tab_sdcard" class="tabcontent" style="display: none;">
+            <div id="popup-menu" class="popup" style="display: none;">
+                <ul class="list">
+                    <li onClick="onClickModelPrint()">Print</li>
+                    <li onClick="onClickModelDelete()">Delete</li>
+                    <li onClick="onClickPopupCancel()">Cancel</li>
+                </ul>
+            </div>
 
-                <tr>
-                    <td>
-                        <img src="images/ic_fan_off.svg" height="128px">
-                        <label>fd444444444444hjfdjhhfdjhfddfd</label>
-                    </td>
-                    <td>
-                        <img src="images/ic_fan_on.svg" height="128px">
-                        <label>fd444jfdjhhfdjhfddfd</label>
-                    </td>
-                    <td>
-                        <img src="images/ic_hotend.svg" height="128px">
-                        <label>fd44444444dfd</label>
-                    </td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
+            <div style="overflow-y: auto; height:550px;" id="model_view" name="full_height_view">
+                <table class="model" border="0" style="table-layout:fixed; width:98%;">
+                    <tbody id="model_table">
+                    </tbody>
+                </table>
+            </div>
+        </div>
 
         <script src="script.js"></script>
         <script src="script-num.js"></script>

@@ -11,3 +11,4 @@ design/project/*.py
 *.exe
 *.ilk
 *.pdb
+data/sdcard/
