@@ -436,30 +436,6 @@ function sendGcode(code) {
         _websocket.send(str);
 }
 
-function ctrlLED(name, mode) {
-    const json = {
-        command: 'pub',
-        data: {
-            system: {
-                command: "ledctrl",
-                led_node: name,
-                sequence_id: 0,
-                led_mode: mode,
-                led_on_time: 500,
-                led_off_time: 500,
-                loop_times: 0,
-                interval_time: 0,
-            },
-        }
-    };
-    const str = JSON.stringify(json);
-    console.log(str);
-    if (_websocket.readyState == WebSocket.OPEN)
-        _websocket.send(str);
-
-
-}
-
 function onChangeFan(id) {
     const elt = document.getElementById(id);
     if (elt) {
@@ -467,6 +443,12 @@ function onChangeFan(id) {
         var idx = 1;
         for (const fan of Fans) {
             if (id.endsWith(fan)) {
+                const id_img = id.replace("label_", "img_");
+                var elt_img = document.getElementById(id_img);
+                if (elt_img) {
+                    elt_img.setAttribute("src", (elt.value == 0) ? "images/ic_fan_off.svg" : "images/ic_fan_on.svg")
+                }
+
                 const speed = Math.round(elt.value * 2.55);
                 sendGcode("M106 P" + idx + " S" + speed + " \n");
                 break;
@@ -482,11 +464,6 @@ function onClickFan(id) {
 
     if (elt_label && elt_label.nodeName.toLowerCase() == 'input') {
         const new_val = (elt_label.value == 0) ? 100 : 0;
-        const id_img = id.replace("btn_", "img_");
-        var elt_img = document.getElementById(id_img);
-        if (elt_img) {
-            elt_img.setAttribute("src", (new_val == 0) ? "images/ic_fan_off.svg" : "images/ic_fan_on.svg")
-        }
         elt_label.value = new_val;
         console.log("onClickFan : ", new_val);
         onChangeFan(id_label);
@@ -505,10 +482,28 @@ function onClickLight(id) {
             elt_img.setAttribute("src", (new_val == 0) ? "images/ic_light_off.svg" : "images/ic_light_on.svg")
         }
         elt_label.innerText = (new_val == 0) ? "off" : "on";
-        console.log("onClickLight : ", new_val);
-
+        console.log("onClickLight : ", elt_label.innerText);
         id_label = id.replace("btn_", "");
-        ctrlLED(id_label, elt_label.innerText);
+
+        const json = {
+            command: 'pub',
+            data: {
+                system: {
+                    command: "ledctrl",
+                    led_node: id_label,
+                    sequence_id: 0,
+                    led_mode: elt_label.innerText,
+                    led_on_time: 500,
+                    led_off_time: 500,
+                    loop_times: 0,
+                    interval_time: 0,
+                },
+            }
+        };
+        const str = JSON.stringify(json);
+        console.log(str);
+        if (_websocket.readyState == WebSocket.OPEN)
+            _websocket.send(str);
     }
 }
 

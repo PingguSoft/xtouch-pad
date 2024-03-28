@@ -1,3 +1,7 @@
+function update() {
+
+}
+
 $(document).ready(function () {
     $('.num-spinner span').click(function () {
         var inp = $(this).parents('.num-spinner').find('input');
@@ -9,30 +13,29 @@ $(document).ready(function () {
             var count = parseFloat(inp.val()) - step;
             count = Math.max(min, count);
             count = Math.min(max, count);
-            if (count <= min) {
-                $(this).addClass('disabled');
-            }
-            else {
-                $(this).removeClass('disabled');
-            }
-            if (count < max) {
-                $(this).parents('.num-spinner').find(('.plus')).removeClass('disabled');
-            }
+            // if (count <= min) {
+            //     $(this).addClass('disabled');
+            // }
+            // else {
+            //     $(this).removeClass('disabled');
+            // }
+            // if (count < max) {
+            //     $(this).parents('.num-spinner').find(('.plus')).removeClass('disabled');
+            // }
             inp.val(count);
-        }
-        else {
+        } else {
             var count = parseFloat(inp.val()) + step
             count = Math.max(min, count);
             count = Math.min(max, count);
 
-            if (count >= max) {
-                $(this).addClass('disabled');
-            } else {
-                $(this).removeClass('disabled');
-            }
-            if (count > min) {
-                $(this).parents('.num-spinner').find(('.minus')).removeClass('disabled');
-            }
+            // if (count >= max) {
+            //     $(this).addClass('disabled');
+            // } else {
+            //     $(this).removeClass('disabled');
+            // }
+            // if (count > min) {
+            //     $(this).parents('.num-spinner').find(('.minus')).removeClass('disabled');
+            // }
             inp.val(count);
         }
 
