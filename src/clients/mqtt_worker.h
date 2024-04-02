@@ -23,7 +23,7 @@ public:
             virtual void onMQTT(char *topic, byte *payload, unsigned int length) = 0;
     };
 
-    MQTTWorker(char *ip, char *acccessCode, char *serial);
+    MQTTWorker(char *ip, char *accessCode, char *serial);
     void start();
     void stop();
     void onMQTT(char *topic, byte *payload, unsigned int length);

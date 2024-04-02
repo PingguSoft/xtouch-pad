@@ -170,51 +170,49 @@ function updatePrintingState(json) {
             }
         }
 
-        if (status == Status.UNKNOWN)
-            return;
-
         if (_printer.status != status) {
             updateUI(status);
             _printer.status = status;
         }
-        if (_printer.status != Status.IDLE) {
-            const printing_maps = [
-                ['subtask_name', 'printing_model_name', 1],
-                ['gcode_file', 'printing_model_aux', 1],
-                ['total_layer_num', 'printing_max_layer', 1],
-                ['layer_num', 'printing_cur_layer', 1],
-                ['mc_percent', 'printing_cur_prog_percentage', 1],
-                ['mc_percent', 'printing_cur_prog_bar', 2],
-                ['mc_remaining_time', 'printing_remaining_time', 3],
-            ];
+    }
 
-            for (const x of printing_maps) {
-                console.log(x[0] + ", " + x[1] + ", : " + json[x[0]]);
-                if (Object.keys(json).includes(x[0])) {
-                    const elt = document.getElementById(x[1]);
-                    if (elt) {
-                        if (x[2] == 1) {
-                            elt.innerText = json[x[0]];
-                        } else if (x[2] == 2) {
-                            elt.value = json[x[0]];
-                        } else if (x[2] == 3) {
-                            var min = json[x[0]];
-                            var days = Math.floor(min / (60 * 24));
-                            min %= (60 * 24);
-                            var hours = Math.floor(min / 60);
-                            min %= 60;
+    if (_printer.status != Status.IDLE) {
+        const printing_maps = [
+            ['subtask_name', 'printing_model_name', 1],
+            ['gcode_file', 'printing_model_aux', 1],
+            ['total_layer_num', 'printing_max_layer', 1],
+            ['layer_num', 'printing_cur_layer', 1],
+            ['mc_percent', 'printing_cur_prog_percentage', 1],
+            ['mc_percent', 'printing_cur_prog_bar', 2],
+            ['mc_remaining_time', 'printing_remaining_time', 3],
+        ];
 
-                            var str = "";
-                            if (days > 0)
-                                str = str + pad(days, 2) + "d ";
-                            if (hours > 0)
-                                str = str + pad(hours, 2) + "h ";
-                            str = str + pad(min, 2) + "m";
-                            elt.innerText = str;
-                        }
-                    } else {
-                        console.log("no : " + x[1]);
+        for (const x of printing_maps) {
+            console.log(x[0] + ", " + x[1] + ", : " + json[x[0]]);
+            if (Object.keys(json).includes(x[0])) {
+                const elt = document.getElementById(x[1]);
+                if (elt) {
+                    if (x[2] == 1) {
+                        elt.innerText = json[x[0]];
+                    } else if (x[2] == 2) {
+                        elt.value = json[x[0]];
+                    } else if (x[2] == 3) {
+                        var min = json[x[0]];
+                        var days = Math.floor(min / (60 * 24));
+                        min %= (60 * 24);
+                        var hours = Math.floor(min / 60);
+                        min %= 60;
+
+                        var str = "";
+                        if (days > 0)
+                            str = str + pad(days, 2) + "d ";
+                        if (hours > 0)
+                            str = str + pad(hours, 2) + "h ";
+                        str = str + pad(min, 2) + "m";
+                        elt.innerText = str;
                     }
+                } else {
+                    console.log("no : " + x[1]);
                 }
             }
         }

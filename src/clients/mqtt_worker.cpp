@@ -1,10 +1,10 @@
 #include "debug.h"
 #include "mqtt_worker.h"
 
-MQTTWorker::MQTTWorker(char *ip, char *acccessCode, char *serial) {
+MQTTWorker::MQTTWorker(char *ip, char *accessCode, char *serial) {
     _seq_id = 0;
     _ip = ip;
-    _access = acccessCode;
+    _access = accessCode;
     _serial = serial;
     _mqtt_client = NULL;
 }
