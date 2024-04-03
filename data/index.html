@@ -53,7 +53,7 @@
                             </button><br>
                             <label style="font-weight: bold;">Spool</label>
                         </td>
-                        <td id="ams_cell" style="display: none;">
+                        <td id="ams_cell" style="display: block;">
                             <button class="img-button btn-normal tablink" style="min-width: 50px; width:50px; height:50px;" id="menu_ams" onclick="openTab(this.id)">
                                 <img src="images/ic_ams.svg" width="100%">
                             </button><br>
@@ -101,6 +101,53 @@
                                                 <label style="font-weight: bold; font-size: 1.1em;color:gray">
                                                     No task is being printed on the current device
                                                 </label>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!--
+                ERROR
+            -->
+            <div id="printing_error" class="container">
+                <table border="0" style="width:100%; height: 100%;">
+                    <tbody>
+                        <tr style="vertical-align: middle">
+                            <td style="width:20%;">
+                                <img src="images/hms_notify_lv1.svg" width="80%" height="auto" id="img_error_lvl">
+                            </td>
+                            <td>
+                                <table border="0" align="top" style="width:100%; height:100%; table-layout:fixed;">
+                                    <tbody>
+                                        <tr>
+                                            <td  colspan="2" style="text-align: left; min-height: 60px;">
+                                                <label style="font-weight: bold; font-size: 1.3em;" id="label_error">
+                                                    Device Error
+                                                </label>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td  colspan="2" style="text-align: left; min-height: 40px;">
+                                                <label style="font-weight: bold; font-size: 1.1em;color:gray" id="label_error_desc">
+                                                    The current temperature is too low. In order to protect you and your printer. Printing task, moving axis and other operations is disabled. Please move the printer to an environment above 10 celsius degree.
+                                                </label>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>
+                                                <button disabled class="img-button btn-normal" style="width: 90%; height: 40px" id="btn_confirm" onClick="onClickConfirm(this.id)">
+                                                    <label style="font-weight: bold; font-size: 1.1em;">Confirm</label><br>
+                                                </button>
+                                            </td>
+                                            <td>
+                                                <button disabled class="img-button btn-normal" style="width: 90%; height: 40px" id="btn_retry" onClick="onClickRetry(this.id)">
+                                                    <label style="font-weight: bold; font-size: 1.1em;">Retry</label><br>
+                                                </button>
                                             </td>
                                         </tr>
                                     </tbody>
@@ -615,6 +662,6 @@
 
         <script src="script.js"></script>
         <script src="script-num.js"></script>
-        <script>openTab('menu_sdcard');</script>
+        <script>openTab('menu_status');</script>
     </body>
 </html>

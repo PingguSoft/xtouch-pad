@@ -21,6 +21,9 @@ var _printer = {
     is_vt_tray: false,
     is_ams: false,
     is_light_on: false,
+    is_ipcam: false,
+    is_ipcam_record: false,
+    is_ipcam_timelapse: false,
 };
 
 
@@ -363,13 +366,65 @@ function updateSpeed(json) {
     }
 }
 
+function updateError(json) {
+    if (Object.keys(json).includes('print_error')) {
+        const error = json['print_error'];
+        const str_code = pad(error.toString(16), 8);
+        console.log("print error : " + str_code);
+
+    }
+}
+
+function updateHMS(json) {
+    if (Object.keys(json).includes('hms')) {
+        const hms = json['hms'];
+
+        for (const v of hms) {
+            const attr = v['attr'];
+            const code = v['code'];
+
+            const module_id = (attr >> 24) & 0xff;
+            const module_no = (attr >> 16) & 0xff;
+            const part_id   = (attr >>  8) & 0xff;
+            const part_no   = (attr >>  0) & 0xff;
+
+            const alert_level = (code >> 16) & 0xffff;
+            const error_code  = (code >>  0) & 0xffff;
+
+            const str_code = pad(module_id.toString(16), 2) + pad(module_no.toString(16), 2) + pad(part_id.toString(16), 2) +
+                             pad(alert_level.toString(16), 6) + pad(error_code.toString(16), 4);
+            console.log("print HMS : " + str_code);
+        }
+    }
+}
+
+function updateCamInfo(json) {
+    if (Object.keys(json).includes('ipcam')) {
+        var ipcam = json['ipcam'];
+
+        if (Object.keys(ipcam).includes('ipcam_dev')) {
+            _printer.is_ipcam = (ipcam['ipcam_dev'] == '1');
+        }
+        if (Object.keys(ipcam).includes('ipcam_record')) {
+            _printer.is_ipcam_record = (ipcam['ipcam_record'] == 'enable');
+        }
+        if (Object.keys(ipcam).includes('timelapse')) {
+            _printer.is_ipcam_timelapse = (ipcam['timelapse'] == 'enable');
+        }
+        console.log("ipcam : " + String(json['ipcam']));
+    }
+}
+
 const _update_funcs = [
     updatePrintingState,
     updateTemperature,
     updateFilaments,
     updateLight,
     updateFans,
-    updateSpeed
+    updateSpeed,
+    updateError,
+    updateHMS,
+    updateCamInfo,
 ];
 
 function onMessage(event) {
