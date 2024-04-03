@@ -25,7 +25,14 @@ var _printer = {
     is_ipcam_record: false,
     is_ipcam_timelapse: false,
 };
-
+var _hms_tbl = {
+    codes: [],
+    msgs: []
+};
+var _err_tbl = {
+    codes: [],
+    msgs: []
+};
 
 window.addEventListener('load', onLoad);
 window.addEventListener('resize', onResize);
@@ -34,6 +41,19 @@ window.addEventListener('resize', onResize);
 // Web Socket
 //
 function onLoad(event) {
+    var json = JSON.parse(JSON.stringify(hms_err_json));
+    var hms = json['data']['device_hms']['en'];
+    var err = json['data']['device_error']['en'];
+
+    for (const x of err) {
+        _err_tbl.codes.push(x.ecode);
+        _err_tbl.msgs.push(x.intro);
+    }
+    for (const x of hms) {
+        _hms_tbl.codes.push(x.ecode);
+        _hms_tbl.msgs.push(x.intro);
+    }
+
     initWebSocket();
     updateUI(Status.IDLE);
 }
@@ -89,6 +109,10 @@ function encode(input) {
             keyStr.charAt(enc3) + keyStr.charAt(enc4);
     }
     return output;
+}
+
+function onClickConfirm(id) {
+
 }
 
 
@@ -152,6 +176,11 @@ function updateUI(status) {
         }
         break;
     }
+
+    const err_json = {
+        print_error: 83902522,
+    };
+    updateError(err_json);
 }
 
 function updatePrintingState(json) {
@@ -369,9 +398,20 @@ function updateSpeed(json) {
 function updateError(json) {
     if (Object.keys(json).includes('print_error')) {
         const error = json['print_error'];
-        const str_code = pad(error.toString(16), 8);
-        console.log("print error : " + str_code);
+        const str_code = pad(error.toString(16), 8).toUpperCase();
+        const idx = _err_tbl.codes.indexOf(str_code);
+        console.log(_err_tbl);
+        console.log("print error : " + str_code + ", len:" + str_code.length);
+        console.log("print error : " + _err_tbl.codes[0] + ", len:" + _err_tbl.codes[0]);
+        console.log("idx:" + idx);
 
+        if (idx >= 0) {
+            var label = document.getElementById('label_error');
+            label.innerText = "Device Error !";
+
+            label = document.getElementById('label_error_desc');
+            label.innerText = _err_tbl.msgs[idx];
+        }
     }
 }
 
@@ -394,6 +434,15 @@ function updateHMS(json) {
             const str_code = pad(module_id.toString(16), 2) + pad(module_no.toString(16), 2) + pad(part_id.toString(16), 2) +
                              pad(alert_level.toString(16), 6) + pad(error_code.toString(16), 4);
             console.log("print HMS : " + str_code);
+
+            var idx = _hms_tbl.codes.indexOf(str_code);
+            if (idx >= 0) {
+                var label = document.getElementById('label_error');
+                label.innerText = "HMS !";
+
+                label = document.getElementById('label_error_desc');
+                label.innerText = _hms_tbl.msgs[idx];
+            }
         }
     }
 }

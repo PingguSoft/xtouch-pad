@@ -127,20 +127,18 @@
                                         <tr>
                                             <td  colspan="2" style="text-align: left; min-height: 60px;">
                                                 <label style="font-weight: bold; font-size: 1.3em;" id="label_error">
-                                                    Device Error
                                                 </label>
                                             </td>
                                         </tr>
                                         <tr>
                                             <td  colspan="2" style="text-align: left; min-height: 40px;">
                                                 <label style="font-weight: bold; font-size: 1.1em;color:gray" id="label_error_desc">
-                                                    The current temperature is too low. In order to protect you and your printer. Printing task, moving axis and other operations is disabled. Please move the printer to an environment above 10 celsius degree.
                                                 </label>
                                             </td>
                                         </tr>
                                         <tr>
                                             <td>
-                                                <button disabled class="img-button btn-normal" style="width: 90%; height: 40px" id="btn_confirm" onClick="onClickConfirm(this.id)">
+                                                <button class="img-button btn-normal" style="width: 90%; height: 40px" id="btn_confirm" onClick="onClickConfirm(this.id)">
                                                     <label style="font-weight: bold; font-size: 1.1em;">Confirm</label><br>
                                                 </button>
                                             </td>
@@ -660,6 +658,7 @@
             </div>
         </div>
 
+        <script src="hms_err.json" type="text/javascript"></script>
         <script src="script.js"></script>
         <script src="script-num.js"></script>
         <script>openTab('menu_status');</script>
