@@ -15,7 +15,7 @@ public:
     class Callback {
         public:
             virtual ~Callback() { }
-            virtual void onJpeg(uint8_t *param, int size) = 0;
+            virtual void onJpegEvent(uint8_t *param, int size) = 0;
     };
 
     class BufMan {

@@ -14,10 +14,10 @@ uint32_t MQTTWorker::seq_id() {
     return _seq_id;
 }
 
-void MQTTWorker::onMQTT(char *topic, byte *payload, unsigned int length) {
+void MQTTWorker::onMQTTEvent(char *topic, byte *payload, unsigned int length) {
     payload[length] = '\0';
     if (_callback) {
-        _callback->onMQTT(topic, payload, length);
+        _callback->onMQTTEvent(topic, payload, length);
     }
 }
 
@@ -43,7 +43,7 @@ void MQTTWorker::start() {
     // _mqtt_client->setStream(stream);
 
     std::function<void(char *, byte *, unsigned int)> f =
-        std::bind(&MQTTWorker::onMQTT, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3);
+        std::bind(&MQTTWorker::onMQTTEvent, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3);
     _mqtt_client->setCallback(f);
     _mqtt_client->setSocketTimeout(20);
 }

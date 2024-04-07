@@ -20,13 +20,13 @@ public:
     class Callback {
         public:
             virtual ~Callback() { }
-            virtual void onMQTT(char *topic, byte *payload, unsigned int length) = 0;
+            virtual void onMQTTEvent(char *topic, byte *payload, unsigned int length) = 0;
     };
 
     MQTTWorker(char *ip, char *accessCode, char *serial);
     void start();
     void stop();
-    void onMQTT(char *topic, byte *payload, unsigned int length);
+    void onMQTTEvent(char *topic, byte *payload, unsigned int length);
     bool loop();
     void publish(JsonDocument json, char *user=NULL);
     void setCallback(Callback *cb) { _callback = cb; }

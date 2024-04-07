@@ -40,7 +40,7 @@ public:
         return _file_pair;
     }
 
-    virtual int16_t onCallback(FTPSWorker::cmd_t cmd, void *param, int size) {
+    virtual int16_t onFTPSEvent(FTPSWorker::cmd_t cmd, void *param, int size) {
         std::list<FTPListParser::FilePair*> *pair = (std::list<FTPListParser::FilePair*>*)param;
 
         lv_lock();

@@ -63,7 +63,7 @@ int CameraWorker::BufMan::process(WiFiClientSecure *client, Callback *cb) {
                 if (ch == 0xD9) {
                     // completed
                     if (cb) {
-                        cb->onJpeg(_pBuf, _pos);
+                        cb->onJpegEvent(_pBuf, _pos);
                     }
                     _pos = 1;
                     _state = STATE_IDLE;

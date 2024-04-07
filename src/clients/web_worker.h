@@ -15,8 +15,9 @@
 #include "freertos/queue.h"
 #include "camera_worker.h"
 #include "mqtt_worker.h"
+#include "ftps_worker.h"
 
-class WebWorker : public CameraWorker::Callback, MQTTWorker::Callback {
+class WebWorker : public CameraWorker::Callback, MQTTWorker::Callback, FTPSWorker::Callback {
 public:
     typedef struct {
         char    *web_dir;
@@ -31,8 +32,9 @@ public:
     void start();
     void stop();
 
-    virtual void onJpeg(uint8_t *param, int size);
-    virtual void onMQTT(char *topic, byte *payload, unsigned int length);
+    virtual void onJpegEvent(uint8_t *param, int size);
+    virtual void onMQTTEvent(char *topic, byte *payload, unsigned int length);
+    virtual int16_t onFTPSEvent(FTPSWorker::cmd_t cmd, void *param, int size);
     friend  void taskWeb(void* arg);
 
 private:
@@ -40,6 +42,7 @@ private:
     void onWebSocketData(AsyncWebSocketClient *client, void *arg, uint8_t *data, size_t len);
     void sendPNG();
     void listDirSD(char *path, std::vector<String> &info, String ext);
+    void sendFTPSInfo(AsyncWebSocketClient *client=NULL);
     void _start();
     void _stop();
     void _loop();
@@ -56,11 +59,14 @@ private:
     char            *_serial;
     char            *_name;
     bool            _is_running;
+    bool            _is_cam_view;
 
     MQTTWorker      *_mqtt;
     CameraWorker    *_cam;
+    FTPSWorker      *_ftps;
     std::vector<String> _list_sd;
     std::list<mount_t> _list_mnt;
+    std::list<FTPListParser::FilePair*> _file_pair;
 };
 
 #endif

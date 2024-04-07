@@ -132,7 +132,7 @@ public:
     class Callback {
         public:
             virtual ~Callback() { }
-            virtual int16_t onCallback(FTPSWorker::cmd_t cmd, void *param, int size) = 0;
+            virtual int16_t onFTPSEvent(FTPSWorker::cmd_t cmd, void *param, int size) = 0;
     };
 
     typedef struct {

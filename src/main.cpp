@@ -193,12 +193,12 @@ void setup() {
     // listDir(SPIFFS, "/", 2);
 
     _web = new WebWorker(&SPIFFS, "/", 80);
-    // _web->addMount("/image", &SD, "/image/");
+    _web->addMount("/sd", &SD, "/");
     _web->setPrinterInfo((char*)xTouchConfig.xTouchIP, (char*)xTouchConfig.xTouchAccessCode,
         (char*)xTouchConfig.xTouchSerialNumber, (char*)xTouchConfig.xTouchPrinterName);
     _web->start();
 
-    esp_task_wdt_init(10, false);
+    // esp_task_wdt_init(10, false);
 }
 
 void loop() {

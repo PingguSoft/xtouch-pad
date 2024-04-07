@@ -208,7 +208,7 @@ void FTPSWorker::downloadDirRemote(String srcDir, String dstDir, std::list<FTPLi
         dst = dstDir + i->name;
         LOGD("%4d, download [%10ld] %s to %s\n", cnt++, i->size, src.c_str(), dst.c_str());
         if (_callback)
-            _callback->onCallback(CMD_DOWNLOADING, (char*)i->name.c_str(), 0);
+            _callback->onFTPSEvent(CMD_DOWNLOADING, (char*)i->name.c_str(), 0);
 
         File file = SD.open(dst.c_str(), "wb", true);
         _ftps->InitFile("Type I");
@@ -357,6 +357,7 @@ void FTPSWorker::syncImagesModels(bool textonly) {
     }
 
 #if !_NO_NETWORK_
+    LOGI("[RAM FREE] PSRAM:%d, HEAP:%d\n", ESP.getFreePsram(), ESP.getFreeHeap());
     _ftps->OpenConnection(false, true);
     listDirRemote(getModelPath(), modelFilesRemote, ".3mf", max_items);     // model files
 #else
@@ -401,7 +402,7 @@ void FTPSWorker::syncImagesModels(bool textonly) {
         }
         if (imageFilesDownload.size() > 0) {
             if (_callback)
-                _callback->onCallback(CMD_DOWNLOAD_START, NULL, imageFilesDownload.size());
+                _callback->onFTPSEvent(CMD_DOWNLOAD_START, NULL, imageFilesDownload.size());
             downloadDirRemote(getImagePath(), getImagePath(), imageFilesDownload, ".png");
         }
         cnt = pairList.size();
@@ -423,7 +424,7 @@ void FTPSWorker::syncImagesModels(bool textonly) {
     freeList(imageFilesRemote);
 
     if (_callback) {
-        _callback->onCallback(CMD_SYNC_DONE, &pairList, cnt);
+        _callback->onFTPSEvent(CMD_SYNC_DONE, &pairList, cnt);
     }
     freeList(pairList);
 }

@@ -8,7 +8,6 @@
 //
 // increase _async_queue size to 32 in _init_async_event_queue of AsyncTCP.cpp for avoiding WDT
 //
-
 void taskWeb(void* arg);
 
 /*
@@ -16,15 +15,15 @@ void taskWeb(void* arg);
 * Callbacks
 *****************************************************************************************
 */
-void WebWorker::onJpeg(uint8_t *param, int size) {
+void WebWorker::onJpegEvent(uint8_t *param, int size) {
     LOGI("JPEG Completed : %d\n", size);
-    if (_ws->count() > 0) {
+    if (_ws->count() > 0 && _is_cam_view) {
         param[0] = 0x01;
         _ws->binaryAll(param, size);
     }
 }
 
-void WebWorker::onMQTT(char *topic, byte *payload, unsigned int length) {
+void WebWorker::onMQTTEvent(char *topic, byte *payload, unsigned int length) {
     LOGI("%5d - %s %s\n", length, topic, payload);
     if (_ws->count() > 0) {
         _ws->textAll(payload, length);
@@ -48,6 +47,33 @@ void WebWorker::onWebSocket(AsyncWebSocket *server, AsyncWebSocketClient *client
     }
 }
 
+int16_t WebWorker::onFTPSEvent(FTPSWorker::cmd_t cmd, void *param, int size) {
+    std::list<FTPListParser::FilePair*> *pair = (std::list<FTPListParser::FilePair*>*)param;
+
+    switch (cmd) {
+        case FTPSWorker::CMD_SYNC_DONE:
+            if (size > 0) {
+                for (FTPListParser::FilePair* p : _file_pair)
+                    delete p;
+                _file_pair.clear();
+
+                for (FTPListParser::FilePair* p : *pair)
+                    _file_pair.push_back(new FTPListParser::FilePair(p));
+
+                sendFTPSInfo();
+            }
+            break;
+
+        case FTPSWorker::CMD_DOWNLOAD_START:
+            break;
+
+        case FTPSWorker::CMD_DOWNLOADING:
+            LOGD("downloading : %s\n", (char*)param);
+            break;
+    }
+    return 0;
+}
+
 /*
 *****************************************************************************************
 *
@@ -66,6 +92,7 @@ WebWorker::WebWorker(fs::FS *fs, char *root, uint16_t port) {
     _ws = NULL;
     _mqtt = NULL;
     _cam = NULL;
+    _is_cam_view = false;
 }
 
 void WebWorker::listDirSD(char *path, std::vector<String> &info, String ext) {
@@ -172,7 +199,6 @@ void WebWorker::_start() {
         //
         _cam = new CameraWorker(_ip, 6000, (char*)"bblp", _access);
         _cam->setCallback(this);
-        _cam->start();
 
         //
         // MQTT worker
@@ -180,6 +206,13 @@ void WebWorker::_start() {
         _mqtt = new MQTTWorker(_ip, _access, _serial);
         _mqtt->setCallback(this);
         _mqtt->start();
+
+        //
+        //
+        //
+        _ftps = new FTPSWorker(_ip, 990, (char*)"bblp", _access);
+        _ftps->setCallback(this);
+        // _ftps->startSync();
     }
 }
 
@@ -201,6 +234,29 @@ void WebWorker::_stop() {
     }
 }
 
+void WebWorker::sendFTPSInfo(AsyncWebSocketClient *client) {
+    JsonDocument json_out;
+    JsonDocument json_item;
+    String json_str;
+
+    JsonArray arr;
+    arr = json_out["webui"]["sdcard_list"].to<JsonArray>();
+    for (FTPListParser::FilePair* p : _file_pair) {
+        json_item["ts"] = p->a.ts;
+        json_item["size"] = p->a.size;
+        json_item["3mf"] = p->a.name;
+        json_item["png"] = p->b.name;
+        arr.add(json_item);
+    }
+    serializeJson(json_out, json_str);
+    if (_ws) {
+        if (client)
+            _ws->text(client->id(), json_str);
+        else
+            _ws->textAll(json_str);
+    }
+}
+
 void WebWorker::onWebSocketData(AsyncWebSocketClient *client, void *arg, uint8_t *data, size_t len) {
     AwsFrameInfo *info = (AwsFrameInfo *)arg;
     data[len] = 0;
@@ -209,6 +265,7 @@ void WebWorker::onWebSocketData(AsyncWebSocketClient *client, void *arg, uint8_t
     if (info->final && info->index == 0 && info->len == len && info->opcode == WS_TEXT) {
         JsonDocument json_in;
         JsonDocument json_out;
+        JsonDocument json_item;
         String json_str;
 
         auto err = deserializeJson(json_in, data, len);
@@ -218,9 +275,9 @@ void WebWorker::onWebSocketData(AsyncWebSocketClient *client, void *arg, uint8_t
 
                 if (command == "open") {
                     if (_name) {
-                        json_out["printer_name"] = _name;
+                        json_out["webui"]["printer_name"] = _name;
                     } else {
-                        json_out["printer_name"] = "None";
+                        json_out["webui"]["printer_name"] = "None";
                     }
                     serializeJson(json_out, json_str);
                     if (_ws) {
@@ -228,6 +285,15 @@ void WebWorker::onWebSocketData(AsyncWebSocketClient *client, void *arg, uint8_t
                     }
                     if (_mqtt) {
                         _mqtt->reqPushAll();
+                    }
+                } else if (command == "sdcard_list") {
+                    _ftps->startSync();
+                } else if (command == "camera_view") {
+                    _is_cam_view = json_in["data"].as<bool>();
+                    if (_is_cam_view) {
+                        _cam->start();
+                    } else {
+                        _cam->stop();
                     }
                 } else if (command == "pub" && json_in.containsKey("data")) {
                     if (_mqtt) {
