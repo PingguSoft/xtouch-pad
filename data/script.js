@@ -185,7 +185,7 @@ function onLoad(event) {
     }
 
     initWebSocket();
-    updateUI(Status.RUNNING);
+    updateUI(Status.IDLE);
 }
 
 function initWebSocket() {
