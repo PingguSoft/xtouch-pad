@@ -16,3 +16,11 @@ def get_systype():
     if arch == "aarch64" and platform.architecture()[0] == "32bit":
         arch = "armv7l"
     return "%s_%s" % (system, arch) if arch else system
+
+--- to do list ---
+2024-04-08
+
+SD card browser
+1.SD card available 할 때 만 enable
+2.ftps max limit 안 먹는 문제 수정
+3.sd card image list update시 scroll하면 esp32 죽는문제

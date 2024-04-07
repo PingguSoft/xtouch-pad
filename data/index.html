@@ -2,7 +2,7 @@
 <html>
 
     <head>
-        <title>Temperature / Axis</title>
+        <title>Bambu Bridge</title>
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <link rel="icon" type="image/png" href="favicon.png">
         <link rel="stylesheet" type="text/css" href="style.css">
@@ -23,8 +23,8 @@
             MONITORING SCREEN
             1280x720 half = 640x360
         -->
-        <div id="monitoring" class="container" >
-            <img src="images/m_camera.svg" id="camera_view" width="100%" height="auto" style="outline: auto;">
+        <div id="monitoring" class="cam-view" >
+            <img src="images/m_camera.svg" id="camera_view" width="100%" height="auto" style="outline: auto;" onclick="onCamera()">
         </div>
 
 
@@ -114,7 +114,7 @@
             <!--
                 ERROR
             -->
-            <div id="printing_error" class="container">
+            <div id="printing_error" class="container" style="display: none;">
                 <table border="0" style="width:100%; height: 100%;">
                     <tbody>
                         <tr style="vertical-align: middle">
@@ -164,7 +164,7 @@
                     <tbody>
                         <tr style="vertical-align: middle">
                             <td style="width:40%;">
-                                <img src="images/ic_comment_model.svg" width="90%" height="auto">
+                                <img src="images/ic_comment_model.svg" width="90%" height="auto" id="printing_model_png">
                             </td>
                             <td>
                                 <table border="0" align="top" style="width:100%; height:100%;">
@@ -217,17 +217,17 @@
                     </tbody>
                 </table>
 
-                <table style="width:100%; height: 100%; table-layout:fixed;" border="0">
+                <table style="width:100%; height: 100%; table-layout:fixed; " border="0">
                     <tbody>
-                        <tr>
-                            <td>
-                                <button class="img-button btn-normal" style="width: 50%; height: 50px;" id="btn_print" onClick="onClickPauseResume(this.id)">
+                        <tr >
+                            <td align="middle">
+                                <button class="img-button btn-normal disabled-finished" style="width: 50%; height: 50px;" id="btn_print" onClick="onClickPauseResume(this.id)">
                                     <img src="images/print_ctrl_resume.svg" id="btn_print_icon">
                                     <!-- <label style="vertical-align:middle" id="label_print">Print</label> -->
                                 </button>
                             </td>
-                            <td>
-                                <button class="img-button btn-normal" style="width: 50%; height: 50px;" id="btn_stop" onClick="onClickStop(this.id)">
+                            <td align="middle">
+                                <button class="img-button btn-normal disabled-finished" style="width: 50%; height: 50px;" id="btn_stop" onClick="onClickStop(this.id)">
                                     <img src="images/print_ctrl_stop.svg" id="btn_stop_icon">
                                     <!-- <label style="vertical-align:middle" id="label_stop">Stop</label> -->
                                 </button>

@@ -82,6 +82,27 @@ h1 {
     word-wrap: break-word;
 }
 
+.cam-view {
+    border-radius: 5px;
+    text-align: center;
+    overflow: hidden;
+    width: 100%;
+    margin: 0 auto;
+    display: table;
+    padding: 3px;
+}
+
+.cam-view:hover {
+    cursor: pointer;
+    border-radius: 5px;
+    box-shadow: 3px 3px 10px darkgray;
+}
+
+.cam-view:active {
+    border-radius: 5px;
+    box-shadow: 2px 2px 6px rgba(0, 0, 0, 0.3);
+}
+
 /*
 -----------------------------------------------------------------------------------------
 - model

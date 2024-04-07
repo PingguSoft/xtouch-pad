@@ -24,6 +24,7 @@ var _printer = {
     is_ipcam: false,
     is_ipcam_record: false,
     is_ipcam_timelapse: false,
+    is_ipcam_show: false,
 };
 var _hms_tbl = {
     codes: [],
@@ -33,6 +34,135 @@ var _err_tbl = {
     codes: [],
     msgs: []
 };
+var _sdcard_model_list =
+[
+    {
+        "ts": 1955357392,
+        "size": 766263,
+        "3mf": "Cute Schnauzer keychain.gcode.3mf",
+        "png": "17540064941.png"
+    },
+    {
+        "ts": 1955353346,
+        "size": 1196949,
+        "3mf": "hello-kitty-6-Dom.gcode.3mf",
+        "png": "29877475381.png"
+    },
+    {
+        "ts": 1955353337,
+        "size": 1573271,
+        "3mf": "Pikachu.gcode.3mf",
+        "png": "1270915251.png"
+    },
+    {
+        "ts": 1955339925,
+        "size": 838822,
+        "3mf": "galaxy watch stand.gcode.3mf",
+        "png": "15137327011.png"
+    },
+    {
+        "ts": 1955329888,
+        "size": 667533,
+        "3mf": "rpi3p_case.gcode.3mf",
+        "png": "42885271611.png"
+    },
+    {
+        "ts": 1955329874,
+        "size": 810058,
+        "3mf": "plate_holder.gcode.3mf",
+        "png": "9240571371.png"
+    },
+    {
+        "ts": 1955326551,
+        "size": 2108337,
+        "3mf": "controller-left.gcode.3mf",
+        "png": "38297837321.png"
+    },
+    {
+        "ts": 1955317813,
+        "size": 970885,
+        "3mf": "swerve-large-gear.gcode.3mf",
+        "png": "26698210481.png"
+    },
+    {
+        "ts": 1955317661,
+        "size": 458648,
+        "3mf": "swerve-axle-gearx3.gcode.3mf",
+        "png": "17930814601.png"
+    },
+    {
+        "ts": 1955317235,
+        "size": 1548586,
+        "3mf": "rc_con_left_bottom.gcode.3mf",
+        "png": "2064281.png"
+    },
+    {
+        "ts": 1955316326,
+        "size": 767304,
+        "3mf": "swerve-gear-motorx6.gcode.3mf",
+        "png": "19799488481.png"
+    },
+    {
+        "ts": 1955316322,
+        "size": 1029925,
+        "3mf": "hex_bits_holder_7x3.gcode.3mf",
+        "png": "4678907721.png"
+    },
+    {
+        "ts": 1955315511,
+        "size": 710512,
+        "3mf": "hex_bits_holder_7 x 2.gcode.3mf",
+        "png": "10363259711.png"
+    },
+    {
+        "ts": 1955314040,
+        "size": 413301,
+        "3mf": "No-Catch Y-Splitter Self-Tap (long slot) (9.4mm-M3x6 mount).gcode.3mf",
+        "png": "2613376571.png"
+    },
+    {
+        "ts": 1955313969,
+        "size": 176374,
+        "3mf": "AMS_disconnect_tool_with_magnet_seperate_letters.gcode.3mf",
+        "png": "4380517671.png"
+    },
+    {
+        "ts": 1955312648,
+        "size": 301823,
+        "3mf": "Bambu Trash_plate_3.gcode.3mf",
+        "png": "3553883803.png"
+    },
+    {
+        "ts": 1955312518,
+        "size": 698414,
+        "3mf": "Bambu Trash_plate_1.gcode.3mf",
+        "png": "7143709141.png"
+    },
+    {
+        "ts": 1955311766,
+        "size": 595232,
+        "3mf": "X1_Touch.gcode.3mf",
+        "png": "22181592811.png"
+    },
+    {
+        "ts": 1955311137,
+        "size": 326780,
+        "3mf": "HKR -AMS Side mount spool holder.gcode.3mf",
+        "png": "39585176581.png"
+    },
+    {
+        "ts": 46080,
+        "size": 1234,
+        "3mf": "time_test.3mf",
+        "png": "time_test.png"
+    }
+];
+
+
+
+
+
+
 
 window.addEventListener('load', onLoad);
 window.addEventListener('resize', onResize);
@@ -55,7 +185,7 @@ function onLoad(event) {
     }
 
     initWebSocket();
-    updateUI(Status.IDLE);
+    updateUI(Status.RUNNING);
 }
 
 function initWebSocket() {
@@ -128,37 +258,58 @@ function updateUI(status) {
     var printing_idle_disp;
     var printing_info_disp;
     var axis_control_disp;
+    var printing_error_disp;
 
     switch (status) {
         case Status.IDLE:
             printing_idle_disp = 'block';
             printing_info_disp = 'none';
+            printing_error_disp = 'none';
             axis_control_disp = 'block';
             break;
 
         case Status.FINISHED:
             printing_idle_disp = 'none';
             printing_info_disp = 'block';
+            printing_error_disp = 'none';
             axis_control_disp = 'block';
+            break;
+
+        case Status.FAILED:
+            printing_idle_disp = 'none';
+            printing_info_disp = 'none';
+            printing_error_disp = 'block';
+            axis_control_disp = 'none';
+            // const err_json = {
+            //     print_error: 83902522,
+            // };
+            // updateError(err_json);
             break;
 
         default:
             printing_idle_disp = 'none';
             printing_info_disp = 'block';
+            printing_error_disp = 'none';
             axis_control_disp = 'none';
             break;
     }
     document.getElementById('printing_idle').style.display = printing_idle_disp;
     document.getElementById('printing_info').style.display = printing_info_disp;
     document.getElementById('axis_control').style.display  = axis_control_disp;
+    document.getElementById('printing_error').style.display  = printing_error_disp;
 
     switch (status) {
         case Status.RUNNING: {
                 document.getElementById('btn_print_icon').setAttribute('src', 'images/print_ctrl_pause.svg');
-                const disabled = document.getElementsByClassName("disabled-printing");
-                for (const elt of disabled) {
+                const disabled_printing = document.getElementsByClassName("disabled-printing");
+                for (const elt of disabled_printing) {
                     elt.disabled = true;
                     elt.className = elt.className.replace("btn-normal", "btn-normal-disabled");
+                }
+
+                const disabled_finished = document.getElementsByClassName("disabled-finished");
+                for (const elt of disabled_finished) {
+                    elt.style.display = 'block';
                 }
             }
             break;
@@ -166,6 +317,13 @@ function updateUI(status) {
         case Status.PAUSED:
             document.getElementById('btn_print_icon').setAttribute('src', 'images/print_ctrl_resume.svg');
             break;
+
+        case Status.FINISHED:
+            const disabled = document.getElementsByClassName("disabled-finished");
+            for (const elt of disabled) {
+                elt.style.display = 'none';
+            }
+            // no break
 
         default: {
             const disabled = document.getElementsByClassName("disabled-printing");
@@ -176,14 +334,37 @@ function updateUI(status) {
         }
         break;
     }
-
-    const err_json = {
-        print_error: 83902522,
-    };
-    updateError(err_json);
 }
 
-function updatePrintingState(json) {
+function formatTime(min) {
+    var days = Math.floor(min / (60 * 24));
+    min %= (60 * 24);
+    var hours = Math.floor(min / 60);
+    min %= 60;
+
+    var str = "";
+    if (days > 0)
+        str = str + pad(days, 2) + "d ";
+    if (hours > 0)
+        str = str + pad(hours, 2) + "h ";
+    str = str + pad(min, 2) + "m";
+
+    return str;
+}
+
+function setModelPNG(name) {
+    var png = "images/ic_comment_model.svg";
+
+    for (const item of _sdcard_model_list) {
+        if (item['3mf'] == name) {
+            png = item['png'];
+            break;
+        }
+    }
+    return png;
+}
+
+function printer_updatePrintingState(json) {
     const status_maps = [
         ['IDLE', Status.IDLE],
         ['RUNNING', Status.RUNNING],
@@ -210,38 +391,28 @@ function updatePrintingState(json) {
 
     if (_printer.status != Status.IDLE) {
         const printing_maps = [
-            ['subtask_name', 'printing_model_name', 1],
-            ['gcode_file', 'printing_model_aux', 1],
-            ['total_layer_num', 'printing_max_layer', 1],
-            ['layer_num', 'printing_cur_layer', 1],
-            ['mc_percent', 'printing_cur_prog_percentage', 1],
-            ['mc_percent', 'printing_cur_prog_bar', 2],
-            ['mc_remaining_time', 'printing_remaining_time', 3],
+            ['subtask_name', 'printing_model_name', null],
+            ['gcode_file', 'printing_model_aux', null],
+            ['gcode_file', 'printing_model_png', setModelPNG],
+            ['total_layer_num', 'printing_max_layer', null],
+            ['layer_num', 'printing_cur_layer', null],
+            ['mc_percent', 'printing_cur_prog_percentage', null],
+            ['mc_percent', 'printing_cur_prog_bar', null],
+            ['mc_remaining_time', 'printing_remaining_time', formatTime],
         ];
 
         for (const x of printing_maps) {
-            console.log(x[0] + ", " + x[1] + ", : " + json[x[0]]);
             if (Object.keys(json).includes(x[0])) {
+                console.log(x[0] + ", " + x[1] + ", : " + json[x[0]]);
                 const elt = document.getElementById(x[1]);
                 if (elt) {
-                    if (x[2] == 1) {
-                        elt.innerText = json[x[0]];
-                    } else if (x[2] == 2) {
-                        elt.value = json[x[0]];
-                    } else if (x[2] == 3) {
-                        var min = json[x[0]];
-                        var days = Math.floor(min / (60 * 24));
-                        min %= (60 * 24);
-                        var hours = Math.floor(min / 60);
-                        min %= 60;
-
-                        var str = "";
-                        if (days > 0)
-                            str = str + pad(days, 2) + "d ";
-                        if (hours > 0)
-                            str = str + pad(hours, 2) + "h ";
-                        str = str + pad(min, 2) + "m";
-                        elt.innerText = str;
+                    if (elt.nodeName.toLowerCase() == 'label') {
+                        elt.innerText = (x[2] != null) ? x[2](json[x[0]]) : json[x[0]];
+                    } else if (elt.nodeName.toLowerCase() == 'img') {
+                        var name = (x[2] != null) ? x[2](json[x[0]]) : json[x[0]];
+                        elt.setAttribute('src', name);
+                    } else {
+                        elt.value = (x[2] != null) ? x[2](json[x[0]]) : json[x[0]];
                     }
                 } else {
                     console.log("no : " + x[1]);
@@ -251,7 +422,7 @@ function updatePrintingState(json) {
     }
 }
 
-function updateTemperature(json) {
+function printer_updateTemperature(json) {
     const nodes = ['nozzle_temper', 'nozzle_target_temper', 'bed_temper', 'bed_target_temper', 'chamber_temper'];
     for (var i = 0; i < nodes.length; i++) {
         if (Object.keys(json).includes(nodes[i])) {
@@ -269,7 +440,7 @@ function updateTemperature(json) {
     }
 }
 
-function updateFilaments(json) {
+function printer_updateFilaments(json) {
     if (Object.keys(json).includes('vt_tray')) {
         _printer.is_vt_tray = true;
         tray = json['vt_tray'];
@@ -319,7 +490,7 @@ function updateFilaments(json) {
     }
 }
 
-function updateLight(json) {
+function printer_updateLight(json) {
     if (Object.keys(json).includes('lights_report')) {
         light = json['lights_report'];
 
@@ -340,7 +511,7 @@ function updateLight(json) {
     }
 }
 
-function updateFans(json) {
+function printer_updateFans(json) {
     var speeds = [-1, -1, -1, -1];
 
     if (Object.keys(json).includes('fan_gear')) {
@@ -384,7 +555,7 @@ function updateFans(json) {
     }
 }
 
-function updateSpeed(json) {
+function printer_updateSpeed(json) {
     if (Object.keys(json).includes('spd_lvl')) {
         console.log("spd_lvl : " + String(json['spd_lvl']));
         var combo = document.getElementById('spd_lvl');
@@ -395,7 +566,7 @@ function updateSpeed(json) {
     }
 }
 
-function updateError(json) {
+function printer_updateError(json) {
     if (Object.keys(json).includes('print_error')) {
         const error = json['print_error'];
         const str_code = pad(error.toString(16), 8).toUpperCase();
@@ -415,7 +586,7 @@ function updateError(json) {
     }
 }
 
-function updateHMS(json) {
+function printer_updateHMS(json) {
     if (Object.keys(json).includes('hms')) {
         const hms = json['hms'];
 
@@ -447,7 +618,7 @@ function updateHMS(json) {
     }
 }
 
-function updateCamInfo(json) {
+function printer_updateCamInfo(json) {
     if (Object.keys(json).includes('ipcam')) {
         var ipcam = json['ipcam'];
 
@@ -464,16 +635,45 @@ function updateCamInfo(json) {
     }
 }
 
-const _update_funcs = [
-    updatePrintingState,
-    updateTemperature,
-    updateFilaments,
-    updateLight,
-    updateFans,
-    updateSpeed,
-    updateError,
-    updateHMS,
-    updateCamInfo,
+const _printer_update_funcs = [
+    printer_updatePrintingState,
+    printer_updateTemperature,
+    printer_updateFilaments,
+    printer_updateLight,
+    printer_updateFans,
+    printer_updateSpeed,
+    printer_updateError,
+    printer_updateHMS,
+    printer_updateCamInfo,
+];
+
+
+function webui_updatePrinterName(json) {
+    if (Object.keys(json).includes('printer_name')) {
+        var title = document.getElementById('printer_name');
+        title.innerText = json['printer_name'];
+    }
+}
+
+function webui_updateSDCardList(json) {
+    if (Object.keys(json).includes('sdcard_list')) {
+        console.log(json);
+        json = json['sdcard_list'];
+        _sdcard_model_list = json;
+        drawModels(_sdcard_model_list)
+        // for (const item of json) {
+        //     console.log(item);
+        //     item['ts'];
+        //     item['size'];
+        //     item['3mf'];
+        //     item['png'];
+        // }
+    }
+}
+
+const _webui_update_funcs = [
+    webui_updatePrinterName,
+    webui_updateSDCardList
 ];
 
 function onMessage(event) {
@@ -486,8 +686,9 @@ function onMessage(event) {
         switch (cmd) {
             case 0x01: {        // jpeg
                 image = document.getElementById('camera_view');
-                if (image)
+                if (image && _printer.is_ipcam_show) {
                     image.src = 'data:image/jpeg;base64,' + encode(payload);
+                }
             }
             break;
 
@@ -502,13 +703,17 @@ function onMessage(event) {
         var json = JSON.parse(event.data);
         console.log(event.data);
         if (json) {
-            if (Object.keys(json).includes('printer_name')) {
-                var title = document.getElementById('printer_name');
-                title.innerText = json['printer_name'];
-            } else {
+            if (Object.keys(json).includes('webui')) {
+                json = json['webui'];
+                if (json) {
+                    for (const f of _webui_update_funcs) {
+                        f(json);
+                    }
+                }
+            } else if (Object.keys(json).includes('print')) {
                 json = json['print'];
                 if (json) {
-                    for (const f of _update_funcs) {
+                    for (const f of _printer_update_funcs) {
                         f(json);
                     }
                 }
@@ -811,29 +1016,41 @@ function onClickStop(id) {
     doPrintAction("stop");
 }
 
+function onCamera() {
+    _printer.is_ipcam_show = !_printer.is_ipcam_show;
+    image = document.getElementById('camera_view');
+    if (image) {
+        if (!_printer.is_ipcam_show)
+            image.src = 'images/m_camera.svg';
+    }
+    const json = {
+        command: 'camera_view',
+        data: _printer.is_ipcam_show
+    };
+    const str = JSON.stringify(json);
+    console.log(str);
+    if (_websocket.readyState == WebSocket.OPEN)
+        _websocket.send(str);
+}
+
 //-------------------------------------------------------------------------------------------------
 // SD Card Browser
 //-------------------------------------------------------------------------------------------------
-var _listModels = [
-    "10363259711.png", "1270915251.png", "12718038631.png",
-    "15137327011.png", "15642952511.png", "17540064941.png",
-    "17930814601.png", "19799488481.png", "2064281.png",
-    "22181592811.png", "2528318491.png", "2613376571.png",
-    "26698210481.png", "29877475381.png", "3553883803.png",
-    "35901261651.png", "38297837321.png", "39585176581.png",
-    "42885271611.png", "4380517671.png", "4678907721.png",
-    "7143709141.png", "9240571371.png"
-];
-
-function drawViews(id) {
+function updateTabView(id) {
     const elts = document.getElementsByName("full_height_view");
     for (var v of elts) {
         const rect = v.getBoundingClientRect();
-        v.style.height = String(window.innerHeight - Math.round(rect.top)) + "px";
+        v.style.height = String(window.innerHeight - (Math.round(rect.top) + 2)) + "px";
     }
 
     if (id == "menu_sdcard") {
-        drawModels(_listModels, _listModels);
+        const json = {
+            command: 'sdcard_list',
+        };
+        const str = JSON.stringify(json);
+        console.log(str);
+        if (_websocket.readyState == WebSocket.OPEN)
+            _websocket.send(str);
     }
 }
 
@@ -895,32 +1112,32 @@ function onClickModelDelete() {
         var p = parseInt(pos, 10);
         console.log("onClickModelDelete:" + p);
 
-        _listModels.splice(p, 1);
-        drawModels(_listModels, _listModels);
+        _sdcard_model_list.splice(p, 1);
+        drawModels(_sdcard_model_list);
     }
     onClickPopupCancel();
 }
 
-function drawModels(images, names) {
+function drawModels(models) {
     var row = '';
     var col;
 
     _selected_model_id = '';
-    for (var i = 0; i < images.length; i++) {
+    for (var i = 0; i < models.length; i++) {
         if ((i % 3) == 0) {
             if (i != 0)
                 row += '</tr>\n';
             row += '<tr>\n';
         }
         col = '<td>\n' +
-              '<img src="sdcard/image/' + images[i] + '"' + 'height="128px" id="model_id_' + String(i) +
+              '<img src="sd/image/' + models[i]["png"] + '"' + 'height="128px" width="128px" id="model_id_' + String(i) +
               '" onClick="onClickModel(event, this.id)" class="none">\n' +
-              '<label>' + names[i] + '</label>\n' +
+              '<label>' + models[i]["3mf"] + '</label>\n' +
               '</td>\n';
         row += col;
     }
 
-    var remain = 3 - (_listModels.length % 3);
+    var remain = 3 - (models.length % 3);
     if (remain != 3) {
         for (var i = 0; i < remain; i++) {
             row += '<td>\n</td>\n';
@@ -957,10 +1174,10 @@ function openTab(id) {
     if (elt) {
         elt.className += " btn-selected";
     }
-    drawViews(id);
+    updateTabView(id);
     _selected_menu_id = id;
 }
 
 function onResize(event) {
-    drawViews(_selected_menu_id);
+    updateTabView(_selected_menu_id);
 }
