@@ -15,7 +15,7 @@
             HEADER
         -->
         <div class="topnav">
-            <h1 id="printer_name">Bambu 3D Printer</h1>
+            <h1 id="printer_name">Bambu Bridge</h1>
         </div>
 
 
@@ -23,7 +23,7 @@
             MONITORING SCREEN
             1280x720 half = 640x360
         -->
-        <div id="monitoring" class="cam-view" >
+        <div id="cam_monitoring" class="cam-view" >
             <img src="images/m_camera.svg" id="camera_view" width="100%" height="auto" style="outline: auto;" onclick="onCamera()">
         </div>
 
@@ -53,13 +53,13 @@
                             </button><br>
                             <label style="font-weight: bold;">Spool</label>
                         </td>
-                        <td id="ams_cell" style="display: block;">
+                        <td id="ams_cell">
                             <button class="img-button btn-normal tablink" style="min-width: 50px; width:50px; height:50px;" id="menu_ams" onclick="openTab(this.id)">
                                 <img src="images/ic_ams.svg" width="100%">
                             </button><br>
                             <label style="font-weight: bold;">AMS</label>
                         </td>
-                        <td>
+                        <td id="sdcard_cell">
                             <button class="img-button btn-normal tablink" style="min-width: 50px; width:50px; height:50px;" id="menu_sdcard" onclick="openTab(this.id)">
                                 <img src="images/microsd-card-icon.svg" width="100%">
                             </button><br>

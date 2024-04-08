@@ -12,3 +12,4 @@ design/project/*.py
 *.ilk
 *.pdb
 data/sdcard/
+data/sd/

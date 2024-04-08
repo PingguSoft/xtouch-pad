@@ -1,3 +1,6 @@
+//-------------------------------------------------------------------------------------------------
+// CONST
+//-------------------------------------------------------------------------------------------------
 const Status = {
     UNKNOWN : 0,
     IDLE : 1,
@@ -8,11 +11,25 @@ const Status = {
     FAILED : 6
 };
 
-const Fans = ['cooling_fan_speed', 'big_fan1_speed', 'big_fan2_speed', 'heatbreak_fan_speed'];
+const Fans = [
+    'cooling_fan_speed',
+    'big_fan1_speed',
+    'big_fan2_speed',
+    'heatbreak_fan_speed'
+];
 
-var _selected_tray = -1;
-var _selected_model_id = '';
-var _selected_menu_id = '';
+const Reload =
+{
+    "ts": 0,
+    "size": 0,
+    "3mf": "Reload",
+    "png": "reload.svg"
+};
+
+
+//-------------------------------------------------------------------------------------------------
+// VARIABLES
+//-------------------------------------------------------------------------------------------------
 var _gateway = `ws://${window.location.hostname}/ws`;
 var _websocket;
 var _printer = {
@@ -25,17 +42,27 @@ var _printer = {
     is_ipcam_record: false,
     is_ipcam_timelapse: false,
     is_ipcam_show: false,
+    is_sdcard: false,
 };
+
+var _ui = {
+    sel_tray: -1,
+    sel_model_id: '',
+    sel_menu_id: '',
+    is_sd_reloading: false,
+};
+
 var _hms_tbl = {
     codes: [],
     msgs: []
 };
+
 var _err_tbl = {
     codes: [],
     msgs: []
 };
-var _sdcard_model_list =
-[
+
+var _sdcard_model_list = [
     {
         "ts": 1955357392,
         "size": 766263,
@@ -54,122 +81,14 @@ var _sdcard_model_list =
         "3mf": "Pikachu.gcode.3mf",
         "png": "1270915251.png"
     },
-    {
-        "ts": 1955339925,
-        "size": 838822,
-        "3mf": "galaxy watch stand.gcode.3mf",
-        "png": "15137327011.png"
-    },
-    {
-        "ts": 1955329888,
-        "size": 667533,
-        "3mf": "rpi3p_case.gcode.3mf",
-        "png": "42885271611.png"
-    },
-    {
-        "ts": 1955329874,
-        "size": 810058,
-        "3mf": "plate_holder.gcode.3mf",
-        "png": "9240571371.png"
-    },
-    {
-        "ts": 1955326551,
-        "size": 2108337,
-        "3mf": "controller-left.gcode.3mf",
-        "png": "38297837321.png"
-    },
-    {
-        "ts": 1955317813,
-        "size": 970885,
-        "3mf": "swerve-large-gear.gcode.3mf",
-        "png": "26698210481.png"
-    },
-    {
-        "ts": 1955317661,
-        "size": 458648,
-        "3mf": "swerve-axle-gearx3.gcode.3mf",
-        "png": "17930814601.png"
-    },
-    {
-        "ts": 1955317235,
-        "size": 1548586,
-        "3mf": "rc_con_left_bottom.gcode.3mf",
-        "png": "2064281.png"
-    },
-    {
-        "ts": 1955316326,
-        "size": 767304,
-        "3mf": "swerve-gear-motorx6.gcode.3mf",
-        "png": "19799488481.png"
-    },
-    {
-        "ts": 1955316322,
-        "size": 1029925,
-        "3mf": "hex_bits_holder_7x3.gcode.3mf",
-        "png": "4678907721.png"
-    },
-    {
-        "ts": 1955315511,
-        "size": 710512,
-        "3mf": "hex_bits_holder_7 x 2.gcode.3mf",
-        "png": "10363259711.png"
-    },
-    {
-        "ts": 1955314040,
-        "size": 413301,
-        "3mf": "No-Catch Y-Splitter Self-Tap (long slot) (9.4mm-M3x6 mount).gcode.3mf",
-        "png": "2613376571.png"
-    },
-    {
-        "ts": 1955313969,
-        "size": 176374,
-        "3mf": "AMS_disconnect_tool_with_magnet_seperate_letters.gcode.3mf",
-        "png": "4380517671.png"
-    },
-    {
-        "ts": 1955312648,
-        "size": 301823,
-        "3mf": "Bambu Trash_plate_3.gcode.3mf",
-        "png": "3553883803.png"
-    },
-    {
-        "ts": 1955312518,
-        "size": 698414,
-        "3mf": "Bambu Trash_plate_1.gcode.3mf",
-        "png": "7143709141.png"
-    },
-    {
-        "ts": 1955311766,
-        "size": 595232,
-        "3mf": "X1_Touch.gcode.3mf",
-        "png": "22181592811.png"
-    },
-    {
-        "ts": 1955311137,
-        "size": 326780,
-        "3mf": "HKR -AMS Side mount spool holder.gcode.3mf",
-        "png": "39585176581.png"
-    },
-    {
-        "ts": 46080,
-        "size": 1234,
-        "3mf": "time_test.3mf",
-        "png": "time_test.png"
-    }
 ];
 
-
-
-
-
-
-
+//-------------------------------------------------------------------------------------------------
+// CODES
+//-------------------------------------------------------------------------------------------------
 window.addEventListener('load', onLoad);
 window.addEventListener('resize', onResize);
 
-//
-// Web Socket
-//
 function onLoad(event) {
     var json = JSON.parse(JSON.stringify(hms_err_json));
     var hms = json['data']['device_hms']['en'];
@@ -182,6 +101,12 @@ function onLoad(event) {
     for (const x of hms) {
         _hms_tbl.codes.push(x.ecode);
         _hms_tbl.msgs.push(x.intro);
+    }
+
+    // add reload in the sdcard_model_list
+    if (_sdcard_model_list.length == 0 ||
+        (_sdcard_model_list.length != 0 && _sdcard_model_list.at(_sdcard_model_list.length - 1) != Reload)) {
+        _sdcard_model_list.push(Reload);
     }
 
     initWebSocket();
@@ -486,7 +411,7 @@ function printer_updateFilaments(json) {
                 }
             }
         }
-        document.getElementById('ams_cell').style.display = _printer.is_ams ? 'block' : 'none';
+        document.getElementById('ams_cell').style.display = _printer.is_ams ? '' : 'none';
     }
 }
 
@@ -620,7 +545,7 @@ function printer_updateHMS(json) {
 
 function printer_updateCamInfo(json) {
     if (Object.keys(json).includes('ipcam')) {
-        var ipcam = json['ipcam'];
+        const ipcam = json['ipcam'];
 
         if (Object.keys(ipcam).includes('ipcam_dev')) {
             _printer.is_ipcam = (ipcam['ipcam_dev'] == '1');
@@ -631,7 +556,16 @@ function printer_updateCamInfo(json) {
         if (Object.keys(ipcam).includes('timelapse')) {
             _printer.is_ipcam_timelapse = (ipcam['timelapse'] == 'enable');
         }
-        console.log("ipcam : " + String(json['ipcam']));
+        console.log("ipcam : " + String(ipcam));
+        document.getElementById('cam_monitoring').style.display = _printer.is_ipcam ? 'block' : 'none';
+    }
+}
+
+function printer_updateEtcs(json) {
+    // sdcard check
+    if (Object.keys(json).includes('sdcard')) {
+        _printer.is_sdcard = json['sdcard'];
+        document.getElementById('sdcard_cell').style.display = _printer.is_sdcard ? '' : 'none';
     }
 }
 
@@ -645,6 +579,7 @@ const _printer_update_funcs = [
     printer_updateError,
     printer_updateHMS,
     printer_updateCamInfo,
+    printer_updateEtcs,
 ];
 
 
@@ -660,14 +595,9 @@ function webui_updateSDCardList(json) {
         console.log(json);
         json = json['sdcard_list'];
         _sdcard_model_list = json;
-        drawModels(_sdcard_model_list)
-        // for (const item of json) {
-        //     console.log(item);
-        //     item['ts'];
-        //     item['size'];
-        //     item['3mf'];
-        //     item['png'];
-        // }
+        _sdcard_model_list.push(Reload);
+        _ui.is_sd_reloading = false;
+        drawModels(_sdcard_model_list);
     }
 }
 
@@ -974,7 +904,7 @@ function onClickAMSTray(evt) {
 
     for (i = 0; i < ams_trays.length; i++) {
         if (ams_trays[i] == evt.currentTarget) {
-            _selected_tray = i;
+            _ui.sel_tray = i;
             evt.currentTarget.className += " btn-selected";
         }
     }
@@ -1044,21 +974,29 @@ function updateTabView(id) {
     }
 
     if (id == "menu_sdcard") {
-        const json = {
-            command: 'sdcard_list',
-        };
-        const str = JSON.stringify(json);
-        console.log(str);
-        if (_websocket.readyState == WebSocket.OPEN)
-            _websocket.send(str);
+        drawModels(_sdcard_model_list);
     }
+}
+
+function onClickReloadSD() {
+    const json = {
+        command: 'sdcard_list',
+    };
+    const str = JSON.stringify(json);
+    console.log(str);
+    if (_websocket.readyState == WebSocket.OPEN)
+        _websocket.send(str);
+
+    _ui.is_sd_reloading = true;
+    onClickPopupCancel();
+    drawModels(_sdcard_model_list);
 }
 
 function onClickModel(event, id) {
     console.log("onClickModel:", id, ' ', event.x, ' ', event.y);
 
-    if (_selected_model_id) {
-        var elt = document.getElementById(_selected_model_id);
+    if (_ui.sel_model_id) {
+        var elt = document.getElementById(_ui.sel_model_id);
         if (elt) {
             elt.className = elt.className.replace(" model-selected", "");
         }
@@ -1068,7 +1006,7 @@ function onClickModel(event, id) {
     if (elt) {
         elt.className += " model-selected";
     }
-    _selected_model_id = id;
+    _ui.sel_model_id = id;
 
     var popup = document.getElementById("popup-menu");
     if (popup) {
@@ -1076,8 +1014,10 @@ function onClickModel(event, id) {
         const tab = document.getElementById("tab_sdcard");
         if (tab) {
             const rect = tab.getBoundingClientRect();
-            popup.style.marginLeft = String(event.x - rect.left) + "px";
-            popup.style.marginTop = String(event.y - rect.top) + "px";
+            var x = Math.min(event.x - rect.left, rect.right - 150);
+            var y = Math.min(event.y - rect.top, rect.bottom - 150);
+            popup.style.marginLeft = String(x) + "px";
+            popup.style.marginTop = String(y) + "px";
         }
     }
 }
@@ -1088,18 +1028,18 @@ function onClickPopupCancel() {
         popup.style.display = "none";
     }
 
-    if (_selected_model_id) {
-        var elt = document.getElementById(_selected_model_id);
+    if (_ui.sel_model_id) {
+        var elt = document.getElementById(_ui.sel_model_id);
         if (elt) {
             elt.className = elt.className.replace(" model-selected", "");
         }
-        _selected_model_id = "";
+        _ui.sel_model_id = "";
     }
 }
 
 function onClickModelPrint() {
-    if (_selected_model_id) {
-        var pos = _selected_model_id.replace("model_id_", "");
+    if (_ui.sel_model_id) {
+        var pos = _ui.sel_model_id.replace("model_id_", "");
         var p = parseInt(pos, 10);
         console.log("onClickModelPrint:" + p);
     }
@@ -1107,8 +1047,8 @@ function onClickModelPrint() {
 }
 
 function onClickModelDelete() {
-    if (_selected_model_id) {
-        var pos = _selected_model_id.replace("model_id_", "");
+    if (_ui.sel_model_id) {
+        var pos = _ui.sel_model_id.replace("model_id_", "");
         var p = parseInt(pos, 10);
         console.log("onClickModelDelete:" + p);
 
@@ -1122,28 +1062,41 @@ function drawModels(models) {
     var row = '';
     var col;
 
-    _selected_model_id = '';
-    for (var i = 0; i < models.length; i++) {
-        if ((i % 3) == 0) {
-            if (i != 0)
-                row += '</tr>\n';
-            row += '<tr>\n';
+    if (_ui.is_sd_reloading) {
+        row = '<img src="images/reload.gif" style="vertical-align: center;">';
+    } else {
+        _ui.sel_model_id = '';
+        for (var i = 0; i < models.length; i++) {
+            if ((i % 3) == 0) {
+                if (i != 0)
+                    row += '</tr>\n';
+                row += '<tr>\n';
+            }
+            const name = models[i]["3mf"].replace(".gcode.3mf", "");
+            if (models[i]["ts"] == 0 && models[i]["size"] == 0 && models[i]["3mf"] == "Reload") {
+                col = '<td>\n' +
+                    '<img src="images/' + models[i]["png"] + '"' + 'height="128px" width="128px" id="model_id_' + String(i) +
+                    '" onClick="onClickReloadSD()" class="none">\n' +
+                    '<label>' + name + '</label>\n' +
+                    '</td>\n';
+            } else {
+                col = '<td>\n' +
+                    '<img src="sd/image/' + models[i]["png"] + '"' + 'height="128px" width="128px" id="model_id_' + String(i) +
+                    '" onClick="onClickModel(event, this.id)" class="none">\n' +
+                    '<label>' + name + '</label>\n' +
+                    '</td>\n';
+            }
+            row += col;
         }
-        col = '<td>\n' +
-              '<img src="sd/image/' + models[i]["png"] + '"' + 'height="128px" width="128px" id="model_id_' + String(i) +
-              '" onClick="onClickModel(event, this.id)" class="none">\n' +
-              '<label>' + models[i]["3mf"] + '</label>\n' +
-              '</td>\n';
-        row += col;
-    }
 
-    var remain = 3 - (models.length % 3);
-    if (remain != 3) {
-        for (var i = 0; i < remain; i++) {
-            row += '<td>\n</td>\n';
+        var remain = 3 - (models.length % 3);
+        if (remain != 3) {
+            for (var i = 0; i < remain; i++) {
+                row += '<td>\n</td>\n';
+            }
         }
+        row += '</tr>\n';
     }
-    row += '</tr>\n';
 
     var table = document.getElementById("model_table");
     if (table)
@@ -1175,9 +1128,9 @@ function openTab(id) {
         elt.className += " btn-selected";
     }
     updateTabView(id);
-    _selected_menu_id = id;
+    _ui.sel_menu_id = id;
 }
 
 function onResize(event) {
-    updateTabView(_selected_menu_id);
+    updateTabView(_ui.sel_menu_id);
 }
