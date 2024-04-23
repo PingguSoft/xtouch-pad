@@ -6,7 +6,8 @@
 #include "SPIFFSEditor.h"
 
 //
-// increase _async_queue size to 32 in _init_async_event_queue of AsyncTCP.cpp for avoiding WDT
+// increase _async_queue size to 64 in _init_async_event_queue of AsyncTCP.cpp for avoiding WDT
+// in AsyncServer::begin, set backlog to 1 not to fetch images concurrently
 //
 void taskWeb(void* arg);
 
@@ -181,16 +182,31 @@ void WebWorker::_start() {
     //
     // WebServer
     //
-    _server->on("/", HTTP_GET,
-        [this](AsyncWebServerRequest *request) {
-            String path(_web_root + "index.html");
-            request->send(*(this->_fs), path.c_str(), "text/html");
-        });
-    _server->serveStatic("/", *_fs, _web_root.c_str());
+    _server->serveStatic("/", *_fs, _web_root.c_str()).setDefaultFile("index.html");
+    _server->addHandler(new SPIFFSEditor(*_fs, "admin", "1234"));
     for (mount_t m : _list_mnt) {
         _server->serveStatic(m.web_dir, *m.fs, m.fs_dir);
     }
-    _server->addHandler(new SPIFFSEditor(*_fs, "admin", "1234"));
+    _server->onNotFound([](AsyncWebServerRequest *request) {
+        int headers = request->headers();
+        for (int i = 0; i < headers; i++) {
+            AsyncWebHeader *h = request->getHeader(i);
+            LOGI("_HEADER[%s]: %s\n", h->name().c_str(), h->value().c_str());
+        }
+
+        int params = request->params();
+        for (int i = 0; i < params; i++) {
+            AsyncWebParameter *p = request->getParam(i);
+            if (p->isFile()) {
+                LOGI("_FILE[%s]: %s, size: %u\n", p->name().c_str(), p->value().c_str(), p->size());
+            } else if (p->isPost()) {
+                LOGI("_POST[%s]: %s\n", p->name().c_str(), p->value().c_str());
+            } else {
+                LOGI("_GET[%s]: %s\n", p->name().c_str(), p->value().c_str());
+            }
+        }
+        request->send(404);
+    });
     _server->begin();
 
     if (_ip && _access && _serial) {

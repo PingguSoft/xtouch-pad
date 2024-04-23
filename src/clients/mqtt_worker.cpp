@@ -113,7 +113,7 @@ bool MQTTWorker::loop() {
             // reqDeviceVersion();
             ret = true;
         } else {
-            LOGE("MQTT status : %d\n", _mqtt_client->state());
+            // LOGE("MQTT status : %d\n", _mqtt_client->state());
             ret = false;
         }
     } else {
