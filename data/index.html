@@ -4,7 +4,7 @@
     <head>
         <title>Bambu Bridge</title>
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <link rel="icon" type="image/png" href="favicon.png">
+        <!-- <link rel="icon" type="image/png" href="favicon.png"> -->
         <link rel="stylesheet" type="text/css" href="style.css">
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
     </head>
@@ -24,7 +24,7 @@
             1280x720 half = 640x360
         -->
         <div id="cam_monitoring" class="cam-view" >
-            <img src="images/m_camera.svg" id="camera_view" width="100%" height="auto" style="outline: auto;" onclick="onCamera()">
+            <img src="images/m_camera.svg" id="camera_view" width="100%" height="auto" style="outline: auto;" onclick="onClickCamera()">
         </div>
 
 
@@ -454,22 +454,22 @@
                     <tbody>
                         <tr>
                             <td>
-                                <button class="img-button btn-normal" style="width: 35%;" id="btn_chamber_light" onClick="onClickLight(this.id)">
+                                <button class="img-button btn-normal" style="width: 35%;" id="btn_chamber_light" onClick="onClickLightOnOff(this.id)">
                                     <img src="images/ic_light_off.svg" id="img_chamber_light">
                                 </button>
                             </td>
                             <td>
-                                <button class="img-button btn-normal" style="width: 35%;" id="btn_cooling_fan_speed" onClick="onClickFan(this.id)">
+                                <button class="img-button btn-normal" style="width: 35%;" id="btn_cooling_fan_speed" onClick="onClickFanOnOff(this.id)">
                                     <img src="images/ic_fan_off.svg" id="img_cooling_fan_speed">
                                 </button>
                             </td>
                             <td>
-                                <button class="img-button btn-normal" style="width: 35%;" id="btn_big_fan1_speed" onClick="onClickFan(this.id)">
+                                <button class="img-button btn-normal" style="width: 35%;" id="btn_big_fan1_speed" onClick="onClickFanOnOff(this.id)">
                                     <img src="images/ic_fan_off.svg" id="img_big_fan1_speed">
                                 </button>
                             </td>
                             <td>
-                                <button class="img-button btn-normal" style="width: 35%;" id="btn_big_fan2_speed" onClick="onClickFan(this.id)">
+                                <button class="img-button btn-normal" style="width: 35%;" id="btn_big_fan2_speed" onClick="onClickFanOnOff(this.id)">
                                     <img src="images/ic_fan_off.svg" id="img_big_fan2_speed">
                                 </button>
                             </td>
@@ -495,21 +495,21 @@
                             <td>
                                 <div class="num-spinner">
                                     <span class="minus"></span>
-                                    <input type="number" min="0" max="100" value="0" step="10" id="label_cooling_fan_speed" onchange="onChangeFan(this.id, 0)">
+                                    <input type="number" min="0" max="100" value="0" step="10" id="label_cooling_fan_speed" onchange="onChangeFanSpeed(this.id, 0)">
                                     <span class="plus"></span>
                                 </div>
                             </td>
                             <td>
                                 <div class="num-spinner">
                                     <span class="minus"></span>
-                                    <input type="number" min="0" max="100" value="0" step="10" id="label_big_fan1_speed" onchange="onChangeFan(this.id, 0)">
+                                    <input type="number" min="0" max="100" value="0" step="10" id="label_big_fan1_speed" onchange="onChangeFanSpeed(this.id, 0)">
                                     <span class="plus"></span>
                               </div>
                             </td>
                             <td>
                                 <div class="num-spinner">
                                       <span class="minus"></span>
-                                      <input type="number" min="0" max="100" value="0" step="10" id="label_big_fan2_speed" onchange="onChangeFan(this.id, 0)">
+                                      <input type="number" min="0" max="100" value="0" step="10" id="label_big_fan2_speed" onchange="onChangeFanSpeed(this.id, 0)">
                                       <span class="plus"></span>
                                 </div>
                             </td>
