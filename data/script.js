@@ -2,27 +2,29 @@
 // CLASS
 //-------------------------------------------------------------------------------------------------
 class WS {
+    static _ws = null;
+    static _comp_printer = [];
+    static _comp_ui = [];
+
     constructor(gateway) {
         this._gateway = gateway;
-        this._comp_printer = null;
-        this._comp_ui = null;
         this._init();
     }
 
     _init() {
-        this._websocket = new WebSocket(this._gateway);
-        this._websocket.onopen = this._onOpen;
-        this._websocket.onclose = this._onClose;
-        this._websocket.onmessage = this._onMessage;
-        this._websocket.binaryType = "arraybuffer";
+        WS._ws = new WebSocket(this._gateway);
+        WS._ws.onopen = WS._onOpen;
+        WS._ws.onclose = WS._onClose;
+        WS._ws.onmessage = WS._onMessage;
+        WS._ws.binaryType = "arraybuffer";
     }
 
     setComponents(printer, ui) {
-        this._comp_printer = printer;
-        this._comp_ui = ui;
+        WS._comp_printer = printer;
+        WS._comp_ui = ui;
     }
 
-    _onOpen(event) {
+    static _onOpen(event) {
         console.log('Connection opened');
 
         const json = {
@@ -30,16 +32,96 @@ class WS {
         };
         const str = JSON.stringify(json);
         console.log(str);
-        if (this._websocket.readyState == WebSocket.OPEN)
-            this._websocket.send(str);
+        if (WS._ws.readyState == WebSocket.OPEN)
+            WS._ws.send(str);
     }
 
-    _onClose(event) {
+    static _onClose(event) {
         console.log('Connection closed');
         setTimeout(this._init, 2000);
     }
 
-    _encode(input) {
+    static _onMessage(event) {
+        if (event.data instanceof ArrayBuffer) {
+            const bytes = new Uint8Array(event.data);
+            const cmd = bytes[0];
+            const payload = bytes.subarray(1, event.data.length);
+
+            for (const comp of WS._comp_ui) {
+                comp.updateFromArrayBuffer(cmd, payload);
+            }
+        } else {
+            var json = JSON.parse(event.data);
+            console.log(event.data);
+            if (json) {
+                if (Object.keys(json).includes('webui')) {
+                    json = json['webui'];
+                    if (json) {
+                        for (const comp of WS._comp_ui) {
+                            comp.updateFromJson(json);
+                        }
+                    }
+                } else if (Object.keys(json).includes('print')) {
+                    json = json['print'];
+                    if (json) {
+                        for (const comp of WS._comp_printer) {
+                            comp.updateFromJson(json);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    send(str) {
+        console.log(str);
+        if (WS._ws.readyState == WebSocket.OPEN)
+            WS._ws.send(str);
+    }
+
+    sendJson(json) {
+        const str = JSON.stringify(json);
+        this.send(str);
+    }
+
+    sendGcode(code) {
+        const json = {
+            command: 'pub',
+            data: {
+                print: {
+                    command: "gcode_line",
+                    sequence_id: 0,
+                    param: code,
+                },
+            }
+        };
+        this.sendJson(json);
+    }
+}
+
+class Util {
+    static pad(n, width) {
+        n = n + '';
+        return n.length >= width ? n : new Array(width - n.length + 1).join('0') + n;
+    }
+
+    static formatTime(min) {
+        var days = Math.floor(min / (60 * 24));
+        min %= (60 * 24);
+        var hours = Math.floor(min / 60);
+        min %= 60;
+
+        var str = "";
+        if (days > 0)
+            str = str + Util.pad(days, 2) + "d ";
+        if (hours > 0)
+            str = str + Util.pad(hours, 2) + "h ";
+        str = str + Util.pad(min, 2) + "m";
+
+        return str;
+    }
+
+    static encode(input) {
         const keyStr = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
         var output = "";
         var chr1, chr2, chr3, enc1, enc2, enc3, enc4;
@@ -65,64 +147,8 @@ class WS {
         }
         return output;
     }
-
-    _onMessage(event) {
-        if (event.data instanceof ArrayBuffer) {
-            const bytes = new Uint8Array(event.data);
-            const cmd = bytes[0];
-            const payload = bytes.subarray(1, event.data.length);
-
-            for (const ui of this._comp_ui) {
-                ui.updateFromArrayBuffer(cmd, payload);
-            }
-        } else {
-            var json = JSON.parse(event.data);
-            console.log(event.data);
-            if (json) {
-                if (Object.keys(json).includes('webui')) {
-                    json = json['webui'];
-                    if (json) {
-                        for (const ui of this._comp_ui) {
-                            ui.updateFromJson(json);
-                        }
-                    }
-                } else if (Object.keys(json).includes('print')) {
-                    json = json['print'];
-                    if (json) {
-                        for (const comp of this._comp_printer) {
-                            comp.updateFromJson(json);
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    send(str) {
-        console.log(str);
-        if (this._websocket.readyState == WebSocket.OPEN)
-            this._websocket.send(str);
-    }
-
-    sendJson(json) {
-        const str = JSON.stringify(json);
-        this.send(str);
-    }
-
-    sendGcode(code) {
-        const json = {
-            command: 'pub',
-            data: {
-                print: {
-                    command: "gcode_line",
-                    sequence_id: 0,
-                    param: code,
-                },
-            }
-        };
-        this.sendJson(json);
-    }
 }
+
 
 //
 // Component Class
@@ -144,7 +170,7 @@ class Component {
     }
 
     static setWebSocket(socket) {
-        this._ws = socket;
+        Component._ws = socket;
     }
 
     updateFromJson(json) {
@@ -160,39 +186,16 @@ class Component {
 class Printing extends Component {
     constructor() {
         super();
+        this._printingFile = '';
     }
 
-    _pad(n, width) {
-        n = n + '';
-        return n.length >= width ? n : new Array(width - n.length + 1).join('0') + n;
+    getPrintingFile() {
+        return this._printingFile;
     }
 
-    _formatTime(min) {
-        var days = Math.floor(min / (60 * 24));
-        min %= (60 * 24);
-        var hours = Math.floor(min / 60);
-        min %= 60;
-
-        var str = "";
-        if (days > 0)
-            str = str + _pad(days, 2) + "d ";
-        if (hours > 0)
-            str = str + _pad(hours, 2) + "h ";
-        str = str + _pad(min, 2) + "m";
-
-        return str;
-    }
-
-    _setModelPNG(name) {
-        var png = "images/ic_comment_model.svg";
-
-        for (const item of _sdcard_model_list) {
-            if (item['3mf'] == name) {
-                png = item['png'];
-                break;
-            }
-        }
-        return png;
+    setPrintingFile(file) {
+        this._printingFile = file;
+        return file;
     }
 
     _updateUI(status) {
@@ -202,21 +205,21 @@ class Printing extends Component {
         var printing_error_disp;
 
         switch (status) {
-            case this.Status.IDLE:
+            case Component.Status.IDLE:
                 printing_idle_disp = 'block';
                 printing_info_disp = 'none';
                 printing_error_disp = 'none';
                 axis_control_disp = 'block';
                 break;
 
-            case this.Status.FINISHED:
+            case Component.Status.FINISHED:
                 printing_idle_disp = 'none';
                 printing_info_disp = 'block';
                 printing_error_disp = 'none';
                 axis_control_disp = 'block';
                 break;
 
-            case this.Status.FAILED:
+            case Component.Status.FAILED:
                 printing_idle_disp = 'none';
                 printing_info_disp = 'none';
                 printing_error_disp = 'block';
@@ -240,7 +243,7 @@ class Printing extends Component {
         document.getElementById('printing_error').style.display  = printing_error_disp;
 
         switch (status) {
-            case Status.RUNNING: {
+            case Component.Status.RUNNING: {
                     document.getElementById('btn_print_icon').setAttribute('src', 'images/print_ctrl_pause.svg');
                     const disabled_printing = document.getElementsByClassName("disabled-printing");
                     for (const elt of disabled_printing) {
@@ -255,11 +258,11 @@ class Printing extends Component {
                 }
                 break;
 
-            case Status.PAUSED:
+            case Component.Status.PAUSED:
                 document.getElementById('btn_print_icon').setAttribute('src', 'images/print_ctrl_resume.svg');
                 break;
 
-            case Status.FINISHED:
+            case Component.Status.FINISHED:
                 const disabled = document.getElementsByClassName("disabled-finished");
                 for (const elt of disabled) {
                     elt.style.display = 'none';
@@ -279,14 +282,14 @@ class Printing extends Component {
 
     updateFromJson(json) {
         const status_maps = [
-            ['IDLE', Status.IDLE],
-            ['RUNNING', Status.RUNNING],
-            ['PAUSE', Status.PAUSED],
-            ['FINISH', Status.FINISHED],
-            ['PREPARE', Status.PREPARE],
-            ['FAILED', Status.FAILED]
+            ['IDLE', Component.Status.IDLE],
+            ['RUNNING', Component.Status.RUNNING],
+            ['PAUSE', Component.Status.PAUSED],
+            ['FINISH', Component.Status.FINISHED],
+            ['PREPARE', Component.Status.PREPARE],
+            ['FAILED', Component.Status.FAILED]
         ];
-        var status = Status.UNKNOWN;
+        var status = Component.Status.UNKNOWN;
 
         if (Object.keys(json).includes('gcode_state')) {
             for (const s of status_maps) {
@@ -301,16 +304,15 @@ class Printing extends Component {
             }
         }
 
-        if (Component._status != Status.IDLE) {
+        if (Component._status != Component.Status.IDLE) {
             const printing_maps = [
                 ['subtask_name', 'printing_model_name', null],
-                ['gcode_file', 'printing_model_aux', null],
-                ['gcode_file', 'printing_model_png', _setModelPNG],
+                ['gcode_file', 'printing_model_aux', this.setPrintingFile],
                 ['total_layer_num', 'printing_max_layer', null],
                 ['layer_num', 'printing_cur_layer', null],
                 ['mc_percent', 'printing_cur_prog_percentage', null],
                 ['mc_percent', 'printing_cur_prog_bar', null],
-                ['mc_remaining_time', 'printing_remaining_time', formatTime],
+                ['mc_remaining_time', 'printing_remaining_time', Util.formatTime],
             ];
 
             for (const x of printing_maps) {
@@ -424,7 +426,7 @@ class Filaments extends Component {
     updateFromJson(json) {
         if (Object.keys(json).includes('vt_tray')) {
             this._is_vt_tray = true;
-            tray = json['vt_tray'];
+            var tray = json['vt_tray'];
 
             var btn = document.getElementById('btn_vt_tray');
             if (btn) {
@@ -763,7 +765,7 @@ class Errors extends Component {
     updateFromJson(json) {
         if (Object.keys(json).includes('print_error')) {
             const error = json['print_error'];
-            const str_code = pad(error.toString(16), 8).toUpperCase();
+            const str_code = Util.pad(error.toString(16), 8).toUpperCase();
             const idx = this._err_tbl.codes.indexOf(str_code);
             console.log(this._err_tbl);
             console.log("print error : " + str_code + ", len:" + str_code.length);
@@ -816,8 +818,8 @@ class HMS extends Component {
                 const alert_level = (code >> 16) & 0xffff;
                 const error_code  = (code >>  0) & 0xffff;
 
-                const str_code = pad(module_id.toString(16), 2) + pad(module_no.toString(16), 2) + pad(part_id.toString(16), 2) +
-                                 pad(alert_level.toString(16), 6) + pad(error_code.toString(16), 4);
+                const str_code = Util.pad(module_id.toString(16), 2) + Util.pad(module_no.toString(16), 2) + Util.pad(part_id.toString(16), 2) +
+                                 Util.pad(alert_level.toString(16), 6) + Util.pad(error_code.toString(16), 4);
                 console.log("print HMS : " + str_code);
 
                 var idx = _hms_tbl.codes.indexOf(str_code);
@@ -844,6 +846,7 @@ class Camera extends Component {
         this._is_ipcam_record = false;
         this._is_ipcam_timelapse = false;
         this._is_ipcam_show = false;
+        this._is_enabled = true;
     }
 
     updateFromJson(json) {
@@ -870,7 +873,7 @@ class Camera extends Component {
             case 0x01: {        // jpeg
                 image = document.getElementById('camera_view');
                 if (image && this._is_ipcam_show) {
-                    image.src = 'data:image/jpeg;base64,' + _encode(payload);
+                    image.src = 'data:image/jpeg;base64,' + Util.encode(payload);
                 }
             }
             break;
@@ -878,7 +881,7 @@ class Camera extends Component {
             case 0x02: {        // png
                 image = document.getElementById('model_view');
                 if (image)
-                    image.src = 'data:image/png;base64,' + encode(data);
+                    image.src = 'data:image/png;base64,' + Util.encode(data);
             }
             break;
         }
@@ -902,9 +905,14 @@ class Camera extends Component {
     }
 
     enable(en) {
+        this._is_enabled = en;
         var elt = document.getElementById('cam_monitoring');
         elt.className = (en) ? elt.className.replace("cam-view-disabled", "cam-view") :
                             elt.className.replace("cam-view", "cam-view-disabled");
+    }
+
+    isEnabled() {
+        return this._is_enabled;
     }
 
     isOn() {
@@ -1102,6 +1110,18 @@ class SDBrowser extends Component {
         return this._is_sd_reloading;
     }
 
+    getModelPNG(name) {
+        var png = "images/ic_comment_model.svg";
+
+        for (const item of this._sdcard_model_list) {
+            if (item['3mf'] == name) {
+                png = item['png'];
+                break;
+            }
+        }
+        return png;
+    }
+
     _drawModels(models) {
         var row = '';
         var col;
@@ -1281,16 +1301,23 @@ class Controller extends Component {
     }
 
     updateFromJson(json) {
-        if (!_sdbrowser.isReloading())
+        if (!_sdbrowser.isReloading() && !_camera.isEnabled())
             _camera.enable(true);
+
+        // update printing model PNG
+        if (Object.keys(json).includes('gcode_file')) {
+            const elt = document.getElementById('printing_model_png');
+            if (elt) {
+                const name = _sdbrowser.getModelPNG(_printing.getPrintingFile());
+                elt.setAttribute('src', name);
+            }
+        }
     }
 }
 
 //-------------------------------------------------------------------------------------------------
 // VARIABLES
 //-------------------------------------------------------------------------------------------------
-var _websocket = new WS(`ws://${window.location.hostname}/ws`);
-
 // printer components
 var _printing = new Printing();
 var _temperature = new Temperature();
@@ -1317,9 +1344,12 @@ window.addEventListener('load', onLoad);
 window.addEventListener('resize', onResize);
 
 function onLoad(event) {
-    _websocket.setComponents([_printing, _temperature, _filaments, _lights, _fans, _speed, _errors, _hms, _camera, _others ],
-        [_printerinfo, _camera, _sdbrowser, _controller]);
-    Component.setWebSocket(_websocket);
+    const websocket = new WS(`ws://${window.location.hostname}/ws`);
+    const print_comp = [_printing, _temperature, _filaments, _lights, _fans, _speed, _errors, _hms, _camera, _others ];
+    const ui_comp = [_printerinfo, _camera, _sdbrowser, _controller];
+
+    websocket.setComponents(print_comp, ui_comp);
+    Component.setWebSocket(websocket);
 }
 
 function openTab(id) {

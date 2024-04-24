@@ -110,7 +110,7 @@ public:
     }
 
     void parse(std::list<String*> logs, std::list<FileInfo*> &result, int max, String ext="", int sort=SORT_ASC);
-    static void matches(std::list<FileInfo*> infoA, std::list<FileInfo*> infoB, std::list<FilePair*> &result, int sort=SORT_ASC);
+    static void matches(std::list<FileInfo*> infoA, std::list<FileInfo*> infoB, std::list<FilePair*> &result, int max, int sort=SORT_ASC);
     static void sub(std::list<FileInfo*> a, std::list<FileInfo*> b, std::list<FileInfo*> &result, int by=BY_TS);
     void exportA(std::list<FilePair*> pair, std::list <FileInfo*> &result);
     void exportB(std::list<FilePair*> pair, std::list <FileInfo*> &result);

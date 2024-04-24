@@ -74,15 +74,18 @@ void FTPListParser::parse(std::list<String*> logs, std::list<FileInfo*> &result,
         result.sort(FTPListParser::FileInfo::comp_des);
 
     if (result.size() > max) {
-        for (int i = 0; i < result.size() - max; i++) {
+        int cnt = result.size() - max;
+        LOGD("before total:%d, max:%d, remove:%d\n", result.size(), max, cnt);
+        for (int i = 0; i < cnt; i++) {
             FileInfo* t = result.back();
             result.pop_back();
             delete t;
         }
+        LOGD("after total:%d, max:%d, remove:%d\n", result.size(), max, cnt);
     }
 }
 
-void FTPListParser::matches(std::list <FTPListParser::FileInfo*> infoA, std::list <FTPListParser::FileInfo*> infoB, std::list <FTPListParser::FilePair*> &result, int sort) {
+void FTPListParser::matches(std::list <FTPListParser::FileInfo*> infoA, std::list <FTPListParser::FileInfo*> infoB, std::list <FTPListParser::FilePair*> &result, int max, int sort) {
     FTPListParser::FilePair r;
     bool is_found;
 
@@ -103,6 +106,16 @@ void FTPListParser::matches(std::list <FTPListParser::FileInfo*> infoA, std::lis
         result.sort(FTPListParser::FilePair::comp_asc);
     else if (sort == SORT_DESC)
         result.sort(FTPListParser::FilePair::comp_des);
+
+    if (result.size() > max) {
+        int cnt = result.size() - max;
+        for (int i = 0; i < cnt; i++) {
+            FilePair* t = result.back();
+            result.pop_back();
+            delete t;
+        }
+        LOGD("after total:%d, max:%d, remove:%d\n", result.size(), max, cnt);
+    }
 }
 
 void FTPListParser::sub(std::list <FTPListParser::FileInfo*> a, std::list <FTPListParser::FileInfo*> b, std::list <FTPListParser::FileInfo*> &result, int by) {
@@ -227,9 +240,9 @@ void FTPSWorker::listDirRemote(String srcDir, std::list<FTPListParser::FileInfo*
     freeList(list);
 
     int cnt = 1;
-    LOGV("list count:%d\n", info.size());
+    LOGD("list in %s, count:%d\n", srcDir.c_str(), info.size());
     for (FTPListParser::FileInfo* i : info) {
-        LOGV("%4d, %10ld, [%10ld] %s\n", cnt++, i->ts, i->size, i->name.c_str());
+        LOGD("%4d, %10ld, [%10ld] %s\n", cnt++, i->ts, i->size, i->name.c_str());
     }
 }
 
@@ -336,6 +349,39 @@ std::list<String*> FTPSWorker::_testImages = {
     new String("-rw-rw-rw-   1 root  root      2082 Feb 22 06:16 1270915251.png"),
     new String("-rw-rw-rw-   1 root  root      5206 Feb 22 06:26 29877475381.png")
 };
+
+{"webui":{"sdcard_list":[
+    {"ts":1955442310,"size":180336,"3mf":"battery_holder.gcode.3mf","png":"25895066221.png"},
+    {"ts":1955441047,"size":89982,"3mf":"battery_plate.gcode.3mf","png":"609142441.png"},
+    {"ts":1955440895,"size":807990,"3mf":"rear-cover-resize.gcode.3mf","png":"7102860891.png"},
+    {"ts":1955437911,"size":144277,"3mf":"back.gcode.3mf","png":"13267643931.png"},
+    {"ts":1955436633,"size":630972,"3mf":"RobotCon.gcode.3mf","png":"34597823101.png"},
+    {"ts":1955435087,"size":141140,"3mf":"plate_holder.gcode.3mf","png":"9240571371.png"},
+    {"ts":1955435084,"size":123670,"3mf":"back_holder.gcode.3mf","png":"6524100961.png"},
+    {"ts":1955435056,"size":69082,"3mf":"joy_holder.gcode.3mf","png":"26987261911.png"},
+    {"ts":1955433723,"size":248861,"3mf":"esp32_lcd_body.gcode.3mf","png":"19228471881.png"},
+    {"ts":1955429291,"size":1664628,"3mf":"esp32-s3-lcd-body-back.gcode.3mf","png":"38223958158.png"},
+    {"ts":1955429210,"size":821678,"3mf":"s3_lcd_body.gcode.3mf","png":"20776825578.png"},
+    {"ts":1955427994,"size":868221,"3mf":"esp32_s3_lcd_body.gcode.3mf","png":"25491109358.png"},
+    {"ts":1955426291,"size":432654,"3mf":"plate_7.gcode.3mf","png":"3475804007.png"},
+    {"ts":1955425087,"size":3920987,"3mf":"plate_1.gcode.3mf","png":"1841167701.png"},
+    {"ts":1955425061,"size":386169,"3mf":"plate_6.gcode.3mf","png":"22937861516.png"},
+    {"ts":1955424100,"size":2282112,"3mf":"plate_3.gcode.3mf","png":"8545322523.png"},
+    {"ts":1955423651,"size":3498103,"3mf":"plate_2.gcode.3mf","png":"18965894912.png"},
+    {"ts":1955423614,"size":321952,"3mf":"x3_knob.gcode.3mf","png":"21003709326.png"},
+    {"ts":1955423386,"size":3813035,"3mf":"track.gcode.3mf","png":"7133821335.png"},
+    {"ts":1955421333,"size":140673,"3mf":"linkages.gcode.3mf","png":"34367928741.png"},
+    {"ts":1955420875,"size":1284159,"3mf":"right_parts.gcode.3mf","png":"13925448491.png"},
+    {"ts":1955420869,"size":1222070,"3mf":"right_eyeball_linkage.gcode.3mf","png":"22036388351.png"},
+    {"ts":1955420601,"size":2049501,"3mf":"eyelid_base.gcode.3mf","png":"12908303561.png"},
+    {"ts":1955420404,"size":194781,"3mf":"eyeball_black.gcode.3mf","png":"22860334661.png"},
+    {"ts":1955419957,"size":1903161,"3mf":"eyeball_white.gcode.3mf","png":"41025704801.png"},
+    {"ts":1955416294,"size":4365370,"3mf":"skidsteer_main.gcode.3mf","png":"12632478181.png"},
+    {"ts":1955416087,"size":1223212,"3mf":"ts101_case.gcode.3mf","png":"24069359501.png"},
+    {"ts":1955414943,"size":1223213,"3mf":"ts100_case_1.gcode.3mf","png":"1246158471.png"},
+    {"ts":1955414651,"size":2563460,"3mf":"ts100_case_2.gcode.3mf","png":"4751026781.png"},
+    {"ts":1955409309,"size":113954,"3mf":"tweezer_cap.gcode.3mf","png":"2546996091.png"}]}
+}
 #endif
 
 void FTPSWorker::syncImagesModels(bool textonly) {
@@ -348,18 +394,18 @@ void FTPSWorker::syncImagesModels(bool textonly) {
     std::list<FTPListParser::FilePair*> pairList;
 
     if (!textonly) {
-        LOGV("--------------- SD CARD ---------------\n");
+        LOGD("--------------- SD CARD ---------------\n");
         listDirSD(getImagePath(), imageFilesSD, ".png");
         cnt = 1;
         for (FTPListParser::FileInfo *p:imageFilesSD) {
-            LOGV("%3d %10ld, [%10ld] %s\n", cnt++, p->ts, p->size, p->name.c_str());
+            LOGD("%3d %10ld, [%10ld] %s\n", cnt++, p->ts, p->size, p->name.c_str());
         }
     }
 
 #if !_NO_NETWORK_
     LOGI("[RAM FREE] PSRAM:%d, HEAP:%d\n", ESP.getFreePsram(), ESP.getFreeHeap());
     _ftps->OpenConnection(false, true);
-    listDirRemote(getModelPath(), modelFilesRemote, ".3mf", max_items);     // model files
+    listDirRemote(getModelPath(), modelFilesRemote, ".3mf", max_items + 10);     // model files
 #else
     _parser.parse(_testModels, modelFilesRemote, max_items, ".3mf", FTPListParser::SORT_DESC);
 #endif
@@ -368,14 +414,14 @@ void FTPSWorker::syncImagesModels(bool textonly) {
 #if _NO_NETWORK_
         _parser.parse(_testImages, imageFilesRemote, max_items, ".png", FTPListParser::SORT_DESC);
 #else
-        listDirRemote(getImagePath(), imageFilesRemote, ".png", max_items);     // image files
+        listDirRemote(getImagePath(), imageFilesRemote, ".png", max_items + 10);     // image files
 #endif
         // make pairList after matching timestamp
-        _parser.matches(modelFilesRemote, imageFilesRemote, pairList, FTPListParser::SORT_DESC);
+        _parser.matches(modelFilesRemote, imageFilesRemote, pairList, max_items, FTPListParser::SORT_DESC);
         cnt = 1;
-        LOGV("--------------- FILE MODEL & PNG ---------------\n");
+        LOGD("--------------- FILE MODEL & PNG ---------------\n");
         for (FTPListParser::FilePair *p:pairList) {
-            LOGV("%3d %10ld, [%10ld] %20s, [%10ld] %s\n", cnt++, p->ts, p->b.size, p->b.name.c_str(), p->a.size, p->a.name.c_str());
+            LOGD("%3d %10ld, [%10ld] %20s, [%10ld] %s\n", cnt++, p->ts, p->b.size, p->b.name.c_str(), p->a.size, p->a.name.c_str());
         }
 
 #if !_NO_NETWORK_
@@ -385,9 +431,10 @@ void FTPSWorker::syncImagesModels(bool textonly) {
         // get image files from pairList
         std::list<FTPListParser::FileInfo*> imageFilesRemoteFinal;
         _parser.exportB(pairList, imageFilesRemoteFinal);
-        LOGV("--------------- imageFilesRemoteFinal ---------------\n");
+        cnt = 1;
+        LOGD("--------------- imageFilesRemoteFinal ---------------\n");
         for (FTPListParser::FileInfo *p:imageFilesRemoteFinal) {
-            LOGV("%3d %10ld, [%10ld] %s\n", cnt++, p->ts, p->size, p->name.c_str());
+            LOGD("%3d %10ld, [%10ld] %s\n", cnt++, p->ts, p->size, p->name.c_str());
         }
 
         // make  TBU(to be updated) files after comparing files in SD card and ftps server lists
@@ -396,9 +443,9 @@ void FTPSWorker::syncImagesModels(bool textonly) {
         imageFilesRemoteFinal.clear();
 
         cnt = 1;
-        LOGV("--------------- TBU ---------------\n");
+        LOGD("--------------- TBU ---------------\n");
         for (FTPListParser::FileInfo *p:imageFilesDownload) {
-            LOGV("%3d %10ld, [%10ld] %s\n", cnt++, p->ts, p->size, p->name.c_str());
+            LOGD("%3d %10ld, [%10ld] %s\n", cnt++, p->ts, p->size, p->name.c_str());
         }
         if (imageFilesDownload.size() > 0) {
             if (_callback)
