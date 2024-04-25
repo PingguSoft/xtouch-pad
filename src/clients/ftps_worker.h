@@ -171,7 +171,7 @@ private:
     FTPListParser    _parser;
     QueueHandle_t    _queue_comm;
 
-#if _NO_NETWORK_
+#if _NO_REMOTE_PRINTER_
     static std::list<String*> _testModels;
     static std::list<String*> _testImages;
 #endif

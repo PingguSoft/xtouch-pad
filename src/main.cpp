@@ -156,7 +156,7 @@ void setup() {
     xtouch_firmware_checkFirmwareUpdate();
     xtouch_touch_setup();
 
-    // #if !_NO_NETWORK_
+    // #if !_NO_REMOTE_FTPS_
     while (!xtouch_wifi_setup())
         ;
     // xtouch_firmware_checkOnlineFirmwareUpdate();
@@ -165,14 +165,14 @@ void setup() {
     xtouch_screen_setupScreenTimer();
     xtouch_setupGlobalEvents();
 
-#if _NO_NETWORK_
+#if _NO_REMOTE_PRINTER_
     IPAddress ip;
     DynamicJsonDocument printerIps = xtouch_ssdp_load_printerIPs();
     ip.fromString(printerIps[xTouchConfig.xTouchSerialNumber].as<String>());
     strcpy(xTouchConfig.xTouchIP, ip.toString().c_str());
 #endif
 
-#if !_NO_NETWORK_
+#if !_NO_REMOTE_PRINTER_
     xtouch_pair_check();
     xtouch_mqtt_setup();
 #endif
@@ -182,7 +182,7 @@ void setup() {
     vTaskPrioritySet(NULL, 2);
     LOGD("priority : before %d\n", uxTaskPriorityGet(NULL));
 
-#if _NO_NETWORK_
+#if _NO_REMOTE_PRINTER_
     // loadScreen(SCREEN_BROWSER);
 #endif
 
@@ -205,7 +205,7 @@ void loop() {
     lv_lock();
     lv_task_handler();
     lv_unlock();
-#if !_NO_NETWORK_
+#if !_NO_REMOTE_PRINTER_
     xtouch_mqtt_loop();
 #endif
     delay(5);
