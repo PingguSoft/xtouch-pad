@@ -956,8 +956,10 @@ class PrinterInfo extends Component {
     updateFromJson(json) {
         if (Object.keys(json).includes('printer_name')) {
             var title = document.getElementById('printer_name');
-            title.innerText = json['printer_name'];
-            this.name = json['printer_name'];
+            if (json['printer_name']) {
+                title.innerText = json['printer_name'];
+                this.name = json['printer_name'];
+            }
         }
     }
 }
