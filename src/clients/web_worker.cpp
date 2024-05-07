@@ -4,6 +4,7 @@
 #include "debug.h"
 #include "web_worker.h"
 #include "SPIFFSEditor.h"
+#include "pushbullet.h"
 
 //
 // increase _async_queue size to 64 in _init_async_event_queue of AsyncTCP.cpp for avoiding WDT
@@ -303,7 +304,9 @@ void WebWorker::onWebSocketData(AsyncWebSocketClient *client, void *arg, uint8_t
                         _mqtt->reqPushAll();
                     }
                 } else if (command == "sdcard_list") {
-                    _ftps->startSync();
+                    // _ftps->startSync();
+                    PushBullet _pb("o.yGue5fjtoiKXINgUdTD6LbOKzpbYzLAq");
+                    _pb.pushFile("BambuBridge", "This message comes from BambuBridge", "17540064941.png");
                 } else if (command == "camera_view") {
                     _is_cam_view = json_in["data"].as<bool>();
                     if (_is_cam_view) {

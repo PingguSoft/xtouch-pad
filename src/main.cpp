@@ -33,7 +33,7 @@
 
 #include "clients/camera_worker.h"
 #include "clients/web_worker.h"
-#include <LittleFS.h>
+#include <SPIFFS.h>
 
 /*
 *****************************************************************************************

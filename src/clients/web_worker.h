@@ -17,6 +17,7 @@
 #include "mqtt_worker.h"
 #include "ftps_worker.h"
 
+
 class WebWorker : public CameraWorker::Callback, MQTTWorker::Callback, FTPSWorker::Callback {
 public:
     typedef struct {
