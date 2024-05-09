@@ -41,7 +41,9 @@
 * VARIABLES
 *****************************************************************************************
 */
-static SemaphoreHandle_t _lock;
+static SemaphoreHandle_t _lock_lv;
+static WebWorker *_web;
+static Config _cfg;
 
 /*
 *****************************************************************************************
@@ -49,11 +51,11 @@ static SemaphoreHandle_t _lock;
 *****************************************************************************************
 */
 void lv_lock() {
-    while (xSemaphoreTake(_lock, portMAX_DELAY) != pdPASS);
+    while (xSemaphoreTake(_lock_lv, portMAX_DELAY) != pdPASS);
 }
 
 void lv_unlock() {
-    xSemaphoreGive(_lock);
+    xSemaphoreGive(_lock_lv);
 }
 
 void print_ram_info() {
@@ -69,10 +71,6 @@ void xtouch_intro_show(void) {
     loadScreen(SCREEN_INTRO);
     lv_timer_handler();
 }
-
-CameraWorker *_cam;
-WebWorker *_web;
-Config _cfg;
 
 void listDir(fs::FS &fs, const char *dirname, uint8_t levels) {
     LOGD("Listing directory: %s\r\n", dirname);
@@ -121,8 +119,6 @@ void listDir(fs::FS &fs, const char *dirname, uint8_t levels) {
     }
 }
 
-
-
 void setup() {
 #if XTOUCH_USE_SERIAL == true || XTOUCH_DEBUG_ERROR == true || XTOUCH_DEBUG_DEBUG == true || XTOUCH_DEBUG_INFO == true
     Serial.begin(115200);
@@ -133,14 +129,14 @@ void setup() {
     LOGI("[RAM]  heap:%d, PSRAM:%d\n", ESP.getHeapSize(), ESP.getPsramSize());
     heap_caps_malloc_extmem_enable(4096);
 
+    _lock_lv = xSemaphoreCreateMutex();
     if (!SPIFFS.begin(false, "/spiffs", 30)) {
         LOGE("SPIFFS Mount Failed\n");
-        while (1);
+        while (1)
+            ;
     } else {
         LOGD("SPIFFS mounted : %d\n", SPIFFS.totalBytes());
     }
-
-    _lock = xSemaphoreCreateMutex();
 
     xtouch_eeprom_setup();
     xtouch_globals_init();
@@ -159,11 +155,8 @@ void setup() {
     xtouch_firmware_checkFirmwareUpdate();
     xtouch_touch_setup();
 
-    // #if !_NO_REMOTE_FTPS_
-    while (!xtouch_wifi_setup())
-        ;
+    while (!xtouch_wifi_setup());
     // xtouch_firmware_checkOnlineFirmwareUpdate();
-    // #endif
 
     xtouch_screen_setupScreenTimer();
     xtouch_setupGlobalEvents();
@@ -171,11 +164,8 @@ void setup() {
 #if _NO_REMOTE_PRINTER_
     IPAddress ip;
     DynamicJsonDocument printerIps = xtouch_ssdp_load_printerIPs();
-    ip.fromString(printerIps[xTouchConfig.xTouchSerialNumber].as<String>());
-    strcpy(xTouchConfig.xTouchIP, ip.toString().c_str());
-#endif
-
-#if !_NO_REMOTE_PRINTER_
+    strncpy(xTouchConfig.xTouchIP, printerIps[xTouchConfig.xTouchSerialNumber].as<String>().c_str(), sizeof(xTouchConfig.xTouchIP));
+#else
     xtouch_pair_check();
     xtouch_mqtt_setup();
 #endif
@@ -189,15 +179,10 @@ void setup() {
     // loadScreen(SCREEN_BROWSER);
 #endif
 
-    uint32_t fh = ESP.getFreeHeap();
-    uint32_t fp = ESP.getFreePsram();
-    LOGI("[FREE]  heap:%d, PSRAM:%d, Total:%d\n", fh, fp, fh + fp);
-
     _cfg.setup();
     _web = new WebWorker(&SPIFFS, "/", 80);
     _web->addMount("/sd", &SD, "/");
-    _web->setPrinterInfo((char*)xTouchConfig.xTouchIP, (char*)xTouchConfig.xTouchAccessCode,
-        (char*)xTouchConfig.xTouchSerialNumber, (char*)xTouchConfig.xTouchPrinterName);
+    _web->setPrinterInfo((char *)xTouchConfig.xTouchIP, (char *)xTouchConfig.xTouchAccessCode, (char *)xTouchConfig.xTouchSerialNumber, (char *)xTouchConfig.xTouchPrinterName);
     _web->start(&_cfg);
 
     esp_task_wdt_init(20, true);

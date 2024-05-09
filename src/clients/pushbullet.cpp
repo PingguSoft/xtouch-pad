@@ -5,10 +5,6 @@
 #include <SPIFFS.h>
 #include <ArduinoJson.h>
 
-#define PBFINGERPRINT "bbfc9f1bc13cd996f268a2e34129d1478fb933be"
-#define HTTPPORT      443
-#define PBHOST        "api.pushbullet.com"
-
 String PushBullet::filetype(String filename) {
     if (filename.endsWith(".jpg")) {
         return ("image/jpeg");
@@ -16,37 +12,6 @@ String PushBullet::filetype(String filename) {
         return ("image/png");
     }
     return "text/plain";
-}
-
-void PushBullet::connect() {
-}
-
-void PushBullet::notify(String title, String body) {
-    // String url = "/v2/pushes";
-    // String data = {"{\"body\":\"" + body + "\",\"title\":\"" + title + "\",\"type\":\"note\"}"};
-
-    JsonDocument json_out;
-    String json_str;
-
-    json_out["body"] = body;
-    json_out["title"] = title;
-    json_out["type"] = "note";
-    serializeJson(json_out, json_str);
-    LOGD("notify:%s\n", json_str.c_str());
-
-    _client.setInsecure();
-    _https.begin(_client, "https://api.pushbullet.com/v2/pushes");
-    _https.addHeader("Content-Type", "application/json");
-    _https.addHeader("Access-Token", _accesstoken);
-    int httpResponseCode = _https.POST(json_str);
-    if (httpResponseCode > 0) {
-        LOGD("HTTP response code: %d\n", httpResponseCode);
-        String response = _https.getString();
-        LOGD("Response:%s\n", response.c_str());
-    } else {
-        LOGE("HTTP response code: %d\n", httpResponseCode);
-    }
-    _https.end();
 }
 
 String PushBullet::upload(String filename) {
@@ -61,14 +26,13 @@ String PushBullet::upload(String filename) {
     serializeJson(json_out, json_str);
     LOGD("upload:%s\n", json_str.c_str());
 
-
     _client.setInsecure();
     _https.begin(_client, "https://api.pushbullet.com/v2/upload-request");
     _https.addHeader("Content-Type", "application/json");
     _https.addHeader("Access-Token", _accesstoken);
-    int httpResponseCode = _https.POST(json_str);
-    if (httpResponseCode > 0) {
-        LOGD("HTTP response code: %d\n", httpResponseCode);
+    int ret = _https.POST(json_str);
+    if (ret > 0) {
+        LOGD("HTTP response code: %d\n", ret);
         String response = _https.getString();
         LOGD("Response:%s\n", response.c_str());
 
@@ -79,11 +43,10 @@ String PushBullet::upload(String filename) {
         //     }
         // }
     } else {
-        LOGE("HTTP response code: %d\n", httpResponseCode);
+        LOGE("HTTP response code: %d\n", ret);
     }
     _https.end();
-    delay(500);
-    // _client.stop();
+    delay(300);
 
     if (json_resp.containsKey("file_url")) {
         file_url = json_resp["file_url"].as<String>();
@@ -118,10 +81,10 @@ String PushBullet::upload(String filename) {
             // _https.addHeader("Accept-Encoding", "gzip, deflate");
             _https.addHeader("Accept", "*/*");
             _https.addHeader("Content-Type", "multipart/form-data; boundary=" + boundary);
-            int httpResponseCode = _https.sendRequest("POST", requestBody);
-            if (httpResponseCode > 0) {
-                LOGD("HTTP response code: %d\n", httpResponseCode);
-                if (httpResponseCode != HTTP_CODE_NO_CONTENT) {
+            int ret = _https.sendRequest("POST", requestBody);
+            if (ret > 0) {
+                LOGD("HTTP response code: %d\n", ret);
+                if (ret != HTTP_CODE_NO_CONTENT) {
                     file_url = "";
                     String response = _https.getString();
                     LOGD("Response:%s\n", response.c_str());
@@ -129,9 +92,8 @@ String PushBullet::upload(String filename) {
             }
             imgfile.close();
             _https.end();
-            // _client.stop();
             LOGD("upload completed\n");
-            delay(500);
+            delay(300);
 
         } else {
             LOGE("file not found : %s\n", fname.c_str());
@@ -141,22 +103,26 @@ String PushBullet::upload(String filename) {
     return file_url;
 }
 
-void PushBullet::pushFile(String title, String body, String filename) {
+void PushBullet::notify(String title, String body, String filename) {
     JsonDocument json_out;
     String json_str;
-
-    String url = upload(filename);
-    if (url.isEmpty()) {
-        LOGE("upload fails\n");
-        return;
-    }
+    bool is_file = !filename.isEmpty();
 
     json_out["body"] = body;
     json_out["title"] = title;
-    json_out["type"] = "file";
-    json_out["file_type"] = filetype(filename);
-    json_out["file_name"] = filename;
-    json_out["file_url"] = url;
+    json_out["type"] = "note";
+
+    if (is_file) {
+        String url = upload(filename);
+        if (!url.isEmpty()) {
+            json_out["type"] = "file";
+            json_out["file_type"] = filetype(filename);
+            json_out["file_name"] = filename;
+            json_out["file_url"] = url;
+        } else {
+            LOGE("file upload fails:%s\n", filename.c_str());
+        }
+    }
 
     serializeJson(json_out, json_str);
     LOGD("notify:%s\n", json_str.c_str());
@@ -165,13 +131,13 @@ void PushBullet::pushFile(String title, String body, String filename) {
     _https.begin(_client, "https://api.pushbullet.com/v2/pushes");
     _https.addHeader("Content-Type", "application/json");
     _https.addHeader("Access-Token", _accesstoken);
-    int httpResponseCode = _https.POST(json_str);
-    if (httpResponseCode > 0) {
-        LOGD("HTTP response code: %d\n", httpResponseCode);
+    int ret = _https.POST(json_str);
+    if (ret > 0) {
+        LOGD("HTTP response code: %d\n", ret);
         String response = _https.getString();
         LOGD("Response:%s\n", response.c_str());
     } else {
-        LOGE("HTTP response code: %d\n", httpResponseCode);
+        LOGE("HTTP response code: %d\n", ret);
     }
     _https.end();
 }

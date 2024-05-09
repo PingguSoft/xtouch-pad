@@ -15,12 +15,10 @@ public:
     PushBullet(String accesstoken) {
         _accesstoken = accesstoken;
     }
-    void notify(String title, String body);
-    String upload(String filename);
-    void pushFile(String title, String body, String filename);
+    void notify(String title, String body, String filename="");
 
 private:
-    void connect();
+    String upload(String filename);
     String filetype(String filename);
 
     String  _accesstoken;

@@ -321,7 +321,7 @@ void WebWorker::onWebSocketData(AsyncWebSocketClient *client, void *arg, uint8_t
                 } else if (command == "print" && json_in.containsKey("data")) {
                     json_out = json_in["data"];
                     PushBullet _pb(_cfg->getPBToken());
-                    _pb.pushFile("BambuBridge", "This message comes from BambuBridge", json_out["png"]);  //"17540064941.png");
+                    _pb.notify("BambuBridge", "Printing", json_out["png"]);  //"17540064941.png");
                 }
             }
         }
