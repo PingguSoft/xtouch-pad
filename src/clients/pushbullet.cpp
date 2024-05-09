@@ -2,6 +2,7 @@
 #include "debug.h"
 #include <FS.h>
 #include <SD.h>
+#include <SPIFFS.h>
 #include <ArduinoJson.h>
 
 #define PBFINGERPRINT "bbfc9f1bc13cd996f268a2e34129d1478fb933be"
@@ -14,24 +15,10 @@ String PushBullet::filetype(String filename) {
     } else if (filename.endsWith(".png")) {
         return ("image/png");
     }
-    return "plain/text";
+    return "text/plain";
 }
 
 void PushBullet::connect() {
-    LOGD("connecting to %s\n", PBHOST);
-    // code for connecting to pushbullet
-    _client.setInsecure();
-    if (!_client.connect(PBHOST, HTTPPORT)) {
-        LOGE("connection failed\n");
-        return;
-    }
-    // checks if the certification matches
-    if (_client.verify(PBFINGERPRINT, PBHOST)) {
-        // LOGD("certificate matches");
-        return;
-    } else {
-        LOGE("certificate doesn't match\n");
-    }
 }
 
 void PushBullet::notify(String title, String body) {
@@ -64,15 +51,16 @@ void PushBullet::notify(String title, String body) {
 
 String PushBullet::upload(String filename) {
     JsonDocument json_out;
-    JsonDocument json_in;
+    JsonDocument json_resp;
     String json_str;
     String upload_url;
-    String file_url;
+    String file_url="";
 
     json_out["file_name"] = filename;
     json_out["file_type"] = filetype(filename);
     serializeJson(json_out, json_str);
     LOGD("upload:%s\n", json_str.c_str());
+
 
     _client.setInsecure();
     _https.begin(_client, "https://api.pushbullet.com/v2/upload-request");
@@ -84,78 +72,69 @@ String PushBullet::upload(String filename) {
         String response = _https.getString();
         LOGD("Response:%s\n", response.c_str());
 
-        auto err = deserializeJson(json_in, response.c_str(), response.length());
-        if (!err) {
-            if (json_in.containsKey("file_url")) {
-                file_url = json_in["file_url"].as<String>();
-                LOGD("file_url:%s\n", file_url.c_str());
-            }
-            if (json_in.containsKey("upload_url")) {
-                upload_url = json_in["upload_url"].as<String>();
-                LOGD("upload_url:%s\n", upload_url.c_str());
-            }
-        }
+        auto err = deserializeJson(json_resp, response.c_str(), response.length());
+        // if (!err) {
+        //     if (json_resp.containsKey("data")) {
+        //         json_resp = json_resp["data"];
+        //     }
+        // }
     } else {
         LOGE("HTTP response code: %d\n", httpResponseCode);
     }
     _https.end();
+    delay(500);
+    // _client.stop();
+
+    if (json_resp.containsKey("file_url")) {
+        file_url = json_resp["file_url"].as<String>();
+        LOGD("file_url:%s\n", file_url.c_str());
+    }
+    if (json_resp.containsKey("upload_url")) {
+        upload_url = json_resp["upload_url"].as<String>();
+        LOGD("upload_url:%s\n", upload_url.c_str());
+    }
 
     if (!upload_url.isEmpty()) {
         _client.setInsecure();
 
-        String data = String("--710ff0c6cf2d4c73b12db64cab12e58c\r\n") +
-                String("Content-Disposition:  form-data; name=\"file\"; filename=\"" + filename + "\"\r\n") +
-                String("Content-Type: " + filetype(filename) + "\r\n\r\n");
-
-        const char *tail = "\r\n--710ff0c6cf2d4c73b12db64cab12e58c--\r\n";
-
-
         String fname = "/image/" + filename;
         if (SD.exists(fname)) {
             File imgfile = SD.open((fname), "r");
-            _https.begin(_client, upload_url);
-            _https.addHeader("Access-Token", _accesstoken);
-            _https.addHeader("Accept-Encoding", "gzip, deflate");
-            // _https.addHeader("Accept-Charset", "utf-8;");
-            _https.addHeader("Accept", "*/*");
-            _https.addHeader("Connection", "keep-alive");
-            _https.addHeader("Content-Length", String(imgfile.size() + strlen(tail) + data.length()));
-            _https.addHeader("Content-Type", "multipart/form-data; boundary=710ff0c6cf2d4c73b12db64cab12e58c");
+            String boundary = "------------------------" + String(random(0xFFFFFF), HEX);
+            String requestBody = "";
 
-            int httpResponseCode = _https.POST(data);
+            // object
+            requestBody += "--" + boundary + "\r\n";
+            requestBody += "Content-Disposition: form-data; name=\"file\"; filename=\"" + filename + "\"\r\n";
+            requestBody += "Content-Type: " + filetype(filename) + "\r\n\r\n";
+            // requestBody += "Content-Transfer-Encoding: binary\r\n";
+            requestBody += imgfile.readString();
+            requestBody += "\r\n";
+            requestBody += "--" + boundary + "--\r\n";
+            LOGD("BODY:\n%s\n", requestBody.c_str());
+
+            // send
+            _https.begin(_client, upload_url);
+            // _https.addHeader("Accept-Encoding", "gzip, deflate");
+            _https.addHeader("Accept", "*/*");
+            _https.addHeader("Content-Type", "multipart/form-data; boundary=" + boundary);
+            int httpResponseCode = _https.sendRequest("POST", requestBody);
             if (httpResponseCode > 0) {
                 LOGD("HTTP response code: %d\n", httpResponseCode);
-                String response = _https.getString();
-                LOGD("Response:%s\n", response.c_str());
-
-                if (httpResponseCode == 200) {
-                    const int bufSize = 512;
-                    char buf[bufSize];
-                    int sz = 0;
-                    int rem = imgfile.size();
-
-                    while (rem > 0) {
-                        sz = imgfile.readBytes(buf, min(bufSize, rem));
-                        if (sz > 0) {
-                            _client.write((const uint8_t *)buf, sz);
-                            rem -= sz;
-                            LOGD("TRANSFER: %d/%d\n", sz, rem);
-                            delay(100);
-                        }
-                    }
-                    imgfile.close();
-
-
-                    _client.write((const uint8_t *)tail, strlen(tail));
-                    _client.flush();
-                    delay(500);
+                if (httpResponseCode != HTTP_CODE_NO_CONTENT) {
+                    file_url = "";
+                    String response = _https.getString();
+                    LOGD("Response:%s\n", response.c_str());
                 }
-                _https.end();
-
-                LOGD("transfer completed..\n");
-            } else {
-                LOGE("file not found : %s\n", fname.c_str());
             }
+            imgfile.close();
+            _https.end();
+            // _client.stop();
+            LOGD("upload completed\n");
+            delay(500);
+
+        } else {
+            LOGE("file not found : %s\n", fname.c_str());
         }
     }
 
@@ -167,8 +146,10 @@ void PushBullet::pushFile(String title, String body, String filename) {
     String json_str;
 
     String url = upload(filename);
-    if (url.isEmpty())
+    if (url.isEmpty()) {
+        LOGE("upload fails\n");
         return;
+    }
 
     json_out["body"] = body;
     json_out["title"] = title;

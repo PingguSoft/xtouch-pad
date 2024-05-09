@@ -128,7 +128,8 @@ void WebWorker::setPrinterInfo(char *ip, char *accessCode, char *serial, char *n
     _name = name;
 }
 
-void WebWorker::start() {
+void WebWorker::start(Config *cfg) {
+    _cfg = cfg;
     _is_running = true;
     xTaskCreate(&taskWeb, "taskWeb", 10*1024, this, 1, NULL);
 }
@@ -184,7 +185,7 @@ void WebWorker::_start() {
     // WebServer
     //
     _server->serveStatic("/", *_fs, _web_root.c_str()).setDefaultFile("index.html");
-    _server->addHandler(new SPIFFSEditor(*_fs, "admin", "1234"));
+    _server->addHandler(new SPIFFSEditor(*_fs, "admin", _cfg->getAdminPassword()));
     for (mount_t m : _list_mnt) {
         _server->serveStatic(m.web_dir, *m.fs, m.fs_dir);
     }
@@ -304,9 +305,7 @@ void WebWorker::onWebSocketData(AsyncWebSocketClient *client, void *arg, uint8_t
                         _mqtt->reqPushAll();
                     }
                 } else if (command == "sdcard_list") {
-                    // _ftps->startSync();
-                    PushBullet _pb("o.yGue5fjtoiKXINgUdTD6LbOKzpbYzLAq");
-                    _pb.pushFile("BambuBridge", "This message comes from BambuBridge", "17540064941.png");
+                    _ftps->startSync();
                 } else if (command == "camera_view") {
                     _is_cam_view = json_in["data"].as<bool>();
                     if (_is_cam_view) {
@@ -319,6 +318,10 @@ void WebWorker::onWebSocketData(AsyncWebSocketClient *client, void *arg, uint8_t
                         json_out = json_in["data"];
                         _mqtt->publish(json_out);
                     }
+                } else if (command == "print" && json_in.containsKey("data")) {
+                    json_out = json_in["data"];
+                    PushBullet _pb(_cfg->getPBToken());
+                    _pb.pushFile("BambuBridge", "This message comes from BambuBridge", json_out["png"]);  //"17540064941.png");
                 }
             }
         }

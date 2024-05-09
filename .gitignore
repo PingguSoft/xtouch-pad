@@ -13,3 +13,4 @@ design/project/*.py
 *.pdb
 data/sdcard/
 data/sd/
+data/config.json

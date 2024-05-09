@@ -16,6 +16,7 @@
 #include "camera_worker.h"
 #include "mqtt_worker.h"
 #include "ftps_worker.h"
+#include "config.h"
 
 
 class WebWorker : public CameraWorker::Callback, MQTTWorker::Callback, FTPSWorker::Callback {
@@ -30,7 +31,7 @@ public:
     void setPrinterInfo(char *ip, char *accessCode, char *serial, char *name=NULL);
     void addMount(char *web_dir, fs::FS *fs, char *fs_dir);
     void sendFile(char *path);
-    void start();
+    void start(Config *cfg);
     void stop();
 
     virtual void onJpegEvent(uint8_t *param, int size);
@@ -48,6 +49,7 @@ private:
     void _stop();
     void _loop();
 
+    Config          *_cfg;
     String           _web_root;
     AsyncWebServer  *_server;
     AsyncWebSocket  *_ws;

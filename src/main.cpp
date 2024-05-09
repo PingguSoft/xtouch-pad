@@ -29,6 +29,7 @@
 #include "xtouch/connection.h"
 #include "xtouch/coldboot.h"
 #include "lv_fs_if.h"
+#include "config.h"
 #include "main.h"
 
 #include "clients/camera_worker.h"
@@ -48,8 +49,7 @@ static SemaphoreHandle_t _lock;
 *****************************************************************************************
 */
 void lv_lock() {
-    while (xSemaphoreTake(_lock, portMAX_DELAY) != pdPASS)
-        ;
+    while (xSemaphoreTake(_lock, portMAX_DELAY) != pdPASS);
 }
 
 void lv_unlock() {
@@ -72,6 +72,7 @@ void xtouch_intro_show(void) {
 
 CameraWorker *_cam;
 WebWorker *_web;
+Config _cfg;
 
 void listDir(fs::FS &fs, const char *dirname, uint8_t levels) {
     LOGD("Listing directory: %s\r\n", dirname);
@@ -119,6 +120,8 @@ void listDir(fs::FS &fs, const char *dirname, uint8_t levels) {
         file = root.openNextFile();
     }
 }
+
+
 
 void setup() {
 #if XTOUCH_USE_SERIAL == true || XTOUCH_DEBUG_ERROR == true || XTOUCH_DEBUG_DEBUG == true || XTOUCH_DEBUG_INFO == true
@@ -190,15 +193,14 @@ void setup() {
     uint32_t fp = ESP.getFreePsram();
     LOGI("[FREE]  heap:%d, PSRAM:%d, Total:%d\n", fh, fp, fh + fp);
 
-    // listDir(SPIFFS, "/", 2);
-
+    _cfg.setup();
     _web = new WebWorker(&SPIFFS, "/", 80);
     _web->addMount("/sd", &SD, "/");
     _web->setPrinterInfo((char*)xTouchConfig.xTouchIP, (char*)xTouchConfig.xTouchAccessCode,
         (char*)xTouchConfig.xTouchSerialNumber, (char*)xTouchConfig.xTouchPrinterName);
-    _web->start();
+    _web->start(&_cfg);
 
-    // esp_task_wdt_init(10, false);
+    esp_task_wdt_init(20, true);
 }
 
 void loop() {

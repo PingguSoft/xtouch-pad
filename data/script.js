@@ -1091,7 +1091,16 @@ class SDBrowser extends Component {
         if (this._sel_model_id) {
             var pos = this._sel_model_id.replace("model_id_", "");
             var p = parseInt(pos, 10);
-            console.log("onClickModelPrint:" + p);
+            console.log("onClickModelPrint:" + this._sdcard_model_list[p]["3mf"]);
+
+            const json = {
+                command: 'print',
+                data: {
+                    "3mf" : this._sdcard_model_list[p]["3mf"],
+                    "png" : this._sdcard_model_list[p]["png"]
+                }
+            };
+            Component._ws.sendJson(json);
         }
         this.onClickPopupCancel();
     }
@@ -1104,6 +1113,15 @@ class SDBrowser extends Component {
 
             this._sdcard_model_list.splice(p, 1);
             this._drawModels(this._sdcard_model_list);
+
+            const json = {
+                command: 'delete',
+                data: {
+                    "3mf" : this._sdcard_model_list[p]["3mf"],
+                    "png" : this._sdcard_model_list[p]["png"]
+                }
+            };
+            Component._ws.sendJson(json);
         }
         this.onClickPopupCancel();
     }
