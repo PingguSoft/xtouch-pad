@@ -1,6 +1,6 @@
 ---
 Language:        Cpp
-# BasedOnStyle:  LLVM
+BasedOnStyle:  Google
 AccessModifierOffset: -4
 AlignAfterOpenBracket: AlwaysBreak
 BinPackArguments: false
@@ -10,7 +10,10 @@ AlignConsecutiveDeclarations: false
 AlignEscapedNewlinesLeft: false
 AlignOperands:   false
 AlignTrailingComments: true
-AlignConsecutiveMacros: true
+AlignConsecutiveMacros:
+    Enabled: true
+    AcrossEmptyLines: true
+    AcrossComments: true
 AllowAllParametersOfDeclarationOnNextLine: false
 AllowShortBlocksOnASingleLine: true
 AllowShortCaseLabelsOnASingleLine: false
