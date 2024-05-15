@@ -2,7 +2,7 @@
 //
 // Others Class
 //
-class Others extends Component {
+class Etcs extends Component {
     constructor() {
         super();
         this.is_sdcard = false;

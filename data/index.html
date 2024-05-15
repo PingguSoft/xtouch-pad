@@ -125,26 +125,31 @@
                                 <table border="0" align="top" style="width:100%; height:100%; table-layout:fixed;">
                                     <tbody>
                                         <tr>
-                                            <td  colspan="2" style="text-align: left; min-height: 60px;">
+                                            <td  colspan="3" style="text-align: left; min-height: 60px;">
                                                 <label style="font-weight: bold; font-size: 1.3em;" id="label_error">
                                                 </label>
                                             </td>
                                         </tr>
                                         <tr>
-                                            <td  colspan="2" style="text-align: left; min-height: 40px;">
+                                            <td  colspan="3" style="text-align: left; min-height: 40px;">
                                                 <label style="font-weight: bold; font-size: 1.1em;color:gray" id="label_error_desc">
                                                 </label>
                                             </td>
                                         </tr>
                                         <tr>
                                             <td>
+                                                <button class="img-button btn-normal" style="width: 90%; height: 40px" id="btn_retry" onClick="onClickRetry(this.id)">
+                                                    <label style="font-weight: bold; font-size: 1.1em;">Retry</label><br>
+                                                </button>
+                                            </td>
+                                            <td>
                                                 <button class="img-button btn-normal" style="width: 90%; height: 40px" id="btn_done" onClick="onClickDone(this.id)">
                                                     <label style="font-weight: bold; font-size: 1.1em;">Done</label><br>
                                                 </button>
                                             </td>
                                             <td>
-                                                <button disabled class="img-button btn-normal" style="width: 90%; height: 40px" id="btn_retry" onClick="onClickRetry(this.id)">
-                                                    <label style="font-weight: bold; font-size: 1.1em;">Retry</label><br>
+                                                <button class="img-button btn-normal" style="width: 90%; height: 40px" id="btn_okay" onClick="onClickOkay(this.id)">
+                                                    <label style="font-weight: bold; font-size: 1.1em;">O.K.</label><br>
                                                 </button>
                                             </td>
                                         </tr>

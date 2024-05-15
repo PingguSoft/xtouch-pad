@@ -65,6 +65,29 @@ async def new_main(argv):
             #         number += 1
 
         bambu.connect(callback=event_handler)
+        await asyncio.sleep(2)
+        cmd = {
+            "print":
+            {
+                "command": "project_file",
+                "sequence_id": 0,
+                "param": "Metadata/plate_1.gcode",
+                "project_id": "0",
+                "profile_id": "0",
+                "subtask_id": "0",
+                "task_id": "0",
+                "subtask_name": "x3_knob",
+                "url": "ftp://x3_knob.gcode.3mf",
+                "bed_type": "auto",
+                "timelapse": True,
+                "bed_leveling": True,
+                "flow_cali": False,
+                "vibration_cali": True,
+                "layer_inspect": False,
+                "use_ams": True
+            }
+        }
+        bambu.publish(cmd)
         await asyncio.sleep(10)
         bambu.disconnect()
 

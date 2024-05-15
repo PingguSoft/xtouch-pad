@@ -7,6 +7,7 @@ class Printing extends Component {
         this._printingFile = '';
         this._task_id = '';
         this._subtask_id = '';
+        this._func_status_cb = null;
     }
 
     getPrintingFile() {
@@ -18,86 +19,8 @@ class Printing extends Component {
         return file;
     }
 
-    _updateUI(status) {
-        var printing_idle_disp;
-        var printing_info_disp;
-        var axis_control_disp;
-        var printing_error_disp;
-
-        switch (status) {
-            case Component.Status.IDLE:
-                printing_idle_disp = 'block';
-                printing_info_disp = 'none';
-                printing_error_disp = 'none';
-                axis_control_disp = 'block';
-                break;
-
-            case Component.Status.FINISHED:
-                printing_idle_disp = 'none';
-                printing_info_disp = 'block';
-                printing_error_disp = 'none';
-                axis_control_disp = 'block';
-                break;
-
-            case Component.Status.FAILED:
-                printing_idle_disp = 'none';
-                printing_info_disp = 'none';
-                printing_error_disp = 'block';
-                axis_control_disp = 'none';
-                // const err_json = {
-                //     print_error: 83902522,
-                // };
-                // updateError(err_json);
-                break;
-
-            default:
-                printing_idle_disp = 'none';
-                printing_info_disp = 'block';
-                printing_error_disp = 'none';
-                axis_control_disp = 'none';
-                break;
-        }
-        document.getElementById('printing_idle').style.display = printing_idle_disp;
-        document.getElementById('printing_info').style.display = printing_info_disp;
-        document.getElementById('axis_control').style.display = axis_control_disp;
-        document.getElementById('printing_error').style.display = printing_error_disp;
-
-        switch (status) {
-            case Component.Status.RUNNING: {
-                document.getElementById('btn_print_icon').setAttribute('src', 'images/print_ctrl_pause.svg');
-                const disabled_printing = document.getElementsByClassName("disabled-printing");
-                for (const elt of disabled_printing) {
-                    elt.disabled = true;
-                    elt.className = elt.className.replace("btn-normal", "btn-normal-disabled");
-                }
-
-                const disabled_finished = document.getElementsByClassName("disabled-finished");
-                for (const elt of disabled_finished) {
-                    elt.style.display = 'block';
-                }
-            }
-                break;
-
-            case Component.Status.PAUSED:
-                document.getElementById('btn_print_icon').setAttribute('src', 'images/print_ctrl_resume.svg');
-                break;
-
-            case Component.Status.FINISHED:
-                const disabled = document.getElementsByClassName("disabled-finished");
-                for (const elt of disabled) {
-                    elt.style.display = 'none';
-                }
-            // no break
-
-            default: {
-                const disabled = document.getElementsByClassName("disabled-printing");
-                for (const elt of disabled) {
-                    elt.disabled = false;
-                    elt.className = elt.className.replace("btn-normal-disabled", "btn-normal");
-                }
-            }
-                break;
-        }
+    setStatusCallback(func) {
+        this._func_status_cb = func;
     }
 
     updateFromJson(json) {
@@ -119,7 +42,9 @@ class Printing extends Component {
                 }
             }
             if (Component._status != status) {
-                this._updateUI(status);
+                if (this._func_status_cb != null) {
+                    this._func_status_cb(status);
+                }
                 Component._status = status;
             }
         }

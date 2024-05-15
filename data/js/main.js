@@ -5,6 +5,8 @@ class Controller extends Component {
     constructor() {
         super();
         this._sel_menu_id = '';
+        this._is_err_process = false;
+        this._file = '';
     }
 
     updateTabView(id) {
@@ -66,18 +68,135 @@ class Controller extends Component {
         _camera.enable(true);
     }
 
+    onStatusChanged(status) {
+        var printing_idle_disp;
+        var printing_info_disp;
+        var axis_control_disp;
+        var printing_error_disp;
+
+        switch (status) {
+            case Component.Status.IDLE:
+                printing_idle_disp = 'block';
+                printing_info_disp = 'none';
+                axis_control_disp = 'block';
+                break;
+
+            case Component.Status.FAILED:
+            case Component.Status.FINISHED:
+                printing_idle_disp = 'none';
+                printing_info_disp = 'block';
+                axis_control_disp = 'block';
+                break;
+
+            // case Component.Status.FAILED:
+            //     printing_idle_disp = 'none';
+            //     printing_info_disp = 'none';
+            //     printing_error_disp = 'block';
+            //     axis_control_disp = 'none';
+            //     // const err_json = {
+            //     //     print_error: 83902522,
+            //     // };
+            //     // updateError(err_json);
+            //     break;
+
+            default:
+                printing_idle_disp = 'none';
+                printing_info_disp = 'block';
+                axis_control_disp = 'none';
+                break;
+        }
+        document.getElementById('printing_idle').style.display = printing_idle_disp;
+        document.getElementById('printing_info').style.display = printing_info_disp;
+        document.getElementById('axis_control').style.display = axis_control_disp;
+        // document.getElementById('printing_error').style.display = printing_error_disp;
+
+        switch (status) {
+            case Component.Status.RUNNING: {
+                document.getElementById('printing_model_png').setAttribute('src', 'images/ic_comment_model.svg');
+                document.getElementById('btn_print_icon').setAttribute('src', 'images/print_ctrl_pause.svg');
+                const disabled_printing = document.getElementsByClassName("disabled-printing");
+                for (const elt of disabled_printing) {
+                    elt.disabled = true;
+                    elt.className = elt.className.replace("btn-normal", "btn-normal-disabled");
+                }
+
+                const disabled_finished = document.getElementsByClassName("disabled-finished");
+                for (const elt of disabled_finished) {
+                    elt.style.display = 'block';
+                }
+            }
+                break;
+
+            case Component.Status.PAUSED:
+                document.getElementById('btn_print_icon').setAttribute('src', 'images/print_ctrl_resume.svg');
+                break;
+
+            case Component.Status.FINISHED:
+                const disabled = document.getElementsByClassName("disabled-finished");
+                for (const elt of disabled) {
+                    elt.style.display = 'none';
+                }
+            // no break
+
+            default: {
+                const disabled = document.getElementsByClassName("disabled-printing");
+                for (const elt of disabled) {
+                    elt.disabled = false;
+                    elt.className = elt.className.replace("btn-normal-disabled", "btn-normal");
+                }
+            }
+                break;
+        }
+    }
+
+    processError() {
+        if (_errors.isError()) {
+            if (!this._is_err_process) {
+                document.getElementById('printing_error').style.display = 'block';
+                document.getElementById('printing_idle').style.display = 'none';
+                document.getElementById('printing_info').style.display = 'none';
+                _errors.showError();
+                this._is_err_process = true;
+            }
+        } else {
+            if (this._is_err_process) {
+                document.getElementById('printing_error').style.display = 'none';
+                this.onStatusChanged(Component._status);
+                this._is_err_process = false;
+            }
+        }
+    }
+
     updateFromJson(json) {
         if (!_sdbrowser.isReloading() && !_camera.isEnabled())
             _camera.enable(true);
 
         // update printing model PNG
-        if (Object.keys(json).includes('gcode_file')) {
-            const elt = document.getElementById('printing_model_png');
-            if (elt) {
-                const name = _sdbrowser.getModelPNG(_printing.getPrintingFile());
-                elt.setAttribute('src', name);
+        const curFile = _printing.getPrintingFile();
+        if (curFile.length > 0 && curFile != this._file) {
+            const name = _sdbrowser.getModelPNG(curFile);
+            if (name != null) {
+                document.getElementById('printing_model_png').setAttribute('src', name);
+                this._file = curFile;
             }
         }
+        this.processError();
+    }
+
+    onClickDone() {
+        _errors.onClickDone();
+        this.processError();
+    }
+
+    onClickRetry() {
+        _errors.onClickRetry();
+        this.processError();
+    }
+
+    onClickOkay() {
+        console.log("okay 2 !!!");
+        _errors.onClickOkay();
+        this.processError();
     }
 }
 
@@ -94,7 +213,7 @@ var _speed = new Speed();
 var _errors = new Errors();
 var _hms = new HMS();
 var _camera = new Camera();
-var _others = new Others();
+var _etcs = new Etcs();
 var _axiscontrol = new AXISControl();
 
 // ui components
@@ -110,10 +229,11 @@ window.addEventListener('load', onLoad);
 window.addEventListener('resize', onResize);
 
 function onLoad(event) {
-    const websocket = new WS(`ws://${window.location.hostname}/ws`);
-    const printer_comp = [_printing, _temperature, _filaments, _lights, _fans, _speed, _errors, _hms, _camera, _others ];
-    const ui_comp = [_printerinfo, _camera, _sdbrowser, _controller];
+    const websocket = new WS(`ws://${window.location.hostname}:${window.location.port}/ws`);
+    const ui_comp = [_printerinfo, _camera, _sdbrowser];
+    const printer_comp = [_printing, _temperature, _filaments, _lights, _fans, _speed, _errors, _hms, _camera, _etcs, _controller ];
 
+    _printing.setStatusCallback(_controller.onStatusChanged);
     websocket.setComponents(printer_comp, ui_comp);
     Component.setWebSocket(websocket);
 }
@@ -242,7 +362,14 @@ function onClickReloadIcon() {
 // Error
 //
 function onClickDone(id) {
+    _controller.onClickDone();
 }
 
 function onClickRetry(id) {
+    _controller.onClickRetry();
+}
+
+function onClickOkay(id) {
+    console.log("okay !!!");
+    _controller.onClickOkay();
 }

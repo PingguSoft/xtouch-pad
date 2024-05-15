@@ -299,12 +299,17 @@ void ESP32_FTPSClient::DirLong(const char *dir, std::list<String *> &list) {
         delay(1);
 
     list.clear();
-    while (dclient.available()) {
-        // String line = dclient.readStringUntil('\n');
-        // line.trim();
-        String *line = new String(dclient.readStringUntil('\n'));
-        line->trim();
-        list.push_back(line);
+
+    _m = millis();
+    while (millis() < (_m + 3000)) {
+        while (dclient.available()) {
+            // String line = dclient.readStringUntil('\n');
+            // line.trim();
+            String *line = new String(dclient.readStringUntil('\n'));
+            line->trim();
+            list.push_back(line);
+        }
+        delay(20);
     }
     GetFTPAnswer();
     dclient.stop();

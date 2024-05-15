@@ -19,17 +19,14 @@ class Errors extends Component {
         }
     }
 
-    showError() {
-        if (this._q_err.length == 0)
-            return;
+    isError() {
+        return (this._q_err.length > 0);
+    }
 
+    showError() {
         const code = this._q_err[0];
         const idx = this._err_tbl.codes.indexOf(code);
-
-        console.log(this._err_tbl);
-        console.log("print error : " + code + ", len:" + code.length);
-        console.log("print error : " + this._err_tbl.codes[0] + ", len:" + this._err_tbl.codes[0]);
-        console.log("idx:" + idx);
+        console.log("print error : " + code + ", len:" + code.length + ", idx:" + idx);
 
         if (idx >= 0) {
             var label = document.getElementById('label_error');
@@ -38,10 +35,13 @@ class Errors extends Component {
             label = document.getElementById('label_error_desc');
             label.innerText = this._err_tbl.msgs[idx];
 
-            var btn_retry = document.getElementById('btn_retry');
-            btn_retry.style.display = String(this._err_tbl.msgs[idx]).includes('"Retry"') ? block : none;
-            var btn_done = document.getElementById('btn_done');
-            btn_done.style.display = String(this._err_tbl.msgs[idx]).includes('"Done"') ? block : none;
+            const is_retry = String(this._err_tbl.msgs[idx]).includes('"Retry"');
+            const is_done  = String(this._err_tbl.msgs[idx]).includes('"Done"');
+            document.getElementById('btn_retry').style.display = is_retry ? 'block' : 'none';
+            document.getElementById('btn_done').style.display = is_done ? 'block' : 'none';
+            document.getElementById('btn_okay').style.display = (!is_retry && !is_done) ? 'block' : 'none';
+        } else {
+            this._q_err.shift();
         }
     }
 
@@ -77,22 +77,28 @@ class Errors extends Component {
     onClickRetry() {
         this.send("resume");
         this._q_err.shift();
-        this.showError();
     }
 
     onClickDone() {
         this.send("done");
         const code = parseInt(this._q_err.shift(), 16);
         this.clear(code);
-        this.showError();
+    }
+
+    onClickOkay() {
+        const code = parseInt(this._q_err.shift(), 16);
+        this.clear(code);
     }
 
     updateFromJson(json) {
-        if (Object.keys(json).includes('print_error')) {
-            const error = json['print_error'];
-            const code = Util.pad(error.toString(16), 8).toUpperCase();
-            this._q_err.push(code);
-            this.showError();
+        if (Object.keys(json).includes('command') && Object.keys(json).includes('print_error')) {
+            if (json['command'] == 'push_status') {
+                const error = json['print_error'];
+                if (error != 0) {
+                    const code = Util.pad(error.toString(16), 8).toUpperCase();
+                    this._q_err.push(code);
+                }
+            }
         }
     }
 }
@@ -118,23 +124,17 @@ class HMS extends Component {
     }
 
     showHMS() {
-        if (this._q_hms.length == 0)
+        if (this._q_hms.length == 0) {
             return;
-
+        }
         const hms_code = this._q_hms[0];
         const idx = _hms_tbl.codes.indexOf(hms_code);
+        console.log("print hms : " + hms_code + ", len:" + hms_code.length + ", idx:" + idx);
+
         if (idx >= 0) {
-            var label = document.getElementById('label_error');
-            label.innerText = "HMS !";
-
-            label = document.getElementById('label_error_desc');
-            label.innerText = _hms_tbl.msgs[idx];
-
-            var btn_retry = document.getElementById('btn_retry');
-            btn_retry.style.display = String(this._hms_tbl.msgs[idx]).includes('"Retry"') ? block : none;
-            var btn_done = document.getElementById('btn_done');
-            btn_done.style.display = String(this._hms_tbl.msgs[idx]).includes('"Done"') ? block : none;
+            // label.innerText = _hms_tbl.msgs[idx];
         }
+        this._q_hms.shift();
     }
 
     updateFromJson(json) {
@@ -157,7 +157,7 @@ class HMS extends Component {
                     Util.pad(alert_level.toString(16), 6) + Util.pad(error_code.toString(16), 4);
                 console.log("print HMS : " + hms_code);
                 this._q_hms.push(hms_code);
-                this.showHMS();
+                // this.showHMS();
             }
         }
     }

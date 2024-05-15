@@ -7,24 +7,24 @@ class SDBrowser extends Component {
         this._sel_model_id = '';
         this._is_sd_reloading = false;
         this._sdcard_model_list = [
-            {
-                "ts": 1955357392,
-                "size": 766263,
-                "3mf": "Cute Schnauzer keychain.gcode.3mf",
-                "png": "17540064941.png"
-            },
-            {
-                "ts": 1955353346,
-                "size": 1196949,
-                "3mf": "hello-kitty-6-Dom.gcode.3mf",
-                "png": "29877475381.png"
-            },
-            {
-                "ts": 1955353337,
-                "size": 1573271,
-                "3mf": "Pikachu.gcode.3mf",
-                "png": "1270915251.png"
-            },
+            // {
+            //     "ts": 1955357392,
+            //     "size": 766263,
+            //     "3mf": "Cute Schnauzer keychain.gcode.3mf",
+            //     "png": "17540064941.png"
+            // },
+            // {
+            //     "ts": 1955353346,
+            //     "size": 1196949,
+            //     "3mf": "hello-kitty-6-Dom.gcode.3mf",
+            //     "png": "29877475381.png"
+            // },
+            // {
+            //     "ts": 1955353337,
+            //     "size": 1573271,
+            //     "3mf": "Pikachu.gcode.3mf",
+            //     "png": "1270915251.png"
+            // },
         ];
         this._reload =
         {
@@ -126,11 +126,36 @@ class SDBrowser extends Component {
             var p = parseInt(pos, 10);
             console.log("onClickModelPrint:" + this._sdcard_model_list[p]["3mf"]);
 
+            // const json = {
+            //     command: 'print',
+            //     data: {
+            //         "3mf" : this._sdcard_model_list[p]["3mf"],
+            //         "png" : this._sdcard_model_list[p]["png"]
+            //     }
+            // };
+            // Component._ws.sendJson(json);
+
             const json = {
-                command: 'print',
+                command: 'pub',
                 data: {
-                    "3mf" : this._sdcard_model_list[p]["3mf"],
-                    "png" : this._sdcard_model_list[p]["png"]
+                    print: {
+                        command: "project_file",
+                        sequence_id: 0,
+                        param: "Metadata/plate_1.gcode",
+                        project_id: "0",
+                        profile_id: "0",
+                        subtask_id: "0",
+                        task_id: "0",
+                        subtask_name: this._sdcard_model_list[p]["3mf"].replace(".gcode.3mf", ""),
+                        url: "ftp://" + this._sdcard_model_list[p]["3mf"],
+                        bed_type: "auto",
+                        timelapse: true, //self._settings.get_boolean(["timelapse"]),
+                        bed_leveling: true, //self._settings.get_boolean(["bed_leveling"]),
+                        flow_cali: true, //self._settings.get_boolean(["flow_cali"]),
+                        vibration_cali: true, //self._settings.get_boolean(["vibration_cali"]),
+                        layer_inspect: true, //self._settings.get_boolean(["layer_inspect"]),
+                        use_ams: true, //self._settings.get_boolean(["use_ams"])
+                    },
                 }
             };
             Component._ws.sendJson(json);
@@ -164,11 +189,11 @@ class SDBrowser extends Component {
     }
 
     getModelPNG(name) {
-        var png = "images/ic_comment_model.svg";
+        var png = null; // = "images/ic_comment_model.svg";
 
         for (const item of this._sdcard_model_list) {
             if (item['3mf'] == name) {
-                png = item['png'];
+                png = 'sd/image/' + item['png'];
                 break;
             }
         }

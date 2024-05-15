@@ -2,14 +2,15 @@ class WS {
     static _ws = null;
     static _comp_printer = [];
     static _comp_ui = [];
+    static _gateway = '';
 
     constructor(gateway) {
-        this._gateway = gateway;
-        this._init();
+        WS._gateway = gateway;
+        WS._init();
     }
 
-    _init() {
-        WS._ws = new WebSocket(this._gateway);
+    static _init() {
+        WS._ws = new WebSocket(WS._gateway);
         WS._ws.onopen = WS._onOpen;
         WS._ws.onclose = WS._onClose;
         WS._ws.onmessage = WS._onMessage;
@@ -35,7 +36,7 @@ class WS {
 
     static _onClose(event) {
         console.log('Connection closed');
-        setTimeout(this._init, 2000);
+        setTimeout(WS._init, 2000);
     }
 
     static _onMessage(event) {
