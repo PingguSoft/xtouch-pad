@@ -663,6 +663,55 @@
             </div>
         </div>
 
+        <div id="modal-print" class="modal">
+            <div class="modal-content">
+                <span class="modal-close">&times;</span>
+                <div class="modal-body">
+                    <table class="container" style="width:100%; height: 100%; table-layout:fixed; vertical-align:center; text-align:start;" border="0">
+                        <tbody>
+                            <tr>
+                                <td  colspan="2" style="min-height: 60px;">
+                                    <label id="print_modal_model_name" style="font-weight: bold; font-size: 1.3em;">
+                                        Model Name
+                                    </label>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td colspan="2" style="width:40%; text-align:center; padding-top:30px; padding-bottom:30px;">
+                                    <img src="images/ic_comment_model.svg" width="90%" height="auto" style="min-height:128px;" id="print_modal_model_png">
+                                </td>
+                            </tr>
+                            <tr>
+                                <td style="padding-left:60px;">
+                                    <input type="checkbox" id="print_modal_vib_cal" checked>Vibration Cal<br>
+                                </td>
+                                <td>
+                                    <input type="checkbox" id="print_modal_bed_leveling" checked>Bed Leveling<br>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td style="padding-left:60px;">
+                                    <input type="checkbox" id="print_modal_timelapse">Time Lapse<br>
+                                </td>
+                                <td>
+                                    <input type="checkbox" id="print_modal_use_ams">Use AMS<br>
+                                </td>
+
+                            </tr>
+
+                            <tr style="text-align:end;">
+                                <td colspan="2" style="padding-top:20px;">
+                                    <button class="img-button btn-normal" style="width: 30%; height: 40px" id="print_modal_start">
+                                        <label style="font-weight: bold; font-size: 1.1em;">Start</label><br>
+                                    </button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
         <script src="js/hms_err_tbl.js"></script>
         <script src="js/comp.js"></script>
         <script src="js/comp_axis_ctrl.js"></script>

@@ -194,7 +194,6 @@ class Controller extends Component {
     }
 
     onClickOkay() {
-        console.log("okay 2 !!!");
         _errors.onClickOkay();
         this.processError();
     }

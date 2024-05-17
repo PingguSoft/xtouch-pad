@@ -301,7 +301,7 @@ void ESP32_FTPSClient::DirLong(const char *dir, std::list<String *> &list) {
     list.clear();
 
     _m = millis();
-    while (millis() < (_m + 3000)) {
+    while (millis() < (_m + 2000)) {
         while (dclient.available()) {
             // String line = dclient.readStringUntil('\n');
             // line.trim();
@@ -309,7 +309,7 @@ void ESP32_FTPSClient::DirLong(const char *dir, std::list<String *> &list) {
             line->trim();
             list.push_back(line);
         }
-        delay(20);
+        delay(5);
     }
     GetFTPAnswer();
     dclient.stop();

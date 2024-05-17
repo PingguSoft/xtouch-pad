@@ -6,6 +6,7 @@ class SDBrowser extends Component {
         super();
         this._sel_model_id = '';
         this._is_sd_reloading = false;
+        this._printing_file = '';
         this._sdcard_model_list = [
             // {
             //     "ts": 1955357392,
@@ -120,11 +121,49 @@ class SDBrowser extends Component {
         }
     }
 
+    startPrint() {
+        var modal = document.getElementById("modal-print");
+        modal.style.display = "none";
+
+        const is_vib_cal = document.getElementById("print_modal_vib_cal").checked;
+        const is_bed_level = document.getElementById("print_modal_bed_leveling").checked;
+        const is_time_lapse = document.getElementById("print_modal_timelapse").checked;
+        const is_use_ams = document.getElementById("print_modal_use_ams").checked;
+
+        const json = {
+            command: 'pub',
+            data: {
+                print: {
+                    command: "project_file",
+                    sequence_id: 0,
+                    param: "Metadata/plate_1.gcode",
+                    project_id: "0",
+                    profile_id: "0",
+                    subtask_id: "0",
+                    task_id: "0",
+                    subtask_name: this._printing_file.replace(".gcode.3mf", ""),
+                    url: "ftp://" + this._printing_file,
+                    bed_type: "auto",
+                    vibration_cali: is_vib_cal,
+                    bed_leveling: is_bed_level,
+                    timelapse: is_time_lapse,
+                    use_ams: is_use_ams,
+                    flow_cali: true,
+                    layer_inspect: true,
+                },
+            }
+        };
+        Component._ws.sendJson(json);
+    }
+
     onClickModelPrint() {
         if (this._sel_model_id) {
-            var pos = this._sel_model_id.replace("model_id_", "");
-            var p = parseInt(pos, 10);
-            console.log("onClickModelPrint:" + this._sdcard_model_list[p]["3mf"]);
+            const pos = this._sel_model_id.replace("model_id_", "");
+            const p = parseInt(pos, 10);
+            const printing_file_png = this._sdcard_model_list[p]["png"];
+
+            this._printing_file = this._sdcard_model_list[p]["3mf"];
+            console.log("onClickModelPrint:" + this._printing_file);
 
             // const json = {
             //     command: 'print',
@@ -135,30 +174,23 @@ class SDBrowser extends Component {
             // };
             // Component._ws.sendJson(json);
 
-            const json = {
-                command: 'pub',
-                data: {
-                    print: {
-                        command: "project_file",
-                        sequence_id: 0,
-                        param: "Metadata/plate_1.gcode",
-                        project_id: "0",
-                        profile_id: "0",
-                        subtask_id: "0",
-                        task_id: "0",
-                        subtask_name: this._sdcard_model_list[p]["3mf"].replace(".gcode.3mf", ""),
-                        url: "ftp://" + this._sdcard_model_list[p]["3mf"],
-                        bed_type: "auto",
-                        timelapse: true, //self._settings.get_boolean(["timelapse"]),
-                        bed_leveling: true, //self._settings.get_boolean(["bed_leveling"]),
-                        flow_cali: true, //self._settings.get_boolean(["flow_cali"]),
-                        vibration_cali: true, //self._settings.get_boolean(["vibration_cali"]),
-                        layer_inspect: true, //self._settings.get_boolean(["layer_inspect"]),
-                        use_ams: true, //self._settings.get_boolean(["use_ams"])
-                    },
+            var modal = document.getElementById("modal-print");
+            modal.style.display = "block";
+
+            var close_btn = document.getElementsByClassName("modal-close")[0];
+            close_btn.onclick = function() {
+                modal.style.display = "none";
+            }
+            // When the user clicks anywhere outside of the modal, close it
+            window.onclick = function(event) {
+                if (event.target == modal) {
+                    modal.style.display = "none";
                 }
-            };
-            Component._ws.sendJson(json);
+            }
+
+            document.getElementById("print_modal_model_name").innerText = this._printing_file;
+            document.getElementById("print_modal_model_png").setAttribute('src', "sd/image/" + printing_file_png);
+            document.getElementById("print_modal_start").onclick = this.startPrint.bind(this);
         }
         this.onClickPopupCancel();
     }
