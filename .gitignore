@@ -14,3 +14,5 @@ design/project/*.py
 data/sdcard/
 data/sd/
 data/config.json
+.vscode/extensions.json
+.vscode/launch.json
