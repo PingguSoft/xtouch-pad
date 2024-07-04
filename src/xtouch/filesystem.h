@@ -63,7 +63,8 @@ DynamicJsonDocument xtouch_filesystem_readJson(fs::FS &fs, const char *filename,
         ConsoleError.println(filename);
         if (defaultsToArray)
         {
-            return doc.createNestedArray();
+            // return doc.createNestedArray();
+            return doc;
         }
         else
         {

@@ -48,7 +48,8 @@ void loadScreen(int screen)
     if (current != NULL)
     {
         lv_obj_clean(current);
-        lv_obj_del(current);
+        // do not delete active screen
+        // lv_obj_del(current);
     }
 
     switch (screen)

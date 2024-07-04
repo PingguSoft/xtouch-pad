@@ -71,7 +71,8 @@ void xtouch_loadTouchConfig(XTouchPanelConfig &config)
 
 void xtouch_saveTouchConfig(XTouchPanelConfig &config)
 {
-    StaticJsonDocument<512> doc;
+    // StaticJsonDocument<512> doc;
+    DynamicJsonDocument doc(512);
     doc["xCalM"] = config.xCalM;
     doc["yCalM"] = config.yCalM;
     doc["xCalC"] = config.xCalC;
